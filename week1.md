@@ -1,40 +1,48 @@
 ## Web-sovellusten toimintaperiaatteita
 
 
-The idea behind a Web application is simple. Users open a browser and write the page URL they want into the address line, for instance http://www.cs.helsinki.fi/opiskelu/index.html. The first part of the URL, in this case www.cs.helsinki.fi is usually the DNS name, which helps us to identify the IP address of the server of the www-page. The browser sends a page request to the server Web using the GET-method of the HTTP protocol. If the address is correct, the user who sent the page request has the right to the resources defined in the URL path (for instance opiskelu/index.html), the server returns to the browser a _status code_ 200 and the page content in HTML format. The browser renders the page to the user. If the page does not exist, the server returns a status code 404 to the browser, which tells of a mistake.
+The idea behind a Web application is simple. Users open a browser and write the page URL they want into the address line, for instance https://www.cs.helsinki.fi/u/mluukkai/. The first part of the URL, in this case www.cs.helsinki.fi is usually the DNS name, which helps us to identify the IP address of the server of the www-page. The browser sends a page request to the web server using the GET-method of the HTTP protocol. If the address is correct, the user who sent the page request has the right to the resources defined in the URL path (for instance u/mluukkai), the server returns to the browser a _status code_ 200 and the page content in HTML format. The browser renders the page for the user. If the page does not exist, the server returns a status code 404 to the browser, which tells of a mistake.
 
-The page returned by the server can be __static__, that is "manually" written down into a HTML file which is located in the server. Also, it can be __dynamic__: for instance, it can be generated while the request is made, based on the data in the server database. For instance, the course list at the page http://www.cs.helsinki.fi/courses is read in the database and the html code rendering the page is created again every time we access the page, based on the list of the courses available in the database at that time.
+The page returned by the server can be __static__, that is "manually" written down into a HTML file which is located on the server. Also, it can be __dynamic__: for instance, it can be generated while the request is made, based on the data in the server database. For instance, the course list at the [courses page](https://studies.helsinki.fi/opintotarjonta?organisation=hy-org-116716376&page=0&period=hy-university-root-id%2F2022%2F0%2F1&searchText=&studyYear=2022) is read in the database and the html code rendering the page is created again every time we access the page, based on the list of the courses available in the database at that time.
 
-Sometimes, the path direction of the www-page information changes and the date are sent from the server to the browser. Typically, there will be a form on the page where the user can enter the information for the server. The HTTP protocol provides us with the POST method to send information (the HTTP GET method can be used to send information, too). For instance, you can see the search form "Hae tältä sivustolta" in the corner on the top right of the www-pages of the departnment, which allows users to send data to the Web server. When the users presses on "hae" (search), the browser sends a POST-method request to the server http://www.cs.helsinki.fi. The method posts the string the user wrote into the form. Most commonly, the server answers to the calls made by posting the form and returning a new HTML file, which the browser renders to the user. (In fact, POST-calls are not usually answered by returning an HTML page, but we are rederected to the page which contains the HTML code which has to be rendered, see http://en.wikipedia.org/wiki/Post/Redirect/Get, we'll speak more on the topic in the second week.)
+Sometimes, the direction of information changes on the www-page and data is sent from the browser to the server. Typically, this happens when the page contains a form where the user can enter information that will be sent to the server. The HTTP protocol provides a POST method for sending information (the HTTP GET method can be used to send information, too).
+
+For instance, clicking the magnifying glass ("Haku") in the top right corner of the courses page,  we can open a form which allows users to send data to the Web server. When the users presses on "hae" (search), the browser sends a POST-method request (containing the string the user has written on the form) to the server http://www.cs.helsinki.fi. Most commonly, the server answers to form based POST requests by returning a new HTML file, which the browser then renders for the user. (In fact, POST requests are not usually answered by returning an HTML page, but we are redirected to another page which contains the HTML code which has to be rendered, see http://en.wikipedia.org/wiki/Post/Redirect/Get, we'll speak more on the topic in the second week.)
 
 In addition to the address, the data (that is, the message body) and the [statuscodes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes), HTTP requests also containtain the __headers__ data (see http://en.wikipedia.org/wiki/List_of_HTTP_header_fields). They help to make requests and their answers more specific, for instance by defining what kind of data the browser is ready to receive.
 
 With the words Web Server Programming, we refer to how the Web server creates the Web pages to show to the browser and handles the data the user enters with the help of a form.
 
-Nowadays, Web pages are not simple HTML. HTML is used to represent the page structure and contants. The page design is usually affected by using files like CSS, see http://en.wikipedia.org/wiki/Cascading_Style_Sheets. Recently, there's been a trend to provide the www-page with more and more code which has to be executed in the __browser__, which is made in Javascript. It's a matter of opinion what has to be created in the browser and what in the server. For instance, suppose the www-page contains a form to log in into the website. It's clear that password and user name have to be checked by the server. Differently, we can allow the browser Javascript to check whether the user name box is empty when they try to log in. In such situations it is useless to bother the browser at all, because the log in would never succeed.
+Nowadays, Web pages are not just simple HTML. HTML is used to represent the page structure and contents. The page design is usually affected by using files like CSS, see http://en.wikipedia.org/wiki/Cascading_Style_Sheets. Recently, there's been a trend to provide the www-page with more and more code is executed in the __browser__, which is made in Javascript. It's a matter of opinion what would be best handled by the browser and what by the server. 
 
-The latest trends have been pushing towards Web applications which remind of normal desktop applications as much as possible. A good example is Google drive, which "imitates" Word/Openoffice functionality as accurately as possible. In such applications, the largest part of the application logic is realised in the browser. In any case, we always need the functionality executed in the server, otherwise information can not be shared by users who use the application in different places.
+For instance, suppose the www-page contains a form to log in into the website. It's clear that password and user name have to be checked on the server. On the other hand, we can allow the browser Javascript to check whether the user name box is empty when they try to log in. In such situations it is useless to bother the browser at all, because the log in would never succeed.
 
-When we retrive data from the server in modern applications, the server does not necessary return ready-made HTML-pages. On the contrary, it returns raw data (usually in json format); these data will be handled by the Javascript code that is executed in the browser and will be displayed on the page. In this way, only the required part of the website will update.
+The latest trends have been pushing towards Web applications which mimic normal desktop applications as much as possible. A good example is Google Drive, which "imitates" Word/Openoffice functionality as accurately as possible. In such applications, the largest part of the application logic is realised in the browser. In any case, we always need some functionality executed in the server, otherwise information can not be shared by users who use the application in different places.
 
-In this course, we focus almost completely on implementing the functionality on the Web-application side. In weeks 6 and 7, we take a look at a couple of examples of functionality which is implemented with Javascript as well as of application design through CSS files.
+When we retrive data from the server in modern applications, the server does not necessary return ready-made HTML-pages. On the contrary, it returns raw data (usually in json format); these data will be handled by the Javascript code that is executed in the browser andthen displayed on the page. In this way, only the required part of the website will update.
 
-All the exercises of the course are contained in this material. Except for the following exercise, all the others have to be returned using github. In addition to returning them with github, we keep track of the homework by marking the exercises in the appropriate system. We'll speak more about this at the end of the page. Let's start with the first exercise, in any case.
+In this course, we focus almost completely on implementing the functionality on the Web-application server side. In weeks 6 and 7, we take a look at a couple of examples of functionality which is implemented with Javascript as well as at application design through CSS files.
+
+The course [Full Stack Web Development](https://fullstackopen.com/en/) on the other hand focuses mainly on browser side functionality.
+
+# Course Material and Exercises
+
+All the exercises of the course are contained in this material. Except for the following exercise, all the others have to be returned using github. In addition to returning them through github, we keep track of the homework by marking the exercises in the course exercise tracking system. We'll speak more about this at the end of the page. Let's start with the first exercise.
 
 > ## Excercise 1: HTTP in action
 >
 > The browsers' Web developer tools are extremely useful when we implement the functionality on the browser. The most friendly browser to Web developers is Chrome, and we assume here that you are using Chrome. Other browsers also have similar functionality.
 >
-> Open Chrome developer tool by pressing Shift, Control and i (or F12). You also have access to the developer tool through the Tools menu. Open the Network tab. The tab shows the HTTP requests which are sent by the browser and the server answers.
+> Open Chrome developer tool by pressing Shift, Control and i (or F12). You also have access to the developer tools through the Tools menu. Open the Network tab. The tab shows the HTTP requests which are sent by the browser and the server's answers.
 >
-> Copy-paste http://www.cs.helsinki.fi/courses into the browser address line and press enter.
-> You see the GET-requests which have been caused to charge the page. Open it (clicking on the call) and inspect what is that happens with the call. Have a special look at the headers and the response part. The Developer tools show request headers and response headers separately.
+> Copy-paste https://studies.cs.helsinki.fi/exampleapp/notes into your browser address line and press enter.
+> You see the GET-request triggered by the loading of the page. Open it (click the request) and inspect what is sent with a request. Have a special look at the headers and the response part. The developer tools show request headers and response headers separately.
 >
-> Each request returns HTML code which is shown in the response tab. The code contains references to files like CSS, Javascript, as well as pictures. When it comes to rendering the page, the browser retrieves each of these with their own GET-request.
+>The request returned HTML code which is shown in the response tab. The code contains references to files like CSS, Javascript, as well as pictures. While rendering the page, the browser retrieves each of these with their own GET-request.
 >
-> Keep open the same networking tab. Clear the tab by pressing on the symbol which looks like a no entry sign, on the left. Write something in the "hea tältä sivustolta" (search in this page) form and press on "hea" (search). The form information is sent through the POST-method of the HTTP-protocol.
+> Keep open the same networking tab. Clear the developer tools tab by pressing on the symbol which looks like a no entry sign, on the left. Write something in the text field on the page and press "Save". The teatx field is creted as a HTML form. The form information is sent through the POST-method of the HTTP-protocol.
 >
-> Inspect the POST-request contents (on the top of the list). You'll see that the request was answered with a status code 302, which means that the server __redirects__ the browser, that is the browser was asked to go to the address defined in the response headers. The answer to a POST-request does not contain any HTML code which the browser could render for the user. Right after a POST request, the browser does automatically a GET call for the address contained in the __Location__ header of the POST reponse. Only the pages which are returned in answer to the request caused by this redirection are rendered to the users.
+> Inspect the POST request's contents (on the top of the list). From the _Payload_ tab you can find _Form data_, that is, the data sent along wiht the request. You'll see that the request was answered with a status code 302, which means that the server __redirects__ the browser, that is the browser was asked to go to the address defined in the response headers. The answer to the POST-request does not contain any HTML code which the browser could render for the user. Right after the POST request, the browser does automatically a GET request for the address contained in the __Location__ header of the POST reponse headers. Only the page which is returned in answer to the request caused by this redirection is rendered for the users.
 >
 > Spend some time inspecting the HTTP protocol communication caused by the requests to other pages.
 
@@ -42,21 +50,21 @@ All the exercises of the course are contained in this material. Except for the f
 
 In this course, we use Ruby on Rails application framework to implement Web applications.
 
-Rails applications comply conform to the MVC model (or WebMVC, which is slightly different from the original MVC). The idea behind this model is that the application data and logic (Model), the visual composition (View) and the functions coordination (Controller) are separated into clearly defined parts. Almost all modern Web frameworks follow the MVC principle. In addition to MVC, modern Web applications can also be characterised by Multilayered architecture, Service-oriented architecture (SOA), and [Microservices architecture](http://martinfowler.com/articles/microservices.html) which is a hot topic nowadays.
+Rails applications comply with the [MVC model](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) (or WebMVC, which is slightly different from the original MVC). The idea behind this model is that the application data and logic (Model), the visual composition (View) and the functions coordination (Controller) are separated into clearly defined parts. Almost all modern Web frameworks follow the MVC principle.
 
-Let's take a look at what happens when users go to a Web page which was implemented with Rails, suppose the URL be http://wad-ratebeer.herokuapp.com//breweries, that is the sample application page which we are going to make during our course. The page lists all the breweries which our sample application knows.
+Let's take a look at what happens when users go to a Web page which was implemented with Rails, suppose the URL be https://ratebeer22.fly.dev/breweries, that is the sample application page which we are going to make during our course. The page lists all the breweries which our sample application knows.
 
 ![mvc-kuva](http://www.cs.helsinki.fi/u/mluukkai/rails_mvc.png)
 
-1. Once users write the URL into the browser address line, the browser makes an HTTP GET-request to the server wad-ratebeer.herokuapp.com
+1. Once users write the URL into the browser address line, the browser makes an HTTP GET-request to the server ratebeer22.fly.dev
 
-2. The Web server sowftwer which runs on the server (for instance, Apache) guides the request to the address, to the registered Rails application. The application finds out what application _controller_ is registered to take care of the GET calls for the resources of the breweries. This phase is called internal routing of the Rails application, which means that we are looking for "a way to handle the request".
+2. Often a web server software is run on the server (for instance, Apache, Nginx) This software operates as a proxy server  and  guides requests to the Rails application registered at that address. The application finds out what application _controller_ is registered to take care of the GET calls for the resources of the breweries. This phase is called internal routing of the Rails application, which means that we are looking for "a way to handle the request". It is also possible to bypass the proxy server. In this case the Rails application itself is the first to receive the request. However, a proxy server is often used as a "light layer" to e.g. enhance performance and distribute request to multiple servers.
 
-3. When it finds out the right controller (in our example the controller which takes care of the breweries) and its method, the application calls the method. The method is given as parameter the data which had possibly been retrieven with the HTTP request. The controller takes care of the actions concerning the operation. The executions of these actions usually requires method calls to some _models_, which contain the application data and logic.
+3. When it finds out the right controller (in our example the controller which takes care of the breweries) and the method handling its requests, the application calls the method. The method is given as parameter the data which had possibly been attached to the HTTP request. The controller takes care of the actions concerning the operation. The executions of these actions usually requires method calls to some _models_, which contain the application data and logic.
 
 4. In our example, the controller asks from the model class which takes care of the breweries to load the list of all breweries from the database.
 
-5. Once it has retrieven the list of all beers, the controller asks the beer list _view_ to render itself. 
+5. Once it has retrieved the list of all breweries, the controller asks the brewery list _view_ to render itself. 
 
 6. The view renders itself, that is, the controller gets an HTML page listing all the beers.
 
@@ -64,50 +72,57 @@ Let's take a look at what happens when users go to a Web page which was implemen
 
 8. The Web server returns the generated HTML page and its headers to the browser
 
-In the MVC model, the so called models are usually objects and their status is saved in the database. The database is handled in an abstract way, meaning that rarely there is the need to write SQL language and database configurations at the level of the program code. The details make use of the Object Relational Mapping (ORM) library. The ORM used in Rails is called ActiveRecord, which works a bit differently than EclipseLink and Hibernate, which are based on the JPA standard and might be better know to Java users.
+In the MVC model, the so called models are usually objects and their state is saved to the database. The database is usually handled in an abstract way, meaning that rarely there is the need to write SQL language and database configurations at the level of the program code. The details are handled by the Object Relational Mapping (ORM) library. The ORM used in Rails is called ActiveRecord, which works a bit differently than EclipseLink and Hibernate, which are based on the JPA standard and might be better know to Java users.
 
 Rails is strongly based on the __convention over configuration__ principle, which means that Rails aims at minimizing the need of configuration by defining a group of conventions for file names and their hierarchic location, among the other things. We will see soon what the CoC principle means for the application developer, in practice. In fact, Rails does allow us to break the conventions, but it such case, the developer has to configure things by hand, to some extent.
 
-Creating applications on Rails requires some kind of Ruby knowledge. Ruby is a dynamic-type object language which makes it possible for functional coding. In other words, Ruby's code is never translated. On the contrary, the interpreter executes the code command after command. Because there is no translator, syntax mistakes appear only when the code is running, which is in contrast with languages which have to be translated. Modern developer environments help us a little, providing us with some kind of "syntax proofreading" on the go, but the developer environment help is not hardly as good as it is in Java, for instance.
+Creating applications on Rails naturally requires some kind of Ruby knowledge. Ruby is a dynamic-type object language which also enables functional programming. In other words, Ruby's code is never compiled. On the contrary, the interpreter executes the code command after command. Because there is no compiler, syntax mistakes appear only when the code is being executed, which is in contrast with languages which have to be transpiled. Modern developer environments help us a little, providing us with some kind of "syntax proofreading" on the go, but the developer environment help is not nearly as good as it is in Java, for instance.
 
 > ## Excercise 2: Introduction to Ruby
 >
 > Do/go through the following
-> * http://tryruby.org/levels/1/challenges/0
 > * http://www.ruby-lang.org/en/documentation/quickstart/
+>
+> If you have the time and energy, you can also have a look at
+> * http://tryruby.org/levels/1/challenges/0
 
+## Command line
+Web development with Rails requires familiarity with working from the command line. If your routine is lacking, consider freashing up your skills at this point.  
 ## Passing the course
 
-The course structure is slightly different from the course standard of the department. In the course, we only make one application, the same application will be created both while you follow the course material and when you do the exercises. It's not possible to read the course material alone; while you go through the material, you have to develop your application, otherwise it will be impossible to pass the exercises. In other words, you have to follow the course assiduously all the time.
+The course structure is slightly different from the course standard of the department. In the course, we only make one application, the same application will be worked on in both the course material and the exercises. It's not possible to read the course material alone; while you go through the material, you have to develop your application alongside, otherwise it will be impossible to pass the exercises. 
 
-Every week, we publish a sample answer for the previous week after the deadline (on Sunday at 23.59). The following week, you can continue from your own application or use the sample answer from the previous week as a model.
+The course is split into seven "weeks". However, the course has only one deadline.
 
-A part of the exercises is compulsory, in practice, otherwise you stop for the week. Others are optional, and they regard the implementation of non-critical features. Because we expect to find a part of these features the following week, you'd better start from the sample answer or copy paste the useful parts from it, if you haven't done all the exercises of the week.
+Each week is turned in separately in the course submission system. Sfter submitting a week you get access to that week's example answer. The following week you can continue from where you left at or take the example answer as your starting point. 
+
+A part of the exercises are in practice compulsory, skipping them will prevent you from advancing on the week. Others are optional, and they regard the implementation of non-critical features. Because we expect to find a part of these features the following week, you'd better start from the sample answer or copy paste the useful parts from it, if you haven't done all the exercises of the week.
 
 ## Setting up Rails
 
-Guidelines to set up rails at https://github.com/mluukkai/WebPalvelinohjelmointi2015/wiki/railsin-asennus
+Guidelines to set up rails at https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/railsin_asentaminen.md
 
 ## Creating an application
 
-In the course, we create a service for beer aficionados. They should be able to scan the breweries, the beers, the beer types, as well as to evaluate the beers they have tasted (that is, to give a vote to beers according to their personal taste). After week 7, the application should look more or less like the following: http://wad-ratebeer.herokuapp.com/
+In the course, we create a service for beer aficionados. They should be able to scan the breweries, the beers, the beer types, as well as to evaluate the beers they have tasted (that is, to give a vote to beers according to their personal taste). After week 7, the application should look more or less like the following: https://ratebeer22.fly.dev/
 
-Rails provides various generators for application developers (see http://guides.rubyonrails.org/generators.html), and they make it easy to generate a functional file background which is almost ready.
+Rails provides various generators for application developers (see http://guides.rubyonrails.org/generators.html), and they make it easy to generate templete files that contain some ready-made functionalities.
 
 We create a new Rails application with the generator new. Go to the suitable directory and create an application called ratebeer using the following command in the command line:
 
     rails new ratebeer
 
-This generates the ratebeer directory which will contain our application.
+This generates the _ratebeer_ directory which will contain our application.
 
 Attention: once you continue with the course, it will be convenient that you make a git reposition of the created directory. This means that you should not place the application inside any other git reposition!
 
-Go to the folder. Use the command <code>tree</code> to find out what the new generator brought about. Mind that the tree command is not installed by default in OSX. You can install it with [homebrew](http://brew.sh/) using the command <code>brew install tree</code>.
+Go to the directory with _cd ratebeer_.
 
-You see a hint of what happens below:
+Use the command <code>tree</code> to find out what the new generator brought about. Mind that the tree command is not installed by default in OSX. You can install it with [homebrew](http://brew.sh/) using the command <code>brew install tree</code>.
+
+You see an abridged structure below:
 
 <pre>
-  ratebeer  tree
 .
 |-- Gemfile
 |-- Rakefile
@@ -145,15 +160,9 @@ Start the application with the following command
 
 You can also use the short form rails s
 
-The command starts WEBrick HTTP server (see http://en.wikipedia.org/wiki/WEBrick) by default, which begins to execute the directory Rails application in the local computer (that is, in localhost) in the port 3000.
+The command starts a Puma HTTP server (see https://github.com/puma/puma) by default, which begins to execute the  Rails application he directory. The application runs in the local computer (that is, in localhost) in the port 3000.
 
-Attention: you may run into problems at this point, if you haven't installed a Javascript execution environment in your computer. One way to overcome the problem is adding the following line to the Gemfile (or you can remove the ashtag # before the line which is written ready in the file):
-
-    gem 'therubyracer', platforms: :ruby
-
-and execute the following command from the command line <code>bundle install</code>
-
-Try to check that theapplication starts by browsing the following address [http://localhost:3000](http://localhost:3000) että sovellus on käynnissä.
+Try to check that the application starts by browsing the following address [http://localhost:3000](http://localhost:3000).
 
 ATTENTION: **While you read the document, the idea is that you execute in your application the same actions we do in our sample application**. A part of the things we implement are designed as homework – as it is with the following point. A part of the instructions is compulsory anyway, so that you may proceed with the material.
 
@@ -161,11 +170,11 @@ ATTENTION: **While you read the document, the idea is that you execute in your a
 >
 > We save our course application in the Github repository.
 >
-> Create a git repository for your application directory (that is, for you created with the command new) by executing the command <code>git init</code> in the directory.
+> The command _rails new_ should by default have created a git repository out the new application directory. If not, go to the newly created directory and run <code>git init</code>.
 >
 > Create a repository in Github for the application and join it with the repository of your application directory as remote repository.
 >
-> You find git and Github guidelines at https://github.com/mluukkai/WebPalvelinohjelmointi2014/wiki/versionhallinta
+> You find (Finnish) git and Github guidelines at https://tkt-lapio.github.io/ and https://ohjelmistotekniikka-hy.github.io/python/viikko1
 >
 > At the end of this document you find guidelines to make the final submission
 
@@ -174,49 +183,49 @@ Let's start with building our application. We want to start with breweries, that
 * we create a database table for breweries
 * we implement the funtionality to list all the breweries
 * we implement the funtionality to add a new brewery
-* while we are at it, we implement the functionality to modify the information and delete breweries
+* While doing this, we additionally gain the functionality to modify and delete breweries
 
-Conventionally, (almost) every 'thing' we save in Rails should have their own model class, controller class, as well as a set of files that make the view.
+Conventionally, in Rails (almost) every 'thing' we save should have their own model class, controller class, as well as a set of files that make the view.
 
-We create all this using the Rails' ready-made scaffold generator. Every brewery have a name (string) and foundation year (integer). Let's give the following command from the command line (making sure you are in the folder which contains the application):
+We create all this using the Rails' ready-made scaffold generator. Every brewery has a name (string) and foundation year (integer). Let's give the following command from the command line (making sure you are in the folder which contains the application):
 
     rails generate scaffold brewery name:string year:integer
 
-A number of files is born. The most important are:
-* app/models/Brewery.rb
+A number of files are generated. The most important are:
+* app/models/brewery.rb
 * app/controllers/breweries_controller.rb
 * app/views/breweries/index.html.erb
 * app/views/breweries/show.html.erb
 * There should be few other files in the views directory in addition to these
 
-Rails' scaffold generator creates all the base for all required files, naming and placing them according to Rails conventions.
+Rails scaffold generator creates templates for all required files, naming and placing them according to Rails conventions.
 
-We created the code with the generator <code>rails g scaffold brewery name:string year:integer</code>. In the generator we wrote the thing we wanted to create – that is, the brewery database table and its features singularly (brewery). According to Rails name conventions, we have generated:
+We created the code with the generator <code>rails g scaffold brewery name:string year:integer</code>. In the generator we stated the thing we wanted to create – that is, the brewery database table and its features singularly (brewery). According to Rails name conventions, this generates:
 * a database table called breweries
 * a controller called BreweriesController (the file breweries_controller.rb)
-* the model, that is to say, the class Brewery which represents the brewery (file Brewery.rb)
+* the model, that is to say, the class Brewery which represents the brewery (file brewery.rb)
 
-At the beginning it might look a bit confusing to understand when we use singular and when plural, how files are named and what their position is. Conventions will gradually make roots and start to look a more logical.
+At the beginning it might be a bit confusing to understand when we use singular and when plural, how files are named and where they are located at. Conventions will gradually become more familiar and start to look a more logical.
 
-If the application is not running already, let's start it again using the command <code>rails s</code>. Attention: rarely you need to restart your application in Rails. For instance, you don't need to run it again to modify and add code.
+If the application is not running already, let's start it again using the command <code>rails s</code>. Attention: rarely you need to restart your application in Rails. For instance, you don't need to restart it after modifying and adding code.
 
 According to Rails conventions, all the beers are displayed at the address breweries. Let's go to this page, then:
 
     localhost:3000/breweries
 
-This will cause an error, anyway:
+This will however cause an error:
 
 ```ruby
 Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=development' to resolve this issue.
 ```
 
-The cause is that the *database migration* which takes care of creating adatabase recording the breweries is left unrun.
+The cause is that the *database migration* which takes care of creating a database recording the breweries is left unrun.
 
 Scaffold execution creates a file with a peculiar name
 
     db/migrate/20150116173907_create_breweries.rb
 
-This is the so called migration file, which contains guidelines to created the breweries database table. We can create the database table by executing the migration and giving the command <code>rake db:migrate</code>:
+This is the so called migration file, which contains instructions to create the breweries database table. We can create the database table by executing the migration and giving the command <code>rake db:migrate</code>:
 
 ```ruby
 ➜  ratebeer  rake db:migrate
@@ -226,11 +235,11 @@ This is the so called migration file, which contains guidelines to created the b
 == 20150111131426 CreateBreweries: migrated (0.0012s) =========================
 ```
 
-Tge database table which records the breweries is created now, and the application should be working.
+The database table which records the breweries is created now, and the application should be working.
 
-Refresh the page which shows the breweries [http://localhost:3000/breweries](http://localhost:3000/breweries) and add three breweries using the database.
+Refresh the page which shows the breweries [http://localhost:3000/breweries](http://localhost:3000/breweries) and add three breweries to the database using the existing page.
 
-As we can see, Rails scaffold produced quite some ready-made functionality. The functionality which was produced with Scaffold is a good way to get started quickly. Scaffolds are no silver bullet, however. The bigger part of the ready-made functionality we created with scaffolds will be replaced with time the code we'll write on our own. During the course and starting from week 2, we'll create functionaly completely by hand, which means that the scaffolds' authomatically generated code will become familiar.
+As we can see, Rails scaffold produced quite a lot of ready-made functionality. The functionality which was produced with scaffold is a good way to get started quickly. Scaffolds are no silver bullet, however. The bigger part of the ready-made functionality we created with scaffolds will be replaced code we'll write on our own. During the course and starting from week 2, we'll create functionaly completely by hand, which means that the scaffolds' authomatically generated code will become familiar.
 
 **Attention:** you can delete the files created with a Rails generator by using the command *destroy*:
 
@@ -242,50 +251,59 @@ If you have already executed the migration and you notice that the code created 
 
 ## The Console
 
-One of the most important instruments for a Rails application developer is the Rails console. The console is an interactive command interpreter, which comes together with the application database. 
+One of the most important instruments for a Rails application developer is the Rails console. The console is an interactive command interpreter, and is also connected to the application database. 
 
 Make sure you are in the application folder and open the console with the command
 
     rails c
 
-If the console gives an error containing the text "cannot load such file -- readline (LoadError), this should be corrected at least in Ubuntu 13.10 by setting up libreadline-dev and translating ruby again
 
-    apt-get install libreadline-dev
-
-    rbenv install 2.2.0
-
-In case this does not help still, add the following line to the Gemfile
-
-    gem 'rb-readline'
-    
-and run <code>bundle install</code> from the command line.
-
-Also run yourself all the following commands:
+Do all the following commands by yourself as well (commands are the strings after '>'):
 
 ```ruby
-2.0.0-p451 :001 > Brewery.all
-  Brewery Load (1.3ms)  SELECT "breweries".* FROM "breweries"
- => #<ActiveRecord::Relation [#<Brewery id: 1, name: "Schlenkerla", year: 1687, created_at: "2015-01-11 13:17:06", updated_at: "2015-01-11 13:17:06">, #<Brewery id: 2, name: "Koff", year: 1897, created_at: "2015-01-11 13:17:27", updated_at: "2015-01-11 13:17:27">, #<Brewery id: 3, name: "Malmgård", year: 2001, created_at: "2015-01-11 13:17:37", updated_at: "2015-01-11 13:17:37">]>
-2.0.0-p451 :002 > Brewery.count
+irb(main):001:0> Brewery.all
+   (4.2ms)  SELECT sqlite_version(*)
+  Brewery Load (2.7ms)  SELECT "breweries".* FROM "breweries"
+=>
+[#<Brewery:0x00007f4b628be9a8
+  id: 1,
+  name: "Weihenstephan",
+  year: 1040,
+  created_at: Mon, 08 Aug 2022 14:39:47.235924000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 14:39:47.235924000 UTC +00:00>,
+ #<Brewery:0x00007f4b62775d80
+  id: 2,
+  name: "Schlenkerla",
+  year: 1682,
+  created_at: Mon, 08 Aug 2022 14:40:11.159471000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 14:40:11.159471000 UTC +00:00>,
+ #<Brewery:0x00007f4b62775b00
+  id: 3,
+  name: "Sinebrychoff",
+  year: 1879,
+  created_at: Mon, 08 Aug 2022 14:40:35.385354000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 14:40:35.385354000 UTC +00:00>]
+irb(main):002:0> Brewery.count
+irb(main):002:0> Brewery.count
    (0.2ms)  SELECT COUNT(*) FROM "breweries"
- => 3
-2.0.0-p451 :003 > Brewery
- => Brewery(id: integer, name: string, year: integer, created_at: datetime, updated_at: datetime)
-2.0.0-p451 :004 >
+=> 3
+irb(main):003:0> Brewery
+=> Brewery(id: integer, name: string, year: integer, created_at: datetime, updated_at: datetime)
+irb(main):004:0>
 ```
 
-The command <code>Brewery.all</code> shows all the breweries in the database. The console shows first the SQL request which was caused by database operation and then all the brewery objects retrieven from the database. The command <code>Brewery.count</code> shows the amount of breweries in the database.
+The command <code>Brewery.all</code> shows all the breweries in the database. The console shows first the SQL request which was caused by the database operation and then all the brewery objects retrieved from the database. The command <code>Brewery.count</code> shows the amount of breweries in the database.
 
-We retrieve the connection breweries–database table through the class <code>Brewery</code>. Rails' scaffold generator created the class code.
+We create a connection to the breweries database table through the class <code>Brewery</code>. Rails scaffold generator created the class code.
 
-If you have a look at what the class (that is, the file app/models/brewery.rb) looks like, you'll see that it contains only a hint of code:
+If you have a look at what the class (that is, the file app/models/brewery.rb) looks like, you'll see that it contains very little code:
 
 ```ruby
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
 end
 ```
 
-As you saw from the previous console session, the class has also got the methods all and count. The class receives these two and a great amount of other methods from the class it __inherited__ which is called <code>ActiveRecord::Base</code>.
+However, as you saw from the previous console session, the class does have the methods _all_ and _count_. The class receives these two and a great amount of other methods from the class it __inherited__ which is called <code>ApplicationRecord</code>. ApplicationRecord itself inherits its functionalities from class <code>ActiveRecord</code>.
 
 To tell it in the words of Rails guide (http://guides.rubyonrails.org/active_record_basics.html):
 
@@ -293,15 +311,15 @@ To tell it in the words of Rails guide (http://guides.rubyonrails.org/active_rec
 Active Record is the M in MVC - the model - which is the layer of the system responsible for representing business data and logic. Active Record facilitates the creation and use of business objects whose data requires persistent storage to a database. It is an implementation of the Active Record pattern (https://en.wikipedia.org/wiki/Active_record_pattern) which itself is a description of an Object Relational Mapping system.
 </blockquote>
 
-In short, the idea behind ActiveRecord is that each database table (for instance, breweries) is connected to their own class (Brewery) in the code. The class provides methods as __class methods__, which are used to handle the database. When we retriev a line of data from the database (the information of one brewery), a class instance of it is created (that is, a Brewery object).
+In short, the idea behind ActiveRecord is that each database table (for instance, breweries) is connected to their own class (Brewery) in the code. The class provides methods as __class methods__, which are used to handle the database. When we retrieve a row of data from the database (the information of one brewery), a class instance of it is created (that is, a Brewery object).
 
-ActiveRecord classes have a double role, with the help of class methods (which are called in Ruby through the class name like <code>Brewery.all</code>) we handle a consistent part of the database operations, for instance, the database requests. The data saved in the database are mapped as instances of ActiveRecord classes.
+ActiveRecord classes have a double role, with the help of class methods (which are called in Ruby through the class name like <code>Brewery.all</code>) we handle most database operations, e.g., database requests. Rows saved in the database are mapped as instances of ActiveRecord classes.
 
-Let's continue with our experiments on consoles. Let us create a new brewery:
+Let's continue with our experiments on console. Let us create a new brewery:
 
     Brewery.new(name:"Stadin Panimo", year:1997)
 
-As you see, Rails constructors are called in a different way than in Java, for instance. Notice that you don't have to use the brakets in constructor or method calls. The previous call could have been like
+As you see, Rails constructors are called in a different way than in e.g. Java. Notice that you don't have to use the brakets in constructor or method calls. The previous call could have been written
 
     Brewery.new name:"Stadin Panimo", year:1997
 
@@ -312,31 +330,31 @@ We save objects into our database in the following way:
     b = Brewery.new name:"Stadin Panimo", year:1997
     b.save
 
-The object was created and saved into a variable <code>b</code>, then we called the object method <code>save</code>. Notice that you don't need (and you can not) define the variable type, because Ruby is a dynamically typed language!
-Save is an object method inherited from ActiveRecord, which saves our object in the database – as you might have guessed.
+The object was created and saved into a variable <code>b</code>, then we called the object method <code>save</code>. 
+Save is an object method inherited from ActiveRecord, which saves our object in the database – as you might have guessed. Notice that you don't need (and you can not) define the variable type, because Ruby is a dynamically typed language!
 
-You can also create and save the obect directly by using the class method create instead of new:
+You can also create and save an obect directly by using the class method create instead of new:
 
-    Brewery.create name:"Weihenstephan", year:1042
+    Brewery.create name:"Weihenstephan", year:1040
 
 When the object is created with the command <code>new</code>, we notice that the object contains fields whose value has not been defined:
 
 ```ruby
-2.0.0-p451 :004 > b = Brewery.new(name:"Stadin Panimo", year:1997)
+irb(main):007 > b = Brewery.new(name: "Stadin Panimo", year: 1997)
  => #<Brewery id: nil, name: "Stadin Panimo", year: 1997, created_at: nil, updated_at: nil>
 ```
 
 After we have saved the object, these fields also receive their values:
 
 ```ruby
-2.0.0-p451 :006 > b.save
-2.0.0-p451 :007 > b
- => #<Brewery id: 4, name: "Stadin Panimo", year: 1997, created_at: "2015-01-11 13:21:37", updated_at: "2015-01-11 13:21:37">
+irb(main):008 > b.save
+irb(main):009 > b
+ => #<Brewery id: 4, name: "Stadin Panimo", year: 1997, created_at: "2022-08-09 13:21:37", updated_at: "2022-08-09 13:21:37">
 ```
 
-As you might have guessed, object variables – or object fields – are connected to the columns of our database table. When an object is save into the database, the database genereates a primary key for the object automatically – the ID – as well as a couple of timestaps. The ID is unique for the beer that has just been created.
+As you might have guessed, object variables – or object fields – correspond to the columns of our database table. When an object is saved into the database, the database automatically generates a primary key for the object – the ID – as well as a couple of timestaps. The ID is unique for the brewery that has just been created.
 
-Check the situation now at the [www page](http://localhost:3000/breweries). The created breweries should be available on the page now.
+Check the situation now at the [web page](http://localhost:3000/breweries). The created breweries should be available on the page now.
 
 The calls of the methods <code>new</code> create <code>create</code> look a bit particular
 
@@ -346,9 +364,9 @@ In this case we have made use of Ruby's liberal approach to brackets. Using brac
 
     Brewery.new( name:"Stadin Panimo", year:1997 )
 
-The parameter has also got a particular format. It's an associative array indexed with symbols, that is to say, hash, see https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/rubyn_perusteita.md#hash-ja-symbolit
+The parameter has also got a particular format. It's an associative array indexed with symbols, that is to say, hash, see https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/rubyn_perusteita.md#hash-ja-symbolit
 
-As you can see from the link above, hashes are defined with curly brakets, like
+As you can see from the link above, hashes are defined with curly brackets, like
 
     { name:"Stadin Panimo", year:1997 }
 
@@ -356,9 +374,9 @@ In fact, the method call could be written
 
     Brewery.new( { name:"Stadin Panimo", year:1997 } )
 
-The method parameter hash does not require curly brakets in all the cases, and sometimes they are left out. If the method has various parameters, curly brakets are sometimes required.
+The method parameter hash does not require curly brackets in all the cases, and are often left out. If the method has various parameters, curly brackets are sometimes required.
 
-Attention: Ruby also have an optional syntax to define hashes, as it follows
+Attention: Ruby also have an optional syntax to define hashes, with it the previous command would be
 
     Brewery.new :name => "Stadin Panimo", :year => 1997
 
@@ -370,13 +388,13 @@ If you want to create structures or train to use Rails from console by hand, wit
 
 ActiveRecord provides us with various options to make database searches programmatically, without writing SQL, see http://guides.rubyonrails.org/active_record_querying.html
 
-Various exercises follow below, try them all from the console:
+Here are some examples, try them all from the console:
 
     Brewery.find 1       # returns an object whose ID is 1
 
-    b = Brewery.find 2   # returns an object whose ID is 2 and stores it into the variable b
-    b.year               # the value of the field year of the object saved in the variable b
-    b.name               # the value of the field name of the object saved in the variable b
+    b = Brewery.find 2   # returns an object whose ID is 2 and stores it into variable b
+    b.year               # the value of the field year of the object saved in variable b
+    b.name               # the value of the field name of the object saved in variable b
 
     Brewery.find_by name:"Koff"   # returns an object whose name is Koff
 
@@ -390,38 +408,44 @@ Various exercises follow below, try them all from the console:
     b.year                # the operation does not work because the method where returns a table which contains Koff
 
     t = Brewery.where name:"Koff"
-    t.first.year          # t.first same as t[0]
+    t.first.year          # t.first is same as t[0], the first element in the table
 
-More about Ruby tables at https://github.com/mluukkai/WebPalvelinohjelmointi2014/blob/master/web/rubyn_perusteita.md#taulukko
+More about Ruby tables at https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/rubyn_perusteita.md#taulukko
 
 Note that we left the brakets out of all the method calls: <code>Brewery.find 1</code> means the same as <code>Brewery.find(1)</code>
 
 ## Underscore
 
-The values returned by the previous method calls can be referenced with an underscore (the sign <code>_</code>). While you work with your console, this means that if you forget to store the outcome of a method call into a variable, you can retrieve that value using an underscore:
+The values returned by the previous method calls can be referenced with an underscore (the sign <code>_</code>). While you work with your console, this means that if you forgot to store the outcome of a method call into a variable, you can retrieve that value using an underscore:
 
 
 ```ruby
-2.0.0-p451 :013 > Brewery.where "year<1900"
+irb(main):013 > Brewery.where "year<1900"
 ```
 we forgot to save outcome into a variable... we'll use an underscore
 ```ruby
-2.0.0-p451 :014 > vanhat = _
-2.0.0-p451 :015 > vanhat.count
+irb(main):014 > vanhat = _
+irb(main):015 > vanhat.count
  => 3
-2.0.0-p451 :016 > vanhat.first
- => #<Brewery id: 1, name: "Schlenkerla", year: 1687, created_at: "2015-01-11 13:17:06", updated_at: "2015-01-11 13:17:06">
-2.0.0-p451 :017 >
+irb(main):016:0> vanhat.first
+=>
+#<Brewery:0x00007f4b622e1008
+ id: 1,
+ name: "Weihenstephan",
+ year: 1040,
+ created_at: Mon, 08 Aug 2022 14:39:47.235924000 UTC +00:00,
+ updated_at: Mon, 08 Aug 2022 14:39:47.235924000 UTC +00:00>
+irb(main):017 >
 ```
 
 > ## Exercise 4
 >
 > Read http://guides.rubyonrails.org/active_record_basics.html#crud-reading-and-writing-data
 >
-> Make all the following with a Rails console:
+> Do all the following with a Rails console:
 > * Create a brewery which is called "Kumpulan panimo", which was establish in the year 2012<br />
 > * Retrieve the brewery from the database using the method <code>find_by</code>, searching against brewery names<br />
-> * Change the founding year of the brewery to 2015 <br />
+> * Change the founding year of the brewery to 2018 <br />
 > * Retrieve the brewery with <code>find_by</code> again and make sure the change of founding year happened properly<br />
 > * Also make sure, that the value of the brewery field <code>updated_at</code> has changed, check that it is different from the <code>created at</code> value <br />
 > * Delete the brewery<br />
@@ -430,19 +454,19 @@ we forgot to save outcome into a variable... we'll use an underscore
 Let us take a look at the brewery code once more:
 
 ```ruby
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
 end
 ```
 
-As you see, we have access to all the fields of our brewery objects with a "dot notation" and we can set them new values in the same way:
+As you see, we have access to all the fields of our brewery objects with the "dot notation" and we can set them new values in the same way:
 
     b = Brewery.first         # retrieves the first added object from the database
     b.created_at              # shows the creation timestamp
-    b.name = "Sinebrychoff"   # changes the field value, attention: the change happens in the database only when you save the object!
+    b.name = "Sinebrychoff"   # changes the field value, attention: the change saved to the database only when you save the object!
 
-Rails' mistery is behind all this. In fact, Rails creates automatically set and get methods for all the fields of the database tables of the objects, so that the methods names are exactly the same as the database columns.
+Some Rails magic is behind all this. In fact, Rails creates automatically set and get methods for all the fields of the database tables of the objects, so that the methods names are exactly the same as the database columns.
 
-In our console, when we say <code>b.created_at</code> we really execute the <code>created_at</code> method which was automatically created in <code>Brewery</code> and which returns the value of the filed with the same name. Similarly, the command <code>b.name = "Sinebrychoff"</code> causes the execution of the <code>name=</code> method which changese the value of the <code>name</code> field which was automatically added to Brewery.
+In our console, when we say <code>b.created_at</code> we really execute the <code>created_at</code> method which was automatically created in <code>Brewery</code> and which returns the value of the field with the same name. Similarly, the command <code>b.name = "Sinebrychoff"</code> causes the execution of the <code>name=</code> method which changese the value of the <code>name</code> field which was automatically added to Brewery.
 
 ## Beers and the one-to-many connection
 
