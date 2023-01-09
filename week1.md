@@ -424,10 +424,10 @@ irb(main):013 > Brewery.where "year<1900"
 ```
 we forgot to save outcome into a variable... we'll use an underscore
 ```ruby
-irb(main):014 > vanhat = _
-irb(main):015 > vanhat.count
+irb(main):014 > old = _
+irb(main):015 > old.count
  => 3
-irb(main):016:0> vanhat.first
+irb(main):016:0> old.first
 =>
 #<Brewery:0x00007f4b622e1008
  id: 1,
@@ -470,18 +470,18 @@ In our console, when we say <code>b.created_at</code> we really execute the <cod
 
 ## Beers and the one-to-many connection
 
-Let us expand our application to include beers. Every beer is associated with one brewery, and one brewery is tipically associated with many beers. After our expansion, the class design of our application domain (that is to say, of the persistent objects in the database which contain business logic) will look as the following
+Let us expand our application to include beers. Every beer is associated with one brewery, and one brewery is naturally associated with many beers. After our expansion, the class design of our application domain (that is to say, of the persistent objects in the database which contain business logic) will look the following
 Laajennetaan sovellustamme seuraavaksi oluilla. Jokainen olut liittyy yhteen panimoon, ja panimoon luonnollisesti liittyy useita oluita. Laajennuksen jälkeen sovelluksemme domainin (eli bisneslogiikkaa sisältävien tietokantaan persistoitavien olioiden) luokkamalli näyttää seuraavalta:
 
-![Breweries and beers](http://yuml.me/76d4d115)
+![Breweries and beers](http://yuml.me/4f643b44.png)
 
 Let us create a model, a controller and ready-made views for the beers using Rails' scaffold generator (the command is given in the command line):
 
     rails g scaffold Beer name:string style:string brewery_id:integer
 
-in order to update the database, let us execute the database migretion by giving a command in the command line
+in order to update the database, let us execute the database migration by giving a command in the command line
 
-    rake db:migrate
+    rails db:migrate
 
 The following things have been created
 * the database table beers which records beers
@@ -489,7 +489,7 @@ The following things have been created
 * the controller BeersController which takes care of the beers has been created into the file app/controllers/beers_controller.rb
 * view files have been created in the directory app/views/beers/
 
-We created the fields <code>name</code> and <code>style</code> whose type is string and record the name and the style of the beers. We also created an integer field, <code>brewery_id</code>, which is supposed to act as __foreign key__ to connect a beer with the brewery.
+We created string type fields <code>name</code> and <code>style</code> for the beers. We also created an integer field, <code>brewery_id</code>, which is supposed to act as __foreign key__ to connect a beer with the brewery.
 
 In case it's needed, you can check the fields by writing the class name which corresponds to the database table into the console:
 
@@ -498,205 +498,257 @@ irb(main):035:0> Beer
 => Beer(id: integer, name: string, style: string, brewery_id: integer, created_at: datetime, updated_at: datetime)
 ```
 
+If you haven't yet retrieved beers from the database, the previous command might not work. First try for example ```Beer.count``` after which just ```Beer``` works as well.
+
+
 As you can see, every beer also has the fields which are added automatically to all ActiveRecord objects, such as <code>id</code>, <code>created_at</code> and <code>updated_at</code>.
 
-Let us create by hand a couple beers and let us add link them to the brevery with the help of the <code>brewery_id</code> (attention: if your console was open already, you might have to give the command <code>reload!</code> to the console, which loads the beer program code so that the console may use it):
+Let us create by hand a couple beers and let us link them to a brevery with the help of the <code>brewery_id</code> (attention: if your console was open already, you might have to give the command <code>reload!</code> to the console, which loads the beer program code so that the console may use it):
 
 ```ruby
-2.0.0-p451 :043 > koff = Brewery.first
-2.0.0-p451 :044 > Beer.create name:"iso 3", style:"Lager", brewery_id:koff.id
- => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">
-2.0.0-p451 :045 > Beer.create name:"Karhu", style:"Lager", brewery_id:koff.id
- => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">
-2.0.0-p451 :046 >
+irb(main):043 > koff = Brewery.first
+irb(main):044 > Beer.create name: "iso 3", style: "Lager", brewery_id: koff.id
+ => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:09", updated_at: "2022-08-09 13:54:09">
+irb(main):045 > Beer.create name: "Karhu", style: "Lager", brewery_id: koff.id
+ => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:20", updated_at: "2022-08-09 13:54:20">
+irb(main):046 >
 ```
 
-The beers __iso 3__ and __Karhu__ we created are linked to the brewery Koff. However, the connection does not work at the code level, yet.
+The beers __iso 3__ and __Karhu__ we created are linked to the brewery Koff. On database level the beers and the brewery have been now connected. However, the connection does not work at the code level, yet.
 
 In order to make it work, we have to modify the models in the following way:
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
 end
 
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
   has_many :beers
 end
 ```
 
-which means that a beer in connected to one brewery and one brewery has various beers. Pay attention to the singular and plural!
+which means that a beer is connected to one brewery and one brewery has various beers. Pay attention to the singular and plural!
 
 Let us go back to our console. If the console was open when you modified the code, use the command <code>reload!</code> to load the new version of the code so that the console can use it.
 
-We want to try first how to tap into the brewery beers:
+We want to try first how to tap into the brewery's beers:
 
 ```ruby
-2.0.0-p451 :047 > koff = Brewery.find_by name:"Koff"
-2.0.0-p451 :048 > koff.beers.count
+irb(main):047 > koff = Brewery.find_by name: "Koff"
+irb(main):048 > koff.beers.count
  => 2
-2.0.0-p451 :049 > koff.beers
- => #<ActiveRecord::Associations::CollectionProxy [#<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">, #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">]>
+irb(main):049> koff.beers
+  Beer Load (2.0ms)  SELECT "beers".* FROM "beers" WHERE "beers"."brewery_id" = ?  [["brewery_id", 1]]
+=>
+[#<Beer:0x00007efe39e64ec8
+  id: 1,
+  name: "Iso 3",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00>,
+ #<Beer:0x00007efe39e41180
+  id: 2,
+  name: "Karhu",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Mon, 08 Aug 2022 17:13:09.139694000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 17:13:09.139694000 UTC +00:00>]
 ```
 
-<code>Brewery</code> objects now have the method <code>beers</code>, which returns the <code>Beer</code> objects of the brewery. Rails generated this method automatically when it saw the line <code>has_many :beers</code> in the class <code>Brewery</code>. In fact, the method <code>beers</code> does not return the brewery beers, directly, but an object typed <code>ActiveRecord::Associations::CollectionProxy</code> which represents a collection of the beers. We can use it to tap into the beer collection. The Proxy object acts as Ruby collections, which means that you have access to the singular brewery beers in the following way:
+<code>Brewery</code> objects now have the method <code>beers</code>, which returns the <code>Beer</code> objects associated with the brewery. Rails generated this method automatically when it saw the line <code>has_many :beers</code> in the class <code>Brewery</code>.
+
+You can access individual beers of a brewery in the following ways:
 
 ```ruby
-2.0.0-p451 :050 > koff = Brewery.find_by name:"Koff"
-2.0.0-p451 :051 > koff.beers.first
- => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">
-2.0.0-p451 :052 > koff.beers.last
- => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">
-2.0.0-p451 :053 > koff.beers[1]
- => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">
-2.0.0-p451 :054 > koff.beers.to_a
- => [#<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">, #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">]
-2.0.0-p451 :055 >
+irb(main):050 > koff = Brewery.find_by name: "Koff"
+irb(main):051 > koff.beers.first
+ => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:09", updated_at: "2022-08-09 13:54:09">
+irb(main):052 > koff.beers.last
+ => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:20", updated_at: "2022-08-09 13:54:20">
+irb(main):053 > koff.beers[1]
+ => #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:20", updated_at: "2022-08-09 13:54:20">
 ```
 
-You can use the collection proxy as if it was a normal table or a collection to access singular collection elements. As we notice in the last point, you can retrieve a table of the beers which belong to the proxy with the method <code>koff.beers.to_a</code>.
-
-When you parse the elements of a collection proxy with through an iterator such as <code>each</code>, this happens like when you go through a normal table using each:
+You can iterate through a collection of beers belonging to a brewery for example with the ```each``` iterator.
 
 ```ruby
-2.0.0-p451 :055 > koff.beers.each { |beer| puts beer.name }
+irb(main):055 > koff.beers.each { |beer| puts beer.name }
 iso 3
 Karhu
 ```
 
-At code level, tt easy also to access the breweries which are connected to beers:
+At code level, it is also easy to access the brewery connected to a beer:
 
 ```ruby
-2.0.0-p451 :056 > bisse = Beer.first
- => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">
-2.0.0-p451 :057 > bisse.brewery
- => #<Brewery id: 8, name: "Koff", year: 1897, created_at: "2015-01-11 13:51:26", updated_at: "2015-01-11 13:51:26">
-2.0.0-p451 :058 >
+irb(main):056 > bisse = Beer.first
+ => #<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2022-08-09 13:54:09", updated_at: "2022-08-09 13:54:09">
+irb(main):057 > bisse.brewery
+ => #<Brewery id: 8, name: "Koff", year: 1897, created_at: "2022-08-09 13:51:26", updated_at: "2022-08-09 13:51:26">
+irb(main):058 >
 ```
 
 The line <code>belongs_to :brewery</code> which was added to the <code>Beer</code> class adds the method <code>brewery</code> to beers, returning the brewery object which is connected in the database to that beer.
 
 ## Initializing the database
 
-When you develop a program, it might be useful to generate "harcoded" data in the database.
+When you develop a program, it might be useful to generate "hard coded" data into the database.
 The right place for such data is the file db/seeds.rb
 
 Copy the following contents into the seeds.rb file of your application:
 
 ```ruby
-b1 = Brewery.create name:"Koff", year:1897
-b2 = Brewery.create name:"Malmgard", year:2001
-b3 = Brewery.create name:"Weihenstephaner", year:1042
+b1 = Brewery.create name: "Koff", year: 1897
+b2 = Brewery.create name: "Malmgard", year: 2001
+b3 = Brewery.create name: "Weihenstephaner", year: 1040
 
-b1.beers.create name:"Iso 3", style:"Lager"
-b1.beers.create name:"Karhu", style:"Lager"
-b1.beers.create name:"Tuplahumala", style:"Lager"
-b2.beers.create name:"Huvila Pale Ale", style:"Pale Ale"
-b2.beers.create name:"X Porter", style:"Porter"
-b3.beers.create name:"Hefezeizen", style:"Weizen"
-b3.beers.create name:"Helles", style:"Lager"
+b1.beers.create name: "Iso 3", style: "Lager"
+b1.beers.create name: "Karhu", style: "Lager"
+b1.beers.create name: "Tuplahumala", style: "Lager"
+b2.beers.create name: "Huvila Pale Ale", style: "Pale Ale"
+b2.beers.create name: "X Porter", style: "Porter"
+b3.beers.create name: "Hefeweizen", style: "Weizen"
+b3.beers.create name: "Helles", style: "Lager"
 ```
 
-The file contents is normal Rails code. You can execute the file with the command
+lets remove all previous data from the database with:
 
-    rake db:seed
+    rails db:reset
 
-Let us delete all the old date in the database by using the following command in the command line:
 
-    rake db:reset
+The command automatically "seeds" the database, meaning that in addition to deleting the old data, it does also executes the contents of the file seeds.rb
 
-The command resets the database automatically, meaning that in addition to delete the old data, it does also run the contents of the file seeds.rb
+**It is recommended to reboot both the application and the Rals console after seeding**
+
+**ATTENTION:** You might not need the data defined in seeds.rb at all in your application. Data defined in seed.rb might be needed when eg. launching the application requires some ready defined objects. In this case the existance of seed makes things easier for a new application developer. They can easily launch the application on their own computer without needing to first hand-create the required objects.
+
+## More on console use
 
 Let us inspect the new data by hand from the console:
 
 ```ruby
-2.0.0-p451 :058 > koff = Brewery.first
- => #<Brewery id: 8, name: "Koff", year: 1897, created_at: "2015-01-11 13:51:26", updated_at: "2015-01-11 13:51:26">
-2.0.0-p451 :059 > koff.beers
- => #<ActiveRecord::Associations::CollectionProxy [#<Beer id: 1, name: "iso 3", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:09", updated_at: "2015-01-11 13:54:09">, #<Beer id: 2, name: "Karhu", style: "Lager", brewery_id: 8, created_at: "2015-01-11 13:54:20", updated_at: "2015-01-11 13:54:20">]>
-2.0.0-p451 :060 >
+irb(main):003:0> koff = Brewery.first
+  Brewery Load (2.9ms)  SELECT "breweries".* FROM "breweries" ORDER BY "breweries"."id" ASC LIMIT ?  [["LIMIT", 1]]
+=>
+#<Brewery:0x00007efe3abb1ea0
+...
+irb(main):004:0> koff.beers
+  Beer Load (3.2ms)  SELECT "beers".* FROM "beers" WHERE "beers"."brewery_id" = ?  [["brewery_id", 1]]
+=>
+[#<Beer:0x00007efe3ab2d1a0
+  id: 1,
+  name: "Iso 3",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00>,
+ #<Beer:0x00007efe3ab2d010
+  id: 2,
+  name: "Karhu",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Mon, 08 Aug 2022 17:13:09.139694000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 17:13:09.139694000 UTC +00:00>,
+ #<Beer:0x00007efe3ab2ce80
+  id: 3,
+  name: "Tuplahumala",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Mon, 08 Aug 2022 17:13:09.171706000 UTC +00:00,
+  updated_at: Mon, 08 Aug 2022 17:13:09.171706000 UTC +00:00>]
+irb(main):005:0>
 ```
 
 Let us create a new beer object. This time we use the new method, so that the object is not yet stored in the database:
 
 ```ruby
-irb(main):050:0> b = Beer.new name:"Lite", style:"Lager"
-=> #<Beer id: nil, name: "Lite", style: "Lager", brewery_id: nil, created_at: nil, updated_at: nil>
+irb(main):005:0> b = Beer.new name: "Lite", style: "Lager"
+=> #<Beer:0x00007efe396c2aa8 id: nil, name: "Lite", style: "Lager", brewery_id: nil, created_at: nil, updated_at: nil>
+irb(main):006:0>
 ```
 
 The beer is not in the database yet, and it is not connected to any brewery, either:
 
 ```ruby
-2.0.0-p451 :061 > b.brewery
- => nil
+irb(main):006:0> b.brewery
+=> nil
 ```
 
-You can connect a beer to a brewery in couple of ways too. We can set up the brewery field value by hand:
+You can connect a beer to a brewery in couple of other ways too. We can set up the brewery field value by hand:
 
 ```ruby
-2.0.0-p451 :062 > b.brewery = koff
-2.0.0-p451 :063 > b
- => #<Beer id: nil, name: "Lite", style: "Lager", brewery_id: 8, created_at: nil, updated_at: nil>
-2.0.0-p451 :064 >
+irb(main):008:0> b.brewery = koff
+=>
+#<Brewery:0x00007efe3abb1ea0
+...
+irb(main):009:0> b
+=> #<Beer:0x00007efe396c2aa8 id: nil, name: "Lite", style: "Lager", brewery_id: 1, created_at: nil, updated_at: nil>
 ```
 
-As we see, the brewery ID becomes the brewery_id foreign key of the beer. The beer is not in the database, yet, the brewery does not know that the beer which was created belongs to it, in fact:
+As we see, the brewery ID becomes the brewery_id foreign key of the beer. The beer is not in the database, yet, so the brewery does not know that the beer which was created belongs to it:
 
 ```ruby
-2.0.0-p451 :064 > koff.reload
-2.0.0-p451 :065 > koff.beers.include? b
+irb(main):064:0> koff.reload
+irb(main):065:0> koff.beers.include? b
  => false
 ```
 
 Attention: just in case, we first called the database method <code>reload</code>, otherwise the object status would not have been updated, and also its beer list would have mirrored the time when the object was loaded.
 
-We can get the beers stored in our well-known way using the command <code>save</code>. After this, the brewery will also know that the beer belongs to the brewery (once again, we have to reload the database first):
+We can get the beer stored with the already familiar command <code>save</code>. After this, the brewery will also know that the beer belongs to it (once again, we have to reload the database first):
 
 ```ruby
-2.0.0-p451 :066 > b.save
+irb(main):066:0> b.save
  => true
-2.0.0-p451 :067 > koff.reload
-2.0.0-p451 :068 > koff.beers.include? b
+irb(main):067:0> koff.reload
+irb(main):068:0> koff.beers.include? b
  => true
 ```
 
-A more practical way is connecting the brewery to the set of beers by using the <code><<</code> operator:
+A more practical way of connecting a beer to a brewery's set of beers id by using the <code><<</code> operator:
 
 ```ruby
-2.0.0-p451 :069 > b = Beer.new name:"IVB", style:"Lager"
+irb(main):069:0> b = Beer.new name: "IVB", style: "Lager"
  => #<Beer id: nil, name: "IVB", style: "Lager", brewery_id: nil, created_at: nil, updated_at: nil>
-2.0.0-p451 :070 > koff.beers << b
+irb(main):070:0 > koff.beers << b
+   (0.1ms)  begin transaction
+  Beer Create (0.3ms)  INSERT INTO "beers" ("name", "style", "brewery_id", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["name", "IVB"], ["style", "Lager"], ["brewery_id", 1], ["created_at", "2018-09-01 16:46:01.643854"], ["updated_at", "2018-09-01 16:46:01.643854"]]
 ```
 
 Even though we don't explicitly use the method <code>save</code> here, the beer is saved into the database thanks to the operator <code><<</code>.
 
-The third way is what we did in the <code>seeds.rb</code> file, where the <code>create</code> method is called straight to the beer collection of the brewery:
+The third way is what we did in the <code>seeds.rb</code> file, where the <code>create</code> method is called straight for the beer collection of the brewery:
 
 ```ruby
-2.0.0-p451 :071 > koff.beers.create name:"Extra Light Triple Brewed", style:"Lager"
+irb(main):071:0> koff.beers.create name: "Extra Light Triple Brewed", style: "Lager"
 ```
 
 > ## Exercise 5: Breweries and beers
 >
 >
 > Work by hand on the console and implement the following:
-> * Create the brewery Hartwall with three beers using the way above for all of them.
+> * Create the brewery Hartwall and three beers for it using all three ways demonstrated above.
 > * However we realise that Harwall has to be deleted because of its bad quality. Before deleting it, write down the Hartwall object ID
 > * After deleting Hartwall, the database will keep on storing beer objects which belong to the brewery you have already deleted
-> * Retrieve the orphan beers with the command <code>Beer.where suitableparameter</code>
-> * Distroy the beers which were retrieven with the operation. You find information on how to go through a list at https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/rubyn_perusteita.md#taulukko
+> * Retrieve the orphan beers with the command <code>Beer.where suitableparameterhere</code>
+> * Destroy the beers which were retrieved with the operation. You find information on how to go through a list at https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/rubyn_perusteita.md#taulukko
 
 ## The connection between controller and views
 
-Let us analyze the ready-made controller of the brewery app/controller/breweries_controller.rb
+Let us analyze the ready-made controller of the brewery  at app/controller/breweries_controller.rb
 
-The controller has been named according to Rails convensions in the plural form. According to Rails convetions, there are six methods in the controller. Let us inspect the <code>index</code> method first, which makes sure all the beers are displayed:
+The controller has been named according to Rails convensions in the plural form. According to Rails convetions, there are six methods in the controller. Let us inspect the <code>index</code> method first, which takes care of displaying all the breweries:
 
 ```ruby
 class BreweriesController < ApplicationController
+  # ...
+
   def index
     @breweries = Brewery.all
   end
+
+  # ...
 end
 ```
 
@@ -704,114 +756,154 @@ The method contains only one command
 
     @breweries = Brewery.all
 
-this means that the method gives a list of all breweries to a variable called <code>@breweries</code> which forwards the brewery list to the view. After this, the index method renders the HTML page which was defined in the view template app/views/breweries/index.html.erb. The method does never point to the view template or contain a command to render it. Once again, it's about Rails' Convention Over Configuration principle: if we don't specify anything, the view template index.html.erb is rendered at the end of the index method.
+this means that the method sets the list of all breweries to a variable called <code>@breweries</code> which forwards the brewery list to the view. After this, the index method renders the HTML page which was defined in the view template app/views/breweries/index.html.erb. The method does never point to the view template or contain a command to render it. Once again, it's about Rails' Convention Over Configuration principle: if we don't specify anything, the view template index.html.erb is rendered at the end of the index method.
 
 We could also write down explicitely the rendering command:
 
 ```ruby
-  def index
-    @breweries = Brewery.all
-    render :index   # renders the index.html.erb view template in the view/breweries directory
-  end
+def index
+  @breweries = Brewery.all
+  render :index   # renders the view template index.html.erb from the directory view/breweries
+end
 ```
 
-The view templates (erb files) are made of HTML where has been added Ruby code.
+The view templates (erb files) are made in HTML with embedded Ruby code.
 
 Let us have a look at the view template which has been ready-generated, the file app/views/breweries/index.html.erb
 
-```
-<h1>Listing breweries</h1>
+```html
+<p style="color: green"><%= notice %></p>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Year</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
+<h1>Breweries</h1>
 
-  <tbody>
-    <% @breweries.each do |brewery| %>
-      <tr>
-        <td><%= brewery.name %></td>
-        <td><%= brewery.year %></td>
-        <td><%= link_to 'Show', brewery %></td>
-        <td><%= link_to 'Edit', edit_brewery_path(brewery) %></td>
-        <td><%= link_to 'Destroy', brewery, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
-  </tbody>
-</table>
+<div id="breweries">
+  <% @breweries.each do |brewery| %> 
+    <%= render brewery %>
+    <p><%= link_to "Show this brewery", brewery %></p>
+  <% end %>
+</div>
 
-<br>
-
-<%= link_to 'New Brewery', new_brewery_path %>
+<%= link_to "New brewery", new_brewery_path %>
 ```
 
-The view template creates a table where every brewery contained by the variable @breweries has their own line.
+The view template creates a list in which each brewery contained by the variable @breweries is its own row.
 
-The Ruby code which was sqeezed into the view template is placed between the symbols <% %>. In turn, <% %> makes so that the value of the Ruby command is saved in the terminal.
+The Ruby code embedded into the view template is placed between the <% %> symbols. In turn, <%= %> makes so that the value of the Ruby command is printed on the screen.
 
-We'll soon get a bit more familiar how tables are generated. First, let us add the information about the total number of breweries to our page (the erb template). You should add the following line at some point in the page, for instance right after the header contained by the h1 tags
+We'll soon get a bit more familiar how tables are generated. First, let us add the information about the total number of breweries to our page (the erb template). Add the following line at some point in the page, for instance right after the header contained by the h1 tags
 
-```
-<p> Number of breweries: <%= @breweries.count %> </p>
+```html
+<p>Number of breweries: <%= @breweries.count %></p>
 ```
 
 Go to the [page which lists the breweries](http://localhost:3000/breweries) with your browser and make sure the operation has worked out.
 
-Let us go back to the code which makes the HTML table and let us take a closer look. Every brewery prints to their own line using Ruby's <code>each</code> iterator:
+Let us go back to the code which lists the breweries and let us take a closer look. Every brewery is printed on their own line using Ruby's <code>each</code> iterator:
 
-```
-    <% @breweries.each do |brewery| %>
-      <tr>
-        <td><%= brewery.name %></td>
-        <td><%= brewery.year %></td>
-        <td><%= link_to 'Show', brewery %></td>
-        <td><%= link_to 'Edit', edit_brewery_path(brewery) %></td>
-        <td><%= link_to 'Destroy', brewery, method: :delete, data: { confirm: 'Are you sure?' } %></td>
-      </tr>
-    <% end %>
+```html
+  <% @breweries.each do |brewery| %>
+    <%= render brewery %>
+    <p>
+      <%= link_to "Show this brewery", brewery %>
+    </p>
+  <% end %>
 ```
 
-We go through the brewery list which is stored in the variable ```@breweries``` with the help of the ```each``` iterator. (More information about each at https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/rubyn_perusteita.md#each). We refer to every singular brewery with the name <code>brewery</code> in the code chunk which is repeted. For every singular brewery we create a line contained by tr tags and with five columns. The first column is for the brewery name (```<%= brewery.name %>```) and the second is for the foundation year. The thirds column contains a link to a page which shows the brewery information. The code used in Ruby to generate a link is ```<%= link_to 'Show', brewery %>``` .
+We go through the brewery list which is stored in the variable ```@breweries``` with the help of the ```each``` iterator. (More information about each at https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/rubyn_perusteita.md#each).
+
+Rails creates the rows by using the ```render``` method which it invokes for each brewery.
+
+```html
+  <%= render brewery %>
+```
+
+The <code>render</code> method makes use of [partial tempalates](https://guides.rubyonrails.org/layouts_and_rendering.html#using-partials).
+
+Rails has automatically generated a partial (template) file for an individual brewery at app/views/breweries/\_brewery.html.erb.
+
+The partial is as follows:
+
+```html
+<div id="<%= dom_id brewery %>">
+  <p>
+    <strong>Name:</strong>
+    <%= brewery.name %>
+  </p>
+
+  <p>
+    <strong>Year:</strong>
+    <%= brewery.year %>
+  </p>
+
+</div>
+```
+
+For each individual brewery the rows contained by the div tags are created and placed in to a list. The first row contains the name of the brewery and the second its founding year.
+
+Partial template files are named with a starting underscore ( _ ) so that they can be easily recognized. 
+
+The definition and use of a partial uses a bit of Rails magic. A partial is called like this:
+
+```html
+  <% @breweries.each do |brewery| %>
+    <%= render brewery %>
+    ...
+  <% end %>
+```
+
+The render method gets the brewery object saved in the variable brewery as a parameter. 
+From the type of the object Rails kcan deduce that it should use the partial defined in file \_brewery.html.erb.
+
+In the partial, a brewery object is referred to with the variable brewery:
+
+```html
+<div id="<%= dom_id brewery %>">
+  <p>
+    <strong>Name:</strong>
+    <%= brewery.name %>
+  </p>
+
+  ...
+
+</div>
+```
+
+On the third row of the brewery details is a link to the page displaying that brewery's information. The Ruby code that generates the link is `<%= link_to "Show this brewery", brewery %>`.
+
 
 Actually, the above one is a short form of the following:
 
 ```
-<%= link_to 'Show', brewery_path(brewery.id) %>
+<%= link_to "Show this brewery", brewery_path(brewery.id) %>
 ```
 which generates HTML code which looks like the one below (the number below depends on the value of the ID field of the object in the table line):
 
 ```
-<a href="/breweries/3">Show</a>
+<a href="/breweries/1">Show this brewery</a>
 ```
 
-it is a link to the address "breweries/3". The first parameter of the command ```link_to``` is the name of the a-tag and the second is the link address.
+ie. a link to the address "breweries/1". The first parameter of the command ```link_to``` is the name of the a-tag and the second is the link address.
  
-The address itself is created in this longer form with the auxiliary method ```brewery_path(brewery.id)```which returns the path to the page of the brewery with the ID ```brewery.id```. The same thing is accomplished by the object itself, in our example the variable <code>brewery</code>, as a parameter to the method <code>link_to</code>.
+The address itself is created in this longer form with the helper method ```brewery_path(brewery.id)```which returns the path to the page of the brewery with the ID ```brewery.id```. The same thing is accomplished by the object itself, in our example the variable <code>brewery</code>, as a parameter to the method <code>link_to</code>.
 
 We could also "hardcode" a command which generates a link using the form ```<%= link_to 'Show', "breweries/#{brewery.id}" %>```, but hardcoding is not usually a smart thing to do, and in this case even less.
 
-What does ```"breweries/#{brewery.id}"``` mean? See https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/rubyn_perusteita.md#merkkijonot
+What does ```"breweries/#{brewery.id}"``` mean? The string starts with a reference to all breweries ("breweries"), followed by a variable that contains the id of a specific brewery. The variable is set using the ```#{}``` notation. This notation allows us to embed variables into strings.
 
 > ## Excercise 6
-> change the name of the brewery so that it can be clicked on and delete the show field and its link from the table
+> change the name of the brewery so that it can be clicked on (do tjis on the partial file) and delete the show field and its link from the table
 
 After the exercise, the pages showing the breweries of your application should look like the one below
 
-![picture](http://www.cs.helsinki.fi/u/mluukkai/wadror/brewery-w1-0.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/brewery-w1-0a.png)
 
-## Adding beers in the page of the brewery
+## Listing beers in the brewery page
 
-Let us inspect how singular breweries are shown. The url to the brewery page is like "breweries/3", where the number is the brewery ID. The show method of the breweries controller let us access the brewery page:
+Let us inspect how individual breweries are shown. The url to the brewery page is like "breweries/3", where the number is the brewery ID. The show method of the breweries controller lets us access the brewery page:
 
 ```ruby
 class BreweriesController < ApplicationController
-  before_action :set_brewery, only: [:show, :edit, :update, :destroy]
+  before_action :set_brewery, only: %i[ show, edit, update, destroy ]
 
   # other methods...
 
@@ -825,11 +917,11 @@ The method does not contain any code! We notice however that at the beginning of
 
     before_action :set_brewery, only: [:show, :edit, :update, :destroy]
 
-This means that we execute the code of the method <code>set_brewery</code> for each of the listed methods (show, edit, update ja destroy). The definition of the method is at the end of the class:
+This means that before we execute any of the listed methods (show, edit, update ja destroy) the  method <code>set_brewery</code> is executed . The definition of the method is at the end of the class:
 
 ```ruby
 class BreweriesController < ApplicationController
-  before_action :set_brewery, only: [:show, :edit, :update, :destroy]
+  before_action :set_brewery, only: %i[ show, edit, update, destroy ]
 
   # ...
 
@@ -846,16 +938,18 @@ class BreweriesController < ApplicationController
 end
 ```
 
-Before executing the method <code>show</code>, we execute the command
+So before executing the method <code>show</code>, we execute the command
 
-    @brewery = Brewery.find(params[:id])
+```ruby
+@brewery = Brewery.find(params[:id])
+```
 
-this refers to the variable ```params```, which contains the information concerning the HTTP calls which are executed. The variable <code>params</code> is an associative table, or in other words, hash. Especially with the <code>:id</code> key (that is to say, ```params[:id]```), the variable value communicates the ID of the brewery to inspect in this case, that is the part which follows the slash in the page path breweries/xx.
+this refers to the variable ```params```, which contains the information concerning the HTTP calls which are executed. The variable <code>params</code> is an associative table, or in other words, hash. The value of the <code>:id</code> key (that is to say, ```params[:id]```),  communicates the ID of the brewery to inspect, in this case, that is the part which follows the slash in the page path breweries/xx.
 
 We retrieve the brewery with the well-known command ```Brewery.find``` and we store it into the variable ```@brewery```.
 At the end, the method <code>show</code> renders the view template ```show.html.erb```. The view template is generated again automatically based on Rails conventions: the ```show``` method of the brewery controller is executed, and towards the end, the view views/breweries/show.html.erb is rendered unless something else is defined in the code.
 
-If we write it explicitely opened, the code to be executed together with the <code>show</code> method will look like the following:
+If we write outthe same explicitely, the code to be executed together with the <code>show</code> method will look like the following:
 
 ```ruby
     @brewery = Brewery.find(params[:id])
@@ -865,58 +959,113 @@ If we write it explicitely opened, the code to be executed together with the <co
 The code of the view template views/breweries/show.html.erb koodi is the following:
 
 ```
-<p id="notice"><%= notice %></p>
+<p style="color: green"><%= notice %></p>
 
-<p>
-  <strong>Name:</strong>
-  <%= @brewery.name %>
-</p>
+<%= render @brewery %>
 
-<p>
-  <strong>Year:</strong>
-  <%= @brewery.year %>
-</p>
+<div>
+  <%= link_to "Edit this brewery", edit_brewery_path(@brewery) %> |
+  <%= link_to "Back to breweries", breweries_path %>
 
-<%= link_to 'Edit', edit_brewery_path(@brewery) %> |
-<%= link_to 'Back', breweries_path %>
+  <%= button_to "Destroy this brewery", @brewery, method: :delete %>
+</div>
 ```
 
-The part with the __notice__ ID at the beginning of the page is supposed to show the messages concerning the brewery creation or editing. We'll speak more about the topic later on.
+The part with the __notice__ ID at the beginning of the page is for displaying the messages concerning brewery creation or editing. We'll speak more about the topic later on.
+
+The page uses the same partial for brewery as the page listing all the breweries does. Thanks to earlier changes, the title of page is now a clickable link to itself. 
+
+Some notes on partials: the partial showing a brewery's details is as follows:
+```html
+<div id="<%= dom_id brewery %>">
+  <p>
+    <strong>Name:</strong>
+    <%= brewery.name %>
+  </p>
+
+  <p>
+    <strong>Year:</strong>
+    <%= brewery.year %>
+  </p>
+
+</div>
+```
+The brewery given as a parameter to the partial is stored in the variable brewery. The partial is then called like this: 
+
+```html
+<%= render @brewery %>
+```
+
+The partial could be given more parameters but here we only give one. Because the type of the parameter is Brewery, the partial _brewery.html.erb is rendered. Additionally the partial will be given a parameter through a variable named brewery. The variable relaying the parameter is automatically named based on the name of the partial.
+
+We will be soon modifying the individual brewery view but as we don't want the changes to affect the all breweries view (which uses the same partial) let's now stop using the partial on the all breweries view. Change the contents of app/views/breweries/index.html.erb to following:
+
+```html
+<p style="color: green"><%= notice %></p>
+
+<h1>Breweries</h1>
+
+<p>Number of breweries: <%= @breweries.count %></p>
+
+<div id="breweries">
+  <% @breweries.each do |brewery| %>
+    <div id="<%= dom_id brewery %>">
+      <p>
+        <%= link_to brewery.name, brewery %>
+      </p>
+    
+      <p>
+        <strong>Year:</strong>
+        <%= brewery.year %>
+      </p>
+    
+    </div>
+  <% end %>
+</div>
+
+<%= link_to "New brewery", new_brewery_path %>
+```
+
+Now the code from the partial \_brewery.html.erb is copy-pasted directly to the all breweries template. 
 
 > ## Excercise 7: Polishing the brewery page
 >
 >
-> Add the information about the beer number of the brewery, with <code>@brewery.beers.count</code>
+> Add information about the number of beers belonging to each brewery, with <code>@brewery.beers.count</code>.
 >
 >
-> Edit the ready-made page so that the brewery name becomes a header level h2 and the year is in cursive like "_Established_ _in_ _1897_".
+> Edit the ready-made page so that the brewery name becomes a header level h2 and the year is in cursive like "_Established_ _in_ _1897_". To do this, you need to need to stop using the partial rendering and do rendering without it.
+>
+> Changes described here and in the next exercise are meant be done in the partial taking care of displaying individual breweries \_brewery.html.erb
+
 
 Let us continue with our editing.
 
 > ## Exercise 8: The beers on the brewery page
 >
-> Add a list of the brewery beers on the brewery page. First, add the following <code><%= @brewery.beers.to_a %></code> and see what happens.
+> Add a list of the brewery's beers on the brewery page. First, add the following <code><%= @brewery.beers.to_a %></code> and see what happens.
 >
 > Next, list only the beer names using an each iterator:
 >
 > ```ruby
 > <p>
->  <% @brewery.beers.each do |beer| %>
+>  <% brewery.beers.each do |beer| %>
 >    <%= beer.name %>
 >  <% end %>
 > </p>
+> ```
 > ```
 > Change the beer names so that users can click on them; use the method <code>link_to</code> to implement this
 
 After the exercise, you page should look like the following
 
-![brewery and beers](http://www.cs.helsinki.fi/u/mluukkai/wadror/brewery-w1-1.png)
+![brewery and beers](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/brewery-w1-1.png)
 
 Let us improve a bit more the navigation of our application.
 
 > ## Excercise 9
 >
-> In all the brewery pages, add a link to all the beer pages. Similarly add a link to all brewery pages, in all the beer pages. As an example, you can insert the link to a beer page with the command ```link_to 'list of beers', beers_path```
+> In all the brewery pages, add a link to all the beers page. Similarly add a link to all breweries page, in the all beers page. As an example, you can insert the link to the beers page with the command ```link_to 'list of beers', beers_path```
 
 Let us try to get going the list with all the beers, finally.
 
@@ -926,37 +1075,37 @@ Let us try to get going the list with all the beers, finally.
 >
 > Change the page so that beers show be the brewery name, not the ID. Also, users should be directed to the brewery page if they click on the name
 >
-> Modify the beer name too, so that users can click on it, and delete the show column
+> Modify the beer name too, so that users can click on it, and delete the show link
 >
 > Attention: if you encounter problems, you'd better read the following section!
 
 The result should look like the following:
 
-![Picture](https://github.com/mluukkai/WebPalvelinohjelmointi2014/raw/master/images/brewery-w1-3.png)
+![Picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/brewery-w1-2.png)
 
 ## nil
 
 You might encounter the following error exception
 
-![Picture](https://github.com/mluukkai/WebPalvelinohjelmointi2014/raw/master/images/brewery-w1-2.png)
+![Picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/brewery-w1-3.png)
 
-The problem is actually the old nullpointer exeption, or a nilpointer exeption – as it is called in Ruby. Rails points out that you have tried to call the method name of nil (which is an object in Ruby!), and that method does not exist. The reason is most probably that your database contains beers which were not assigned a brewery or where their brewery has been deleted.
+The problem is actually the classic nullpointer exeption, or a nilpointer exeption – as it is called in Ruby. Rails points out that you have tried to call the method 'name' for nil (which is an object in Ruby!), and that method does not exist. The reason is most probably that your database contains beers which were not assigned a brewery or where their brewery has been deleted.
 
-You can delete by hand the beers which cause troubles or with the help of your console. Using the console, you can retrieve orphan beers with the command:
+You can delete the beers which cause troubles by hand or with the help of your console. Using the console, you can retrieve orphan beers with the command:
 
-    orvot_oluet = Beer.all.select{ |b| b.brewery.nil? }
+    orphan_beers = Beer.all.select{ |b| b.brewery.nil? }
 
 then you can delete them with the help of an each iteretor
 
-    orvot_oluet.each{ |orpo| orpo.delete }
+    orphan_beers.each{ |orphan| orphan.delete }
 
 because we only call one method for each iterated object, the previous command can be implemented in the following way too, where the syntax is quite particular:
 
-	    orvot_oluet.each(&:delete)
+	    orphan_beers.each(&:delete)
 
-## Reviewing: name convetions for paths and controllers
+## Review: Naming conventions for paths and controllers
 
-We have created database tables in our application for breweries and bears, as well as the controllers and views to handle them. Let us review again Rails name conventions, whenever it might take a while for the beginner to get used to them.
+We have created database tables in our application for breweries and beers, as well as the controllers and views to handle them. Let us review again Rails name conventions, it might take a while for the beginner to get used to them.
 
 We created the brewery and its controllers and views with Rails' scaffold generator in the following way:
 
@@ -964,38 +1113,39 @@ We created the brewery and its controllers and views with Rails' scaffold genera
 
 This produced:
 * the database table <code>breweries</code>
-* the controller <code>BreweriesController</code>, place in the directory app/controllers/
-* the model <code>Brewery</code>, place in the directory app/models/
+* the controller <code>BreweriesController</code>, placed in the directory app/controllers/
+* the model <code>Brewery</code>, placed in the directory app/models/
 * a set of views in the directory app/views/breweries
 * the migration file which takes care of shaping the database, in the directory /db/migrate
 
-According to Rails conventions, the URL for the page of all breweries is breweries. On the contrary, the URLs for the pages of the singular breweries follow the pattern breweries/3, where the number is the brewery ID.
+According to Rails conventions, the URL for the page of all breweries is breweries. Accordingly, the URLs for the pages of the singular breweries follow the pattern breweries/3, where the number is the brewery ID.
 
-You don't need to write down the URLs in the view templates, because Rails provides us with path-helper methods (see http://guides.rubyonrails.org/routing.html#path-and-url-helpers), which will help you to generate the URLs.
+You don't need to write down the URLs in the view templates, because Rails provides us with _path_helper_ methods (see http://guides.rubyonrails.org/routing.html#path-and-url-helpers), which will help you to generate the URLs.
 
-The method <code>breweries_path</code> generates the URL of all breweries (or only the latter part of the URL, in fact). The URL of a singular brewery can be generated with the method <code>brewery_path(id)</code>, where the parameter is a link to the brewery ID.
+The method <code>breweries_path</code> generates the URL of all breweries (or only the latter part of the URL, in fact). The URL of a singular brewery can be generated with the method <code>brewery_path(id)</code>, where the parameter is the ID of the brewery it links to.
 
-We use various helpers with the method <code>link_to</code>. Link_to generates a link to the HTML page, that is an a-tag.
+The various helpers are often used with the method <code>link_to</code>. Link_to generates a link to the HTML page, that is an a-tag.
 
 You can generate a link to the page of a <code>brewery</code> in the following way:
 
+
 ```ruby
-    <%= link_to "link to the brewery #{brewery.name}", brewery_path(brewery.id) %>
+<%= link_to "link to brewery #{brewery.name}", brewery_path(brewery.id) %>
 ```
 
 The first parameter is the text of the link, and the second is the address.
 
-When we create the link for a singular object page we use a shorter form:
+When creating a link for a singular object page,a shorter form is often used:
 
 ```ruby
-    <%= link_to "linkki panimoon #{brewery.name}", brewery %>
+<%= link_to "link to brewery #{brewery.name}", brewery %>
 ```
 
-Now the second parameter is directly the object where the page leads to. When the second parameter is an object, Rails replaces it automatically by generating the real path with the code <code>brewery_path(brewery.id)</code>
+Now the second parameter is directly the object, to whose page the link leads to. When the second parameter is an object, Rails replaces it automatically by generating the real path with the code <code>brewery_path(brewery.id)</code>
 
 The controllers which are generated automatically on Rails have six methods. The list of all breweries – that is, the address /breweries – is managed by the method <code>index</code>; the address of a singular brewery – for instance, /breweries/3 – is managed by the <code>show</code> method of the controller. Later on, we will get to know other methods of the controller.
 
-The controllers methods render the template which shapes the HTML page which is returned to users. By default, the <code>index</code> method of the brewery controller renders the view template app/views/breweries/index.html.erb and the method <code>show</code> renders the view template app/views/breweries/show.html.erb.
+The controllers methods finish by rendering the template which shapes the HTML page which is returned to users. By default, the <code>index</code> method of the brewery controller renders the view template app/views/breweries/index.html.erb and the method <code>show</code> renders the view template app/views/breweries/show.html.erb.
 
 This means that the controllers don't need to call the <code>render</code> method separately, if they render the default demplate. This means that the code
 
@@ -1016,7 +1166,66 @@ class BreweriesController < ApplicationController
   end
 ```
 
-The explicit <code>render</code> method is useful only when the controller renders a view different than the default one.
+The explicit <code>render</code> method is needed only when the controller renders a view different than the default one.
+
+## Review: Views and view partials
+
+Let's revise a few things about partial templates. Let's consider a situation where an user navigates to the page of single beer eg. beers/1. The application executes the BeerController method 'show', which by default renders the template  views/beers/show.html.erb. The controller set the desired beer in variable @beer thanks to the before_action configuration.
+
+```ruby
+class BeersController < ApplicationController
+  before_action :set_beer, only: %i[ show edit update destroy ]
+
+  # suoritetaan mentäessä yksittäisen oluen sivulle /beers/1
+  def show
+  end
+
+  private
+    # tämä suoritetaan metodin show suoritusta ennen
+    def set_beer
+      @beer = Beer.find(params[:id])
+    end
+
+end
+```
+
+In other words, the view template can access the beer through the @beer variable:
+```html
+<%= render @beer %>
+
+<div>
+  <%= link_to "Edit this beer", edit_beer_path(@beer) %> |
+  <%= link_to "Back to beers", beers_path %>
+
+  <%= button_to "Destroy this beer", @beer, method: :delete %>
+</div>
+```
+
+The view template doesn't take care of all the rendering, it takes care of rendering the beer's details through the partial views/beers/\_beer.html.erb. The partial is rendered with method ```render```:
+```html
+<%= render @beer %>
+```
+
+Because the type of the parameter of the method call is Beer, Rails knows that it is meant to render the partial _beer.html.erb. The partial sees the parameter variable beer. The variable is automatically appropriately named based on the name of the partial, thanks to Rails magic.
+
+```html
+<div id="<%= dom_id beer %>">
+  <p>
+    <%= link_to beer.name, beer %>
+  </p>
+
+  <p>
+    <strong>Style:</strong>
+    <%= beer.style %>
+  </p>
+
+  <p>
+    <strong>Brewery:</strong>
+    <%= link_to beer.brewery.name, beer.brewery %>
+  </p>
+
+</div>
+```
 
 > ## Excercise 11
 >
