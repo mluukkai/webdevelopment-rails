@@ -1229,7 +1229,7 @@ Because the type of the parameter of the method call is Beer, Rails knows that i
 
 > ## Excercise 11
 >
-> Make a temporary change to the <code>index</code> method of the brewery controller. In the following way
+> Temporarily, make the following change to the <code>index</code> method of the brewery controller:
 >
 > ```ruby
 >  def index
@@ -1248,54 +1248,18 @@ Because the type of the parameter of the method call is Beer, Rails knows that i
 >
 > Go to the breweries page
 >
-> Take the method back to the original form.
+> Return the method back to the original form.
 
 ## To the Internet
 
-The easiest way to host applications nowadays is the PaaS (or Platform as a Service) service [Heroku](http://heroku.com). Heroku provides database and execution environment to Web applications. Heroku is for applications which use little capacity, but it is free.
+By default Rails applications use a SQLite database but in production some proper database, such as PostgreSQL, should be used. Libraries used in a Rails application, or gems, in Rails lingo, are defined in Gemfile, located in the root of the application. To implement PostgreSQL, we need to edit Gemfile.
 
-You can deploy the application in Heroku very easily if the application folder has its own git repository.
-
-Make a Heroku ID.
-
-Create a ssh key and add it to Heroku at the page https://dashboard.heroku.com/account
-* information on how to create an ssh key at  the Heroku Toolbelt page http://www.cs.helsinki.fi/group/kuje/compfac/ssh_avain.html, which contains a command line interface.
-
-**Attention:** setting upt Heroku Toolbelt requires admin rights, so it will not succeed on the department computers. However, you can set up Heroku command line interfece on the department computers by doing:
-* Remove the home directory file .netrc from the departnment computer
-* Create an empty file with the same name in the fs home directory. The path for your fs home directory is `/home/tktl-csfs/fs/home/omakayttajatunnus` or `/home/tktl-csfs/fs2/home/omakayttajatunnus`. You can create an empty file for instance with the command `touch .netrc`.
-* Create a symbolic link by executing the following command in the home directory `ln -s /home/tktl-csfs/fs2/home/omakayttajatunnus/.netrc`. (fs or fs2 according to where your home directory is)
-* Make sure that you are in the home directory by typing the command `cd $HOME`
-* Download and unpack Heroku client with the command `wget -qO- https://s3.amazonaws.com/assets.heroku.com/heroku-client/heroku-client.tgz | tar xz`
-* Add Heroku client to PATH, with the command `echo 'export PATH="$HOME/heroku-client/bin:$PATH"' >> ~/.bashrc`
-* Restart your terminal
-* Make sure Heroku has been set up by running `heroku --version`, which should print something like `heroku-toolbelt/3.22.1 (x86_64-linux) ruby/2.2.0`.
-
-Go to the root folder of your application and create a Heroku instance for it:
-
-```ruby
-➜  ratebeer git:(master) heroku create
-Creating enigmatic-eyrie-1511... done, stack is cedar-14
-https://enigmatic-eyrie-1511.herokuapp.com/ | https://git.heroku.com/enigmatic-eyrie-1511.git
-Git remote heroku added
-```
-
-Type your Heroku ID when it's required.
-
-The application URL will be  https://enigmatic-eyrie-1511.herokuapp.com/, in this case. The beginning of the application URL can be created by running **heroku create url_beginning**. 
-
-**Note**, that there is nothing in the application root so far, at the address https://enigmatic-eyrie-1511.herokuapp.com/. The beers of our application will be found at https://enigmatic-eyrie-1511.herokuapp.com/beers and the breweries at https://enigmatic-eyrie-1511.herokuapp.com/breweries
-
-Rails applications use the sqlite database by default, but the PostgreSQL database is in use in Heroku. The libraries used in Rails applications, that is to say Ruby terms gems, have been defined in the Germfile in the application root. In order to get started with PostgreSQL, we have to modify the Gemfile.
-
-Delete a line
-
+Remove the line
 ```ruby
 gem 'sqlite3'
 ```
 
-and add the following at some point of the file
-
+and add somewhere in the file the following:
 ```ruby
 group :development, :test do
   gem 'sqlite3'
@@ -1303,142 +1267,205 @@ end
 
 group :production do
    gem 'pg'
-   gem 'rails_12factor'
 end
 ```
 
-as well as
+From command line, execute <code>bundle install</code> to realize the changes
 
 ```ruby
-ruby '2.2.0'
-```
-
-Execute the command <code>bundle install</code> from the terminal, so that the changes are activated:
-
-```ruby
-mbp-18:viikko1 mluukkai$ bundle install
+$ ratebeer git:(master) ✗ bundle install
 Fetching gem metadata from https://rubygems.org/..........
-Fetching additional metadata from https://rubygems.org/..
 Resolving dependencies...
-Using rake (10.1.1)
-Using i18n (0.6.9)
+Using rake 13.0.6
+Using concurrent-ruby 1.1.10
+Using minitest 5.16.1
+Using builder 3.2.4
 ...
-Using uglifier (2.4.0)
-Your bundle is complete!
-Use `bundle show [gemname]` to see where a bundled gem is installed.
+Using rails 7.0.3
+Installing pg 1.4.1 with native extensions
+Bundle complete! 16 Gemfile dependencies, 75 gems now installed.
+Use `bundle info [gemname]` to see where a bundled gem is installed.
 ```
 
-If you encountered problems with the file pg config, and you are running on OS X 10.7, you should follow [this](http://stackoverflow.com/questions/19625487/impossible-to-install-pg-gem-on-my-mac-with-mavericks) directions, where PostreSQL is installed in the Applications directory and pg gem is set up separately. After this, bundle install should work normally.
+If <code>bundle install</code> throws an error (most likely only happens on OS X) you can either:
+- rerun the command with additional parameters <code>bundle install --without production</code>
+  - This is the recommended way unless you explicitly want to install a _postgresql_ database to you computer (there's no need for that during this course as we won't use _postgresql_ locally)
+  - Note that if you chooce this option, you need need to use this form of the command always in the future as well.
+- alternatively, you can first install _postgresql_ to your own computer and the rerun the command
 
-If the link above did not help either, try the command <code>bundle install --without production</code>
-
-Commit all the changes in the version management.
-
+Let's commit all the changes to version control:
 ```ruby
-➜  ratebeer git:(master) git add -A
-➜  ratebeer git:(master) git commit -m"updated Gemfile for Heroku"
+git add -A
+git commit -m"updated Gemfile for Internet"
 ```
 
-Now we are ready to start the application in Heroku. The application gets started with the operation <code>git push heroku master</code> from the command line
+There are countles solutions for hosting application, that is "putting them to the internet". 
+
+The easiest way to host applications nowadays are the PaaS (or Platform as a Service) services that handle setting up databases and runtime environments on behalf of the developer. 
+
+For ten years the best PaaS solution was [Heroku](http://heroku.com). However in August 2022 Heroku announced that starting 27.11.2022 all free services will be shut down. For that reason we will also introduce a promising competitor [Fly.io](https://fly.io/). You can use either one as long as you remember that Heroku's free options have come to an end. Heroku has promised some free student options but at the moment we don't count on them.
+
+### Fly.io
+Create credentials to [Fly.io](https://fly.io/). You can also use your GitHub account.
+
+Install Fly.io with [these instructions](https://fly.io/docs/getting-started/installing-flyctl/).
+During installation you might be asked to manually set some environmental variables, do as prompted.
+
+Then proceed according to the Fly.io [Rails guide](https://fly.io/docs/rails/getting-started/).
+
+Go to the application directory and create a Fly.io application with `fly launch`. A Postgres database will be initialized during this. Give "suitable" answers to the following questions. (The application name can contain only integers, lowercase letters and hyphens). Note that if you need to approve the creation of the database, by default this is set to 'No'.
+
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/fly-pg.png)
+
+Deploy your application to production with `fly deploy`. Use this command everytime you wish to push the current version of your application to the internet.
+
+You can open your application in a browser with  `fly open`.
+
+**Note** that (currently) there is nothing at the root of the application, eg. in my case in https://ratebeer.fly.dev/. Our beers can be found at https://ratebeer.fly.dev/beers and breweries at https://ratebeer.fly.dev/breweries.
+
+If something is not working, one should start by looking for the cause in the server logs. You can see them with  `fly logs`.
+
+You can also access the Rails console of your application on the server. To do this, first enter the Docker container running your application with `fly ssh console`. Then, in the console, run the command `/app/bin/rails c`. 
+
+Before the command you will most likely have to authenticate yourself with `fly log`.
+
+You can also connect to the application postgre database with the command flyctl postgres connect -a name_of_database`. The name of the datebase is the name of the application with an additional '-db' at the end. My application is named ratebeer, so connecting to the database would be done as follows:
+
+`flyctl postgres connect -a ratebeer-db`
+
+Fly.io hasn't yet been used much on the department's courses, if you run into issues, ask for help in Discord.
+
+There are all kinds of interesting things going on under the hood of Fly.io. The application is run inside a [Docker]((https://www.docker.com/)) container. A file for configuring the container set up, Dockerfile, has appeared into your directory. Docker is the modern, and future, solution for in production applications and several other scenarios. In this course, you will do fine without taking a deeper look under the hood of Docker but getting familiar with Docker is already basically a requirement for people in software industry. When you have the time, it is recommended to do the course [DevOps with Docker](https://devopswithdocker.com/).
+
+### Heroku
+
+
+You can deploy the application in Heroku very easily if the application folder is a git repository in itself.
+
+If you haven't used Heroku before
+- Make a Heroku ID.
+- Create a ssh key and add it to Heroku at the page https://dashboard.heroku.com/account
+    * information on how to create an ssh key at  https://github.com/mluukkai/otm-2018/blob/master/tehtavat/viikko1.md#julkinen-avain
+- Install the Heroku command line interface, Heroku CLI, according to https://devcenter.heroku.com/articles/heroku-cli
+
+
+Go to the root folder of your application and create a Heroku instance for it:
 
 ```ruby
-➜  ratebeer git:(master) git push heroku master
-Counting objects: 105, done.
+$ heroku create
+Creating app... done, ⬢ young-escarpment-87255
+https://young-escarpment-87255.herokuapp.com/ | https://git.heroku.com/young-escarpment-87255.git
+```
+
+Type your Heroku ID when it's required.
+
+The application URL will in this case be https://young-escarpment-87255.herokuapp.com/. The beginning of the application URL can be edited by running **heroku create url_beginning**. 
+
+**Note**, that there is nothing in the application root so far, at the addresshttps://young-escarpment-87255.herokuapp.com/. The beers of our application will be found athttps://young-escarpment-87255.herokuapp.com/beers and the breweries at hhttps://young-escarpment-87255.herokuapp.com/breweries
+
+Now were are ready to launch our application to Heroku. The application is booted by exuting the following from the command line: <code>git push heroku main</code>
+
+```ruby
+$ git push heroku main
+Counting objects: 136, done.
 Delta compression using up to 4 threads.
-Compressing objects: 100% (97/97), done.
-Writing objects: 100% (105/105), 22.58 KiB | 0 bytes/s, done.
-Total 105 (delta 10), reused 0 (delta 0)
+Compressing objects: 100% (122/122), done.
+Writing objects: 100% (136/136), 30.06 KiB | 615.00 KiB/s, done.
+Total 136 (delta 14), reused 0 (delta 0)
 remote: Compressing source files... done.
 remote: Building source:
-remote:
 ...
 remote: -----> Discovering process types
-remote:        Procfile declares types -> (none)
-remote:        Default types for Ruby  -> console, rake, web, worker
+remote:        Procfile declares types     -> (none)
+remote:        Default types for buildpack -> console, rake, web, worker
 remote:
-remote: -----> Compressing... done, 26.0MB
-remote: -----> Launching... done, v6
-remote:        https://enigmatic-eyrie-1511.herokuapp.com/ deployed to Heroku
+remote: -----> Compressing...
+remote:        Done: 47.7M
+remote: -----> Launching...
+remote:        Released v5
+remote:        https://young-escarpment-87255.herokuapp.com/ deployed to Heroku
 remote:
 remote: Verifying deploy... done.
-To https://git.heroku.com/enigmatic-eyrie-1511.git
- * [new branch]      master -> master
+To https://git.heroku.com/young-escarpment-87255.git
+ * [new branch]      main -> main
 ```
 
-It looks like the application started without issues.
+The application seems to have started without issues.
 
-Use the browser to open the page which shows our brewery list: http://enigmatic-eyrie-1511.herokuapp.com/breweries
+Now open the all breweries page in your browser, here https://young-escarpment-87255.herokuapp.com/breweries.
 
-The result is an unpleasant error exception "We're sorry, but something went wrong.".
+We are however greeted with an unfortunate error message "We're sorry, but something went wrong.".
 
-We can try to see what was the problem by inspecting Heroku logs, using the command <code>heroku logs</code>. A lot is printed, but if you look well, you'll easily find the cause:
+We can troubleshoot by browsing heroku logs with <code>heroku logs</code>. The print out is quite long but after a short investigation we find the culprit:
 
 <pre>
-2015-01-11T14:55:55.010390+00:00 app[web.1]: Started GET "/breweries" for 87.92.42.254 at 2015-01-11 14:55:55 +0000
-2015-01-11T14:55:55.108506+00:00 heroku[router]: at=info method=GET path="/breweries" host=enigmatic-eyrie-1511.herokuapp.com request_id=35dfd5f8-bafb-40e5-96f5-c0351e8f6e91 fwd="87.92.42.254" dyno=web.1 connect=1ms service=106ms status=500 bytes=1754
-2015-01-11T14:55:55.102697+00:00 app[web.1]: PG::UndefinedTable: ERROR:  relation "breweries" does not exist
-2015-01-11T14:55:55.102703+00:00 app[web.1]: LINE 5:                WHERE a.attrelid = '"breweries"'::regclass
-2015-01-11T14:55:55.102705+00:00 app[web.1]:                                           ^
-2015-01-11T14:55:55.102706+00:00 app[web.1]: :               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
-2015-01-11T14:55:55.102707+00:00 app[web.1]:                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
-2015-01-11T14:55:55.102709+00:00 app[web.1]:                 FROM pg_attribute a LEFT JOIN pg_attrdef d
-2015-01-11T14:55:55.102710+00:00 app[web.1]:                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-2015-01-11T14:55:55.102711+00:00 app[web.1]:                WHERE a.attrelid = '"breweries"'::regclass
-2015-01-11T14:55:55.102712+00:00 app[web.1]:                  AND a.attnum > 0 AND NOT a.attisdropped
-2015-01-11T14:55:55.102714+00:00 app[web.1]:                ORDER BY a.attnum
-2015-01-11T14:55:55.102715+00:00 app[web.1]:                                          ^
+2018-09-01T18:20:29.445705+00:00 app[web.1]: [ac5c97e8-2c40-4e97-9bf4-6d763bfd189f]
+2018-09-01T18:20:29.453053+00:00 app[web.1]: [ac5c97e8-2c40-4e97-9bf4-6d763bfd189f] ActionView::Template::Error (PG::UndefinedTable: ERROR:  relation "breweries" does not exist
+2018-09-01T18:20:29.453056+00:00 app[web.1]: LINE 8:                WHERE a.attrelid = '"breweries"'::regclass
+2018-09-01T18:20:29.453058+00:00 app[web.1]: ^
+2018-09-01T18:20:29.453060+00:00 app[web.1]: :               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+2018-09-01T18:20:29.453064+00:00 app[web.1]: c.collname, col_description(a.attrelid, a.attnum) AS comment
+2018-09-01T18:20:29.453065+00:00 app[web.1]: FROM pg_attribute a
+2018-09-01T18:20:29.453062+00:00 app[web.1]: pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod,
 </pre>
 
-The problem is that the database has not been created (_PG::UndefinedTable: ERROR:  relation "breweries" does not exist_) In other words, we have to exectute the migrations to the application in Heroku. This works with the command <code>heroku run rake db:migrate</code>
 
-And now the application works!
+The problem is that no database has been created _PG::UndefinedTable: ERROR: relation "breweries" does not exist_. We must perform migrations for applications deployed to Heroku. This can be done with <code>heroku run rails db:migrate</code>.
 
-As you'll notice, the beers and the breweries in the database do not move to Heroku. If you want that the objects defined in the file <code>seed.rb</code> move to the database, you can execute the command
+And now the applications works!
 
-    heroku run rake db:seed
+As you can see the beers and breweries have not been transferred to Heroku. If you want to add the objects defined in `seed.rb` to the database in Heroku you can run
 
-In the future, you'll always have to execute the migrations when you deploy the application to Heroku.
+    heroku run rails db:seed
 
-We can also open our Rails console with the application in Heroku, using the command
+Do remember that you need to execute migrations everytime you deploy your application to Heroku.
 
+We can also open the Rails console of the application deployed to Heroku with <code>heroku run console</code>:
 
 ```ruby
-➜  ratebeer git:(master) heroku run console
+$ heroku run console
 irb(main):001:0> Brewery.all
-=> #<ActiveRecord::Relation [#<Brewery id: 1, name: "Koff", year: 1897, created_at: "2015-01-11 14:57:30", updated_at: "2015-01-11 14:57:30">, #<Brewery id: 2, name: "Malmgard", year: 2001, created_at: "2015-01-11 14:57:30", updated_at: "2015-01-11 14:57:30">, #<Brewery id: 3, name: "Weihenstephaner", year: 1042, created_at: "2015-01-11
+=> #<ActiveRecord::Relation [#<Brewery id: 1, name: "Koff", year: 1897, created_at: "2022-08-09 14:57:30", updated_at: "2022-08-09 14:57:30">, #<Brewery id: 2, name: "Malmgard", year: 2001, created_at: "2022-08-09 14:57:30", updated_at: "2022-08-09 14:57:30">, #<Brewery id: 3, name: "Weihenstephaner", year: 1040, created_at: "2022-08-09
 ```
 
-This is a normal Rails console session, and you can use it to inspect the status of the application database which was deployed to Heroku.
+This is a normal Rails console session so you can use it to eg. check the state of the database of the application in Heroku.
 
-## Handling associations and execution environments
+
+
+## Dependecy management
 
 As we mentioned in the previous section, the libraries used on Rails – the gems – are defined in the Gemfile which is located at the root of the application.
 
 Before the changes we did in the previous section, the Gemfile used to look like the following (where the comments have been removed from the part on the top):
 
 ```ruby
-source 'https://rubygems.org'
+source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem 'rails', '4.1.5'
-gem 'sqlite3'
-gem 'sass-rails', '~> 4.0.0'
-gem 'uglifier', '>= 1.3.0'
-gem 'coffee-rails', '~> 4.0.0'
-gem 'jquery-rails'
-gem 'turbolinks'
-gem 'jbuilder', '~> 1.2'
+ruby "3.1.2"
+
+gem "rails", "~> 7.0.3"
+gem "sprockets-rails"
+gem "puma", "~> 5.0"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "stimulus-rails"
+gem "jbuilder"
 ```
 
-The Gemfile has got a list of gams, which are used by the application. As we see, Rails itself is a gem. In some cases, the version to use or at least a suitable version number should be defined among the gems.
+The Gemfile has got a list of gems, which are used by the application. As we see, Rails itself is a gem. In some cases, the version to use or the minimum suitable version number should be defined among the gems.
+
 
 The associations are loaded at the address https://rubygems.org, using the program Bundler, see http://bundler.io/. You'll have to give the command <code>bundle install</code> from the command line. Bundler loads the gems and their associations from rubygem.org, and then the application is ready to use.
 
-After <code>bundle install</code> is executed for the first time, the file <code>Gemfile.lock</code> is born and it defines precisely what gem versions are set up. It doesn't necessarily define precise versions for the Gemfile. After this, when you call <code>bundle install</code>, the versions which were defined in Gemfile.lock are set up. If you execute <code>bundle update</code>, you'll get the newer gems that you've uploaded in case of need and you create a new Gemfile.lock. You can see more information about Bundler at http://bundler.io/v1.5/rationale.html
+After <code>bundle install</code> is executed for the first time, the file <code>Gemfile.lock</code> is born and it defines precisely what gem versions are set up. It doesn't necessarily define precise versions. After this, when you call <code>bundle install</code>, the versions which were defined in Gemfile.lock are installed. If you execute <code>bundle update</code>, you'll get the newer gem versions if needed and a new Gemfile.lock is created. You can see more information about Bundler at http://bundler.io/v1.5/rationale.html
+
+## Runtime environments
 
 By default, Rails provides us with three different execution environments
 * development, the environment for the application development
 * test, the environment to execute tests
-* production, the environment which is used for the production
+* production, the environment which is used for in production use
 
 In each execution environment there is their own database and Rails also works slightly differently in each environment.
 
@@ -1448,36 +1475,41 @@ The application that has been deployed to Heroku starts to work in the productio
 
 We'll get to know the test environment in the course week 4.
 
-Dirrent environments need different associations sometimes. For instance, when we execute the application in Heroku, the PostgreSQL database is used in the production environment. However, we use the sqlite3 database while we develop the applications. Same gems do not suit al the execution environments.
+Dirrent environments need different dependencies sometimes. For instance, when we execute the application in Heroku, the PostgreSQL database is used in the production environment. However, we use the sqlite3 database while we develop the applications. Same gems do not suit all the execution environments.
 
-When we use different environments, gems can be defined with the group chunks in Gemfile. Below, the Heroku requirement of our application Gemfile after the changes:
+When we use different environments, gems can be defined with the group chunks in Gemfile. Below,  our Gemfile after the changes required for Heroku:
 
 ```ruby
-source 'https://rubygems.org'
+source "https://rubygems.org"
+git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-gem 'rails', '4.1.5'
+ruby "3.1.2"
+
+gem "rails", "~> 7.0.3"
+gem "sprockets-rails"
+gem "puma", "~> 5.0"
+gem "importmap-rails"
+gem "turbo-rails"
+gem "stimulus-rails"
+gem "jbuilder"
 
 group :development, :test do
   gem 'sqlite3'
 end
 
 group :production do
-   gem 'pg'
-   gem 'rails_12factor'
+  gem 'pg'
 end
-
-gem 'sass-rails', '~> 4.0.0'
-gem 'uglifier', '>= 1.3.0'
-gem 'coffee-rails', '~> 4.0.0'
-gem 'jquery-rails'
-gem 'turbolinks'
-gem 'jbuilder', '~> 1.2'
 ```
 
 sqlite3 gem is used only in the development and test environments. Only the development environment makes use of the gems pg and rails_12 factor.
 
 ## Submitting the exercises
 
-Commit all the changes you have made and push the code in Github. Add a link in Github readme file to the Heroku instance of your application. The contents which are generated by default in the readme file of your Rails application should be deleted.
+Commit all the changes you have made and push the code in Github. Add a link in Github readme file to the Heroku or Fly.io instance of your application. The contents which are generated by default in the readme file of your Rails application might be best deleted.
 
-Write down your exercise submission at the address http://wadrorstats2015.herokuapp.com/courses/1
+_Deploying your application to Heroku/Fly.io is not obligatory. However it is higly recommended to do so as it is very educational_.
+
+If you use a private repository, add mluukkai as a collaborator.
+
+Report you done exercises at https://studies.cs.helsinki.fi/stats/courses/rails2022
