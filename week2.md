@@ -559,7 +559,7 @@ The <code>code</code> inside the brewery is an attribute which is saved in the d
 
 After you have done the exercise, the rating pages should look more or less like this:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/tree/main/images/ratebeer-w2-2.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-2.png)
 
 Attention: when you create new code in your application, it is a good practice to make trials by hand in your console. Below, we try to use the default method <code>to_s</code> to return the value of the rating:
 
@@ -625,7 +625,7 @@ As you see above, reloading the code is not enough in itself, because the object
 
 The beer page should look more or less like the picture below, after you have done the exercise (notice that after last week, you could be showing the brewery ID instead of the brewery name on the page. If so, change your view so that it corresponds to the picture):
 
-![kuva](https://github.com/mluukkai/WebPalvelinohjelmointi2022/tree/main/images/ratebeer-w2-3.png)
+![kuva](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-3.png)
 
 > ## Exercise 5
 >
@@ -639,7 +639,7 @@ The beer page should look more or less like the picture below, after you have do
 
 Using the console, add a rating to one previously unrated beer. The beer page should now look like the one below:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/tree/main/images/ratebeer-w2-4.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-4.png)
 
 The page has one small, but annoying grammar mistake:
 
@@ -707,7 +707,7 @@ You can read more about how to create forms with the <code>form_for</code> metho
 
 If we try to create ratings,nothing seems to happen. The browser's developer console however shows us that the browser has done a POST request to http://localhost:3000/ratings but the server has replied with 404.
 
-![kuva](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/w2-post.png)
+![kuva](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/w2-post.png)
 
 
 This means we have to create a route in the file config/routes.rb for sending the form:
@@ -987,7 +987,7 @@ For instance, the last 3 routes tell us the following things:
 
 As we have already noticed,the information of the command <code>rails routes</code> arrives to the web page to render in error situations. The page even provides you with an interactive tool, which you can use to see how the application routes the input example path:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/tree/main/images/ratebeer-w2-6.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-6.png)
 
 
 > ## Exercise 7
@@ -1222,7 +1222,7 @@ Implement this connection in your code and test the following thing from your co
 
 The brewery page should be look more or less like the picture below after you have implemented the changes. 
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/tree/main/images/ratebeer-w2-8.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-8.png)
 
 You will see, that beer and brewery both a method called <code>avarage_rating</code> which also works in the same way. You can not leave the code like this.
 
@@ -1404,7 +1404,7 @@ To end your week, it is time to deploy again your application to either Heroku o
 
 If you try to naviage to the page with all ratings, you will find the old evil error message:
 
-![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w2-12.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-12.png)
 
 Tracing down errors in the application running in the production mode is always a bit more difficult than when it is running in the developer mode, where Rails provides the application developer with various ways to find out the problems.
 
