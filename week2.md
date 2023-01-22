@@ -1404,7 +1404,7 @@ To end your week, it is time to deploy again your application to either Heroku o
 
 If you try to naviage to the page with all ratings, you will find the old evil error message:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-12.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w2-12.png)
 
 Tracing down errors in the application running in the production mode is always a bit more difficult than when it is running in the developer mode, where Rails provides the application developer with various ways to find out the problems.
 
