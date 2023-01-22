@@ -1,13 +1,12 @@
-You will continue to develop your application from the point you arrived at the end of week 1. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week [from the course repository](https://github.com/mluukkai/WebPalvelinohjelmointi2015/tree/master/malliv/viikko1). If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
+You will continue to develop your application from the point you arrived at the end of week 1. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer of the previous week. If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
 
-If you start working this week on the base of last week sample answer, copy the folder from the course repository (assuming you have alrady cloned it) and make a new repository of the folder with the application.
+## Sensible editor
 
-**Attention:** some Mac users have found problems with the pg-gem which Heroku needs. Gems are not needed locally and we defined to set them only in the production environment. If you have problems, you can set gems by adding the following expression to <code>bundle install</code>:
+Hopefully you are already using a sensible editor at this point, that is, something else than nano, gedit or notepad. Recommendable editors include RubyMine and Visual Studio Code. See [here](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/wadror.md#editoriide) for more.
 
-    bundle install --without production
+Nowadays Visual Studio Code is very popular. If you use [VSC](https://code.visualstudio.com/), it is very much recommended to install the [Ruby plugin](https://code.visualstudio.com/docs/languages/overview).
 
-This setting will be remembered later on, so a simple `bundle install` will be enough if you want to set up new dependences.
-
+In the end, when choosing an editor, the most important aspect is that is pleasant to use.
 ## Application layout
 
 You want to put a navigation bar in your page like modern Web sites, placing a link to the lists with beers and breweries at the top of _all_ pages.
@@ -22,31 +21,20 @@ You can generate a navigation bar with the help of the method <code>link_to</cod
 If you had sharp eyes you might have noticed last week already that view templates do not contain all the HTML code of the pages. For instance, the view template for one beer, /app/views/beers/show.html.erb, looks like below:
 
 ```erb
-<p id="notice"><%= notice %></p>
+<p style="color: green"><%= notice %></p>
 
-<p>
-  <strong>Name:</strong>
-  <%= @beer.name %>
-</p>
+<%= render @beer %>
 
-<p>
-  <strong>Style:</strong>
-  <%= @beer.style %>
-</p>
+<div>
+  <%= link_to "Edit this beer", edit_beer_path(@beer) %> |
+  <%= link_to "Back to beers", beers_path %>
 
-<p>
-  <strong>Brewery:</strong>
-  <%= @beer.brewery_id %>
-</p>
-
-<%= link_to 'Edit', edit_beer_path(@beer) %> |
-<%= link_to 'Back', beers_path %>
+  <%= button_to "Destroy this beer", @beer, method: :delete %>
+</div>
 ```
 
 If you look at the HTML code of the page of one beer using the _view source code_ option, you will see, that the page has much more HTML code than it is defined in the template (a part of the head contents has been removed):
-
-```erb
-
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -54,7 +42,7 @@ If you look at the HTML code of the page of one beer using the _view source code
   <link data-turbolinks-track="true" href="/assets/application.css?body=1" media="all" rel="stylesheet" />
   <script data-turbolinks-track="true" src="/assets/jquery.js?body=1"></script>
   <meta content="authenticity_token" name="csrf-param" />
-<meta content="hZaC8o95xUbekA3PTsVZ+JmkVj9CCn5a4Kw8tF96WOU=" name="csrf-token" />
+  <meta content="hZaC8o95xUbekA3PTsVZ+JmkVj9CCn5a4Kw8tF96WOU=" name="csrf-token" />
 </head>
 <body>
 
@@ -92,19 +80,22 @@ It's typical that all the pages of the application are the same except for the c
 ```erb
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Ratebeer</title>
-  <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
-  <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
-  <%= csrf_meta_tags %>
-</head>
-<body>
+  <head>
+    <title>Ratebeer</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
 
-<%= yield %>
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
 
-</body>
+  <body>
+    <%= yield %>
+  </body>
 </html>
 ```
+
 The auxiliary methods inside the Head element define the style and javascript files which are used by the application. The auxiliary method <code>csrf_meta_tags</code> adds to the file the logic to eliminate CSRF attacs (see the [link](http://stackoverflow.com/questions/9996665/rails-how-does-csrf-meta-tag-work) for more information). As you may have guessed, the <code>yield</code> command inside the body element helps to render the contents defined by the view template of each page.
 
 We can display a navigation bar in all pages by modifying the body element of our application layout in the following way:
@@ -125,10 +116,10 @@ The navigation bar has been set up in the div element which contains the _naviba
 
 Add the following to the file app/assets/stylesheets/application.css:
 
-```erb
+```css
 .navibar {
-    padding: 10px;
-    background: #EFEFEF;
+  padding: 10px;
+  background: #EFEFEF;
 }
 ```
 
@@ -142,45 +133,59 @@ The Routing component on Rails
 The file <code>config/routes.rb</code> contains the information of how to route the requests to the various URLs. At this point, the file contents look like this:
 
 ```ruby
-Ratebeer::Application.routes.draw do
+Rails.application.routes.draw do
   resources :beers
   resources :breweries
 end
 ```
 
-Later on, we will get to know the rounts which are added by the method <code>resources</code>.
+Later on, we will get to know the routes which are added by the method <code>resources</code>.
 
-Let us get started by creating a default webpage containing a list of the breweries. This will happen by adding the following line to the routes file
+Let us get started by  setting the webpage containing a list of the breweries as the default page of the application. This will happen by adding the following line to the routes file
 
-    root 'breweries#index'
+```ruby
+root 'breweries#index'
+```
 
 The address http://localhost:3000/ will now lead to a page with all breweries.
 
-What we wrote above is but the more fashonable way to say:
+What we wrote above is but the more classier way to say:
 
-    get '/', to: 'breweries#index'
+```ruby
+get '/', to: 'breweries#index'
+```
 
-this means that when an HTTP GET request arrives to the path '/', it routed and handled by the <code>index</code> method of the <code>BreweriesController</code> class.
+this means that when an HTTP GET request arrives to the path '/', it is routed and handled by the <code>index</code> method of the <code>BreweriesController</code>.
 
-If we read the documentation, we should pay attention that controllers methods are often called _actions_, on Rails. In any case, we have decided to use the name controller method in the course.
+If we read the documentation, we should pay attention that a controller's methods are often called _actions_, in Rails. In any case, we have decided to use the name controller method in the course.
 
 Similarly, you could also add the following line to routes.rb
+  
+```ruby
+get 'kaikki_bisset', to: 'beers#index'
+```
 
-    get 'kaikki_bisset', to: 'beers#index'
+(kaikki_bisset is Finnish for all beers)
 
 In such case, the GET requests to the URL http://localhost:3000/kaikki_bisset would lead to the page of all beers. Try that it works.
 
 An interesting thing of the routes.rb file is that, even though it looks like a configuration file of pure text, all the contents are written in Ruby. The file lines are method calls. For instance the line
 
-    get 'kaikki_bisset', to: 'beers#index'
+```ruby
+get 'kaikki_bisset', to: 'beers#index'
+```
 
-calls the get method whose parameters are the string '/kaikki_bisset' and the hash <code>to: 'beers#index'</code>. There have been used various kinds of syntax for hash expressions. If we use the old syntax, the part of the hash which defines the routing would be written <code>:to => 'beers#index'</code>, and the line of routes.rb would be:
+calls the get method with parameters that are the string '/kaikki_bisset' and the hash <code>to: 'beers#index'</code>. This uses a newer syntax for hash expressions. If we use the old syntax, the part of the hash which defines the routing would be written <code>:to => 'beers#index'</code>, and the line of routes.rb would be:
 
-    get 'kaikki_bisset', :to => 'beers#index'
+```ruby
+get 'kaikki_bisset', :to => 'beers#index'
+```
 
 we could also use brackets in the method call, and define the hash using curly brackets. The following might look clumsy but it is correct to define the route:
 
-    get( 'kaikki_bisset', { :to => 'beers#index' } )
+```ruby
+get( 'kaikki_bisset', { :to => 'beers#index' } )
+```
 
 The elastic syntax (together with other characteristic features of the language) allows for a form which aims at the fluency of natural languages while configuring and programming applications. The style is well known in English with the name _Internal DSL_, see http://martinfowler.com/bliki/InternalDslStyle.html.
 
@@ -194,13 +199,17 @@ The result in the error expression <code>No route matches [GET] "/ratings"</code
 
 Let us add the route by creating the following line in the routes file:
 
-    get 'ratings', to: 'ratings#index'
+```ruby
+get 'ratings', to: 'ratings#index'
+```
 
-In Rails conventions, this defines that the index method of the RaitingsController class will be in charge of the raitings of the page of all routes.
+In Rails conventions, this defines that the index method of the RaitingsController class will be in charge of the ratings page.
 
 Attention: if you wrote <code>match 'ratings' => 'ratings#index'</code>, you would get almost the same result. As it is typical in Rails, there are different ways to define the same thing in routes.rb, too.
 
-Ckeck out the page again in you browser. The error exception has changed to a new form, <code>uninitialized constant RatingsController</code>. This means that when the GET request arrives to the ratings address, the defined route tries to lead it so that it would be handled by the <code>index</code> method of the controller which is defined in the class <code>RatingsController</code>.
+Check out the page again in you browser. 
+
+The error exception has changed to a new form, <code>uninitialized constant RatingsController</code>. This means that when the GET request arrives to the ratings address, the defined route tries to lead it so that it would be handled by the <code>index</code> method of the controller which is defined in the class <code>RatingsController</code>.
 
 Let us define a controller in the file /app/controllers/ratings_controller.rb.
 
@@ -217,11 +226,13 @@ Try out the page with the browser once more.
 
 You will receive the following error exception
 
-        Missing template ratings/index, application/index with {:locale=>[:en], :formats=>[:html], :handlers=>[:erb, :builder, :raw, :ruby, :jbuilder, :coffee]}. Searched in: * "/Users/mluukkai/kurssirepot/wadror/ratebeer/app/views"
+```
+RatingsController#index is missing a template for request formats: text/html
+```
 
-Thi depends that Rails tries to render the default view template which corresponds to the controller method and that is located in the directory /app/views/ratings/index.html.erb. Such file is not found, however.
+This happens beacause Rails tries to render the default view template which corresponds to the controller method and that should be located in /app/views/ratings/index.html.erb. Such file is not found, however.
 
-Let us create the file /app/views/ratings/index.html.erb with the following contents:
+Let us create the file /app/views/ratings/index.html.erb with the following contents (you will also need to create the directory _/app/views/ratings_):
 
 ```erb
 <h2>List of ratings</h2>
@@ -231,9 +242,9 @@ Let us create the file /app/views/ratings/index.html.erb with the following cont
 
 and now the page works!
 
-Note again Rails convensions and the file location, which is defined carefully. Because it is a view template which is called by the ratings controller (which in turn is called exactly RatingsController), the view template is place in the directory /views/ratings.
+Note again Rails conventions and the file location, which is defined carefully. Because it is a view template which is called by the RatingsController, the view template is placed in the directory /views/ratings.
 
-Another reminder from [last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko1.md#kontrollerin-ja-viewien-yhteys): the <code>index</code> controll method renders the index view (which is located in the appropriate directory) at the end of the execution by default. The code
+Another reminder from [last week](https://github.com/mluukkai/webdevelopment-rails/blob/main/week1.md#the-connection-between-controller-and-views): the <code>index</code> controll method renders the index view (which is located in the appropriate directory) at the end of the execution by default. The code
 
 ```ruby
 class RatingsController < ApplicationController
@@ -252,17 +263,17 @@ class RatingsController < ApplicationController
 end
 ```
 
-In any case, we do not explicitely call the render method so that the default file is rendered – that is to say the template with the same name of the controller method.
+In any case, we do not explicitely call the render method if the default file is rendered – that is to say the template with the same name of the controller method.
 
 ## Creating the model by hand: done, almost...
 
 One beer has many ratings, which means that the object model should be updated to look as follows:
 
-![One beer has many ratings](http://yuml.me/4ef16c6a)
+![One beer has many ratings](http://yuml.me/5c8a236c.png)
 
 We need a database table and the corresponding model object.
 
-It is good to use migrations __always__ when you want to make changes on Rails, for instance when adding a table. The migrations are files which have to be placed in the directory db/migrate, and where we note the Ruby operations which modify the database. We will better familiarize ourselves with migrations only later on. Now, we use Rails ready-made _model generator_ to create our model. The generator not only creates a model object but it also generates automatically the migration we need.
+It is good to use migrations __always__ when you want to make changes on Rails, for instance when adding a table. The migrations are files which have to be placed in the directory db/migrate, and where we note the Ruby operations which modify the database. We will better familiarize ourselves with migrations later on. Now, we use Rails' ready-made _model generator_ to create our model. The generator not only creates a model object but it also generates automatically the migration we need.
 
 Ratings have an integer <code>score</code> and a foreign key, which links to the rated beer. According to Rails conventions, the foreign key name has to be <code>beer_id</code>.
 
@@ -272,9 +283,9 @@ You can create the model and the migration which generates the database by givin
 
 and the database table by executing the following migration in the command line
 
-    rake db:migrate
+    rails db:migrate
 
-Differently than the _scaffold_ generator which we used last week, the model generator does not even create a controller or view templates.
+Differently than the _scaffold_ generator which we used last week, the model generator does not create a controller or view templates.
 
 **A reminder from last week:** the files generated by Rails generators (scaffold, model, ...) can be deleted with the command *destroy*:
 
@@ -282,37 +293,80 @@ Differently than the _scaffold_ generator which we used last week, the model gen
 
 If you have already executed the migration and you notice that the code created by the generator has to be destroyed, it is **extremely important** that you first cancel the migration with the command
 
-    rake db:rollback
+    rails db:rollback
 
-In order to establish the connections at object level too (check [last week material](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko1.md#oluet-ja-yhden-suhde-moneen--yhteys), the classes have to be upadate in the following way
+In order to establish the connections at object level too (check [last week material](https://github.com/mluukkai/webdevelopment-rails/blob/main/week1.md#beers-and-the-one-to-many-connection), the classes have to be updates in the following way
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
   has_many :ratings
 end
 
-class Rating < ActiveRecord::Base
+class Rating < ApplicationRecord
   belongs_to :beer
 end
 ```
+```
 
-Each beer has many ratings and a ratings belongs to one sole beer always.
+Each beer has many ratings and a rating belongs to one sole beer always.
 
 Start the Rails console running the command <code>rails c</code> from the command line. Notice that if your console was open already, you can start to use the new code in the console by running <code>reload!</code>. Create a few ratings:
 
 ```ruby
-2.0.0-p451 :001 > b = Beer.first
-2.0.0-p451 :002 > b.ratings.create score:10
-2.0.0-p451 :003 > b.ratings.create score:21
-2.0.0-p451 :004 > b.ratings.create score:17
+> b = Beer.first
+> b.ratings.create score: 10
+> b.ratings.create score: 21
+> b.ratings.create score: 17
 ```
 
 The ratings are added to the first beer which is found in the database. Notice the way it was created; you could have run the same thing with the more complex
 
 ```ruby
-    b.ratings << Rating.create score:15
+b.ratings << Rating.create(score:15)
 ```
+
+
+## Missing foreign key
+
+Let's try to create a beer without a brewery: 
+
+```ruby
+irb(main)> b = Beer.create name:"anonymous", style: "watery"
+=> #<Beer:0x00007f4444abc8b0 id: nil, name: "anonymous", style: "watery", brewery_id: nil, created_at: nil, updated_at: nil>
+irb(main)>
+```
+
+_id_ and the time stamps do not get any values. It looks like the beer wasn't saved into the databse at all.
+
+If we use beer method _errors_, we find the reason for the failed save.
+
+```ruby
+irb(main)> b.errors
+=> #<ActiveModel::Errors [#<ActiveModel::Error attribute=brewery, type=blank, options={:message=>:required}>]>
+```
+
+So the beer won't be saved to the database without information about its brewery. We can fix this by defining the brewery and calling the method _save_ for the beer:
+
+```ruby
+> b.brewery = Brewery.find_by(name: 'Koff')
+> b.save
+   (0.1ms)  begin transaction
+  Beer Create (1.9ms)  INSERT INTO "beers" ("name", "style", "brewery_id", "created_at", "updated_at") VALUES (?, ?, ?, ?, ?)  [["name", "anonymous"], ["style", "watery"], ["brewery_id", 1], ["created_at", "2022-09-11 18:21:40.830949"], ["updated_at", "2022-09-11 18:21:40.830949"]]
+   (0.8ms)  commit transaction
+```
+
+The reason for failing to save the beer was that by default Rails demands that if an object refers to another object via a foreign key and _belongs_to_ is used in the code to form the association (like we do in the case of beers)
+
+```ruby
+class Beer < ApplicationRecord
+  belongs_to :brewery
+
+  # ...
+end
+```
+
+the foreign key [cannot be uninitialized](https://blog.bigbinary.com/2016/02/15/rails-5-makes-belong-to-association-required-by-default.html).
 
 >## Exercise 1
 >
@@ -324,9 +378,9 @@ The ratings are added to the first beer which is found in the database. Notice t
 >* Nanny State (style lowalcohol)
 >add a couple of ratings to both beers
 >
->Go through last week [material](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko1.md) in case you need and check the parts about console use.
+>Go through last week [material](https://github.com/mluukkai/webdevelopment-rails/blob/main/week1.md) in case you need and check the parts about console use.
 >
->return this exercise by adding the directory exercises in your application. The directory has to contain the file exercise1, with the copy-pasted console session
+>Return this exercise by adding the directory _exercises_ to your application. The directory has to contain the file exercise1, with the copy-pasted console session
 
 Our database contains ratings now, and we want to make sure they appear on a page with all ratings.
 
@@ -334,49 +388,51 @@ Our database contains ratings now, and we want to make sure they appear on a pag
 >
 > Add all the ratings on a ratings page. You can use the brewery controller <code>index</code> method and the corresponding template as model. When you make the rating list, use the following style, for instance
 >
->```erb
-><ul>
+> ```erb
+> <ul>
 >  <% @ratings.each do |rating| %>
 >    <li> <%= rating %> </li>
 >  <% end %>
-></ul>
->```
+> </ul>
+> ```
 >
 > Also add the information about the total amount of ratings to the page.
 
 At this point, the page should look more or less like this:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w2-1.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w2-1.png)
 
-The rating is rendered in a quite unpleasant way. This depends on the fact that the li element contains only the object name, because we haven't defined the method <code>to_s</code> which turns the ratings to strings, the method in use is the default <code>to_s</code> method which was inherited by all classes from the parent class Object.
+The rating is rendered in a quite unpleasant way. This depends on the fact that the li element contains only the object name, and because we haven't defined the method <code>to_s</code> which turns the ratings to strings, the method in use is the default <code>to_s</code> method which was inherited by all classes from the parent class Object.
 
-In a second, we will define the method <code>to_s</code> for the ratings. Before doing in, we will first see a couple of things about object method definitions.
+Soon, we will define a _partial_ file for the ratings which breaks down the code and lets us create an easily readable display for our ratings. Before doing it, we will first see a couple of things about object method definitions.
 
 ## A couple of clarifications about Rails model objects
 
 Spend a second to inspect the class <code>Brewery</code>:
 
 ```ruby
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
   has_many :beers
 end
+```
 ```
 
 The brewery has a <code>name</code> and a founding <code>year</code>. We can reach them by hand from the console:
 
+
 ```ruby
-irb(main):001:0> b = Brewery.first
-irb(main):002:0> b.name
+> b = Brewery.first
+> b.name
 => "Koff"
-irb(main):003:0> b.year
+> b.year
 => 1897
-irb(main):004:0>
+>
 ```
 
 Technically, <code>b.year</code> is a method call. For each column which is defined by the schema of the database table, Rails creates a field into the model object. It creates an attribute and the method to read and change the attribute value. These automatically generated methods look more or less as follows:
 
 ```ruby
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
   # ..
 
   def year
@@ -395,10 +451,10 @@ Outsite the object, we retrieve object attributes by using 'dot notation':
 
     b.year
 
-What about inside the object? Create a method to demonstrate that attributes are handled inside brewery:
+What about inside the object? Create a method to demonstrate how attributes are handled inside brewery:
 
 ```ruby
-class Brewery < ActiveRecord::Base
+class Brewery < ApplicationRecord
   has_many :beers
 
   def print_report
@@ -408,13 +464,14 @@ class Brewery < ActiveRecord::Base
   end
 end
 ```
-As it is in Java for instance, methods can be called with their name from within the object (<code>beers</code> is a method, too!)
+
+As it is also in Java for instance, methods can be called with their name from within the object (<code>beers</code> is a method, too!)
 
 You find an example on how to use the method:
 
 ```ruby
-irb(main):001:0> b = Brewery.first
-irb(main):002:0> b.print_report
+> b = Brewery.first
+> b.print_report
 Koff
 established at year 1897
 number of beers 2
@@ -430,65 +487,65 @@ You could have called the methods from inside the object by using Ruby's 'this,'
   end
 ```
 
-Create a method to 'restart' the brewery, in such case the establishment year changes to year 2015:
+Next, create a method to 'restart' the brewery, in such case the establishment year changes to year 2022:
 
 ```ruby
-  def restart
-    year = 2015
-    puts "changed year to #{year}"
-  end
+def restart
+  year = 2022
+  puts "changed year to #{year}"
+end
 ```
 
 Try it out:
 
 ```ruby
-irb(main):024:0> b = Brewery.first
-irb(main):025:0> b.year
+> b = Brewery.first
+> b.year
 => 1897
-irb(main):026:0> b.restart
-changed year to 2015
-irb(main):027:0> b.year
+> b.restart
+changed year to 2022
+> b.year
 => 1897
-irb(main):028:0>
+>
 ```
 
-as you notice, the year change does not work as we expected! As far as the method <code>restart</code> is concerned, there is no method call with <code>year = 2015</code>
+as you notice, the year change does not work as we expected! As far as the method <code>restart</code> is concerned, there is no method call with <code>year = 2022</code>
 
     def year=(value)
 
-There is no method call which could assign a new value to the attribute. Instead, a local variable called <code>year</code> is created in the method and it is given value 2015.
+There is no method call which could assign a new value to the attribute. Instead, a local variable called <code>year</code> is created in the method and it is given value 2022.
 
 If you want to make the assignment work, you have to call the method through a <code>self</code> reference:
 
 ```ruby
-  def restart
-    self.year = 2015
-    puts "changed year to #{year}"
-  end
+def restart
+  self.year = 2022
+  puts "changed year to #{year}"
+end
 ```
-The functionality will not fulfill your expectations:
+The functionality will now fulfill your expectations:
 
 ```ruby
-irb(main):029:0> b = Brewery.first
-irb(main):030:0> b.year
+> b = Brewery.first
+> b.year
 => 1897
-irb(main):031:0> b.restart
-changed year to 2015
-irb(main):032:0> b.year
-=> 2015
-irb(main):033:0>
+> b.restart
+changed year to 2022
+> b.year
+=> 2022
+>
 ```
 
-**Attention:** In Ruby, instance variable are defined with an <code>@</code> character at the beginning. Instance variables _are not_ the same thing as the object attributes which are saved in the database thanks to Activerecord, anyway. The following code would not work as you could expect:
+**Attention:** In Ruby, instance variable are defined with an <code>@</code> character at the beginning. Instance variables _are not_ the same thing as the object attributes which are saved in the database thanks to ActiveRecord. The following code would not work as you could expect:
 
 ```ruby
   def restart
-    @year = 2015
+    @year = 2022
     puts "changed year to #{@year}"
   end
 ```
 
-The <code>code</code> inside the brewery is an attribute which is saved in the database by ActiveRecord, whereas <code>@year</code> is an instance variable of the object. Instance variable are not used on Rails, actually. Instance variable are used on Rails only to transmit informatio from the controlers to the views.
+The <code>code</code> inside the brewery is an attribute which is saved in the database by ActiveRecord, whereas <code>@year</code> is an instance variable of the object. Instance variables are not much used in Rails. Instance variables are used on Rails mostly to transmit information from the controlers to the views.
 
 > ## Excercie 3
 >
