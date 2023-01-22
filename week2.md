@@ -547,7 +547,7 @@ changed year to 2022
 
 The <code>code</code> inside the brewery is an attribute which is saved in the database by ActiveRecord, whereas <code>@year</code> is an instance variable of the object. Instance variables are not much used in Rails. Instance variables are used on Rails mostly to transmit information from the controlers to the views.
 
-> ## Excercise 3
+> ## Exercise 3
 >
 > Change the ratings page so that each rating is displayed better as a string, eg. "karhu 35", which contains the name of the rated beer, followed by its rating value.
 >
@@ -1214,7 +1214,7 @@ Implement this connection in your code and test the following thing from your co
  => 5
 ```
 
-> ## Excercise 14
+> ## Exercise 14
 >
 > Change the page which shows the information of the singular breweries so that it tells the amount of ratings of their beers as well as the avarage value. Add the method <code>average_rating</code> to the brewery to do this.
 >
