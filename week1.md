@@ -1,5 +1,4 @@
-## Web-sovellusten toimintaperiaatteita
-
+## Basics of web applications
 
 The idea behind a Web application is simple. Users open a browser and write the page URL they want into the address line, for instance https://www.cs.helsinki.fi/u/mluukkai/. The first part of the URL, in this case www.cs.helsinki.fi is usually the DNS name, which helps us to identify the IP address of the server of the www-page. The browser sends a page request to the web server using the GET-method of the HTTP protocol. If the address is correct, the user who sent the page request has the right to the resources defined in the URL path (for instance u/mluukkai), the server returns to the browser a _status code_ 200 and the page content in HTML format. The browser renders the page for the user. If the page does not exist, the server returns a status code 404 to the browser, which tells of a mistake.
 
