@@ -624,11 +624,11 @@ so that singing out would happen through HTTP GET. It is not a best practice, th
 
 At the end of the exercise, your application will look more or less like the following, if a user is signed in:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-1.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-1.png?raw=true)
 
 and if users are not signed in, it will be like below (notice also the sign up link now):
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-2.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-2.png)
 
 ## User ratings
 
@@ -721,7 +721,7 @@ We will define the first user created as the user of all the existing ratings:
 
 The user page will look more or less like below:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-3.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-3.png)
 
 
 Creating new ratings from the www-page does not work yet, because ratings are not connected to the signed in user. Change the rating controller so that a signed in user will be linked to the rating created.
@@ -749,7 +749,7 @@ After we create a rating, the controller redirects the browser to the page of th
 
 The page with all ratings should look like below, after doing the exercise:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-4.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-4.png)
 
 ## Polishing the signing up
 
