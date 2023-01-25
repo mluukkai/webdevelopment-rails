@@ -1,16 +1,8 @@
-You will continue to develop your application from the point you arrived at the end of week 2. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week [from the course repository](https://github.com/mluukkai/WebPalvelinohjelmointi2015/tree/master/malliv/viikko1). If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
-
-If you start working this week on the base of last week sample answer, copy the folder from the course repository (assuming you have alrady cloned it) and make a new repository of the folder with the application.
-
-**Attention:** some Mac users have found problems with the pg-gem which Heroku needs. Gems are not needed locally and we defined to set them only in the production environment. If you have problems, you can set gems by adding the following expression to <code>bundle install</code>:
-
-    bundle install --without production
-
-This setting will be remembered later on, so a simple `bundle install` will be enough if you want to set up new dependences.
+You will continue to develop your application from the point you arrived at the end of week 2. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week from the model answer found in the exercise submission system. If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
 
 ## Rails developer workflow
 
-The optimal way to program on Rails is evidently different than Java. As a rule, when you are programming on Rails you should _avoid_ writing lots of code, and test it only later on when you go to the page which implements your code. A partial reason for this is the fact rails is a dinamically typed and interpreted language, which makes it impossible for even the best IDEs to check the program syntax. On the other hand, the fact that it is an interpreted language together with its console tools (the console itself and the debugger) makes it possible to test the functionality of smaller code chunks before they are put into the edited code file.
+The optimal way to program on Rails is evidently different than eg. Java. As a rule, when you are programming on Rails you should _avoid_ writing lots of code, and testing it only later on when you go to the page which implements your code. A partial reason for this is the fact Rails is a dynamically typed and interpreted language, which makes it impossible for even the best IDEs to check the program syntax. On the other hand, the fact that it is an interpreted language together with its console tools (the console itself and the debugger) makes it possible to test the functionality of smaller code chunks before they are put into the edited code file.
 
 Let us take for example what we implemented last week, the implementation of the avarage value of beer ratings, and let us follow a natural Rails workflow.
 
@@ -18,17 +10,17 @@ Each beer contains a collection of ratings:
 
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
   has_many :ratings
-
 end
 ```
+
 
 We have to create the method <code>average</code> to the beer
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
   has_many :ratings, dependent: :destroy
 
@@ -40,102 +32,124 @@ end
 
 If we wanted to do it in "Java's way" we could find the sum by going through all the ratings item after item and we could divide it by the number of items.
 
-All Ruby's things which have something to do with collections (for instance tables and <code>hash_many</code> field) contain the auxiliary methods provided by the Enumerable module (ks. http://ruby-doc.org/core-2.1.0/Enumerable.html). Now we want to use the auxiliary methods to find out the avarage value.
+All Ruby's things which have something to do with collections (for instance tables and <code>hash_many</code> field) contain the auxiliary methods provided by the Enumerable module (ks. ks. http://ruby-doc.org/core-2.5.1/Enumerable.html). Now we want to use the auxiliary methods to find out the avarage value.
 
-When you write the code, you should _definitely_ use your console. In fact, the debugger would be an even better option than the console. The debugger will open the console straight where we are writing the code. Add the <code>byebug</code> command to the method call, which starts the debugger:
+When you write the code, you should _definitely_ use your console. In fact, the debugger would be an even better option than the console. The debugger will open the console straight in the context for which we are writing the code. Add the <code>binding.pry</code> command to the method call, which starts the debugger:
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
   has_many :ratings, dependent: :destroy
 
   def average
-    byebug
+    binding.pry
   end
 end
 ```
 
-Open the console, read from the database an object containing the ratings, and call the method <code>average</code>:
+Open the console (command _rails c_ on the command line), read from the database an object containing the ratings, and call the method <code>average</code>:
 
 ```ruby
-➜  ratebeer git:(master) ✗ rails c
-Loading development environment (Rails 4.1.5)
-2.0.0-p451 :001 > b = Beer.first
-  Beer Load (0.2ms)  SELECT  "beers".* FROM "beers"   ORDER BY "beers"."id" ASC LIMIT 1
- => #<Beer id: 1, name: "Iso 3", style: "Lager", brewery_id: 1, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">
-2.0.0-p451 :002 > b.average
-
-[4, 13] in /Users/mluukkai/kurssirepot/ratebeer/app/models/beer.rb
-    4:   belongs_to :brewery
-    5:   has_many :ratings, dependent: :destroy
-    6:
-    7:   def average
-    8:     byebug
-=>  9:   end
-   10:
-   11: end
-(byebug)
+irb(main):026:0> b = Beer.first
+   (0.1ms)  SELECT sqlite_version(*)
+  Beer Load (5.0ms)  SELECT "beers".* FROM "beers" ORDER BY "beers"."id" ASC LIMIT ?  [["LIMIT", 1]]
+=>
+#<Beer:0x00007f044a848a00
+...
+irb(main):027:0> b.average
+[7, 14] in /myapp/app/models/beer.rb
+     7|   def to_s
+     8|     "#{name} #{brewery.name}"
+     9|   end
+    10|
+    11|   def average
+=>  12|     binding.pry
+    13|   end
+    14| end
+=>#0	Beer#average at /myapp/app/models/beer.rb:12
+  #1	<main> at (irb):27
+  # and 28 frames (use `bt' command for all frames)
+(rdbg)
 ```
 
 a debugger session will open inside the method. You will find all the information about that beer.
 
 You have access to the object itself, by using the reference <code>self</code>
 
+
 ```ruby
-(byebug) self
-#<Beer id: 1, name: "Iso 3", style: "Lager", brewery_id: 1, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">
-(byebug)
+(rdbg) self
+#<Beer:0x00007f044a848a00
+ id: 1,
+ name: "Iso 3",
+ style: "Lager",
+ brewery_id: 1,
+ created_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00,
+ updated_at: Mon, 08 Aug 2022 17:13:09.108046000 UTC +00:00>
 ```
 
-and you have access to the object field using either dot notation or simply the field name:
+and you have access to the object fields using either dot notation or simply the field name:
 
 ```ruby
-(byebug) self.name
+(ruby) self.name
 "Iso 3"
-(byebug) style
+(rdbg) style
 "Lager"
-(byebug)
+(rdbg)
 ```
 
 Notice that if you want to modify the object field value inside a method, you have to use dot notation:
 
 ```ruby
-  def metodi
-    # seuraavat komennot tulostavat olion kentän name arvon
-    puts self.name
-    puts name
+def methid
+  #following methods print to console the value of field 'name'
+  puts self.name
+  puts name
 
-    # alustaa metodin sisälle muuttujan name ja antaa sille arvon
-    name = "StrongBeer"
+  # initiates a variable 'name'  inside the method ja gives it a value
+  name = "StrongBeer"
 
-    # muuttaa olion kentän name arvoa
-    self.name = "WeakBeer"
-  end
+  # edit the value of field 'name'
+  self.name = "WeakBeer"
+end
 ```
 
 This means you can refer to beer ratings from inside a beer method using the field name <code>ratings</code>:
 
+
 ```ruby
-(byebug) ratings
-  Rating Load (0.2ms)  SELECT "ratings".* FROM "ratings"  WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
-#<ActiveRecord::Associations::CollectionProxy [#<Rating id: 1, score: 10, beer_id: 1, created_at: "2015-01-17 13:09:31", updated_at: "2015-01-17 13:09:31">, #<Rating id: 2, score: 21, beer_id: 1, created_at: "2015-01-17 13:09:33", updated_at: "2015-01-17 13:09:33">, #<Rating id: 3, score: 17, beer_id: 1, created_at: "2015-01-17 13:09:35", updated_at: "2015-01-17 13:09:35">, #<Rating id: 10, score: 22, beer_id: 1, created_at: "2015-01-17 15:51:02", updated_at: "2015-01-17 15:51:02">, #<Rating id: 11, score: 34, beer_id: 1, created_at: "2015-01-17 15:51:52", updated_at: "2015-01-17 15:51:52">]>
-(byebug)
+(rdbg) ratings
+  Rating Load (3.6ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+[#<Rating:0x00007f044927afe8
+  id: 2,
+  score: 22,
+  beer_id: 1,
+  created_at: Fri, 19 Aug 2022 14:09:06.293428000 UTC +00:00,
+  updated_at: Fri, 19 Aug 2022 14:09:06.293428000 UTC +00:00>,
+ #<Rating:0x00007f0449285f38
+  id: 3,
+  score: 17,
+  beer_id: 1,
+  created_at: Fri, 19 Aug 2022 14:09:11.750743000 UTC +00:00,
+  updated_at: Fri, 19 Aug 2022 14:09:11.750743000 UTC +00:00>]
 ```
 
 Take a look at the singular ratings:
-
 ```ruby
-(byebug) ratings.first
-#<Rating id: 1, score: 10, beer_id: 1, created_at: "2015-01-17 13:09:31", updated_at: "2015-01-17 13:09:31">
-(byebug)
+(ruby) ratings.first
+#<Rating:0x00007f044927afe8
+ id: 2,
+ score: 21,
+ beer_id: 1,
+ created_at: Fri, 19 Aug 2022 14:09:06.293428000 UTC +00:00,
+ updated_at: Fri, 19 Aug 2022 14:09:06.293428000 UTC +00:00>
 ```
 
 if you want to sum up ratings, you have to take the value of the <code>score</code> field from each rating object:
 
 ```ruby
-(byebug) ratings.first.score
-10
-(byebug)
+(ruby) ratings.first.score
+21
 ```
 
 The <code>map</code> method of the enumerable module provides us with a way to make a new collection out of an old one. You can retrieve the items of the new collection from the original collection, by executing a mapping function to each of the orginal items.
@@ -143,26 +157,24 @@ The <code>map</code> method of the enumerable module provides us with a way to m
 If you use the name <code>r</code> to refer to the items of the original collection, the mapping function will be simple:
 
 ```ruby
-(byebug) r = ratings.first
-(byebug) r.score
-10
-(byebug)
+(ruby) r = ratings.first
+#<Rating:0x00007f044927afe8>
+(ruby) r.score
+21
 ```
 
 You can try what <code>map</code> will do:
 
 ```ruby
-(byebug) ratings.map { |r| r.score }
-[10, 21, 17, 22, 34]
-(byebug)
+(ruby) ratings.map { |r| r.score }
+[22, 17]
 ```
 
-the mapping function is given to the code chunk between curly brakets which is given as parameter to the method <code>map</code>. The code chunk could also be defined using the <code>do end</code> pair. They both bring about the same result:
+the mapping function is given as a code chunk between curly brackets which is given as parameter to the method <code>map</code>. The code chunk could also be defined using the <code>do end</code> pair. They both bring about the same result:
 
 ```ruby
-(byebug) ratings.map do |r| r.score end
-[10, 21, 17, 22, 34]
-(byebug)
+(ruby) ratings.map do |r| r.score end
+[22, 17]
 ```
 
 The map method makes use of the rating collection to help you build the values of the table ratings. You'll have to sum these values next.
@@ -170,53 +182,52 @@ The map method makes use of the rating collection to help you build the values o
 Rails has added the method [sum](http://apidock.com/rails/Enumerable/sum) to all Enumberables. Try that out on the table you got with map.
 
 ```ruby
-(byebug) ratings.map{ |r| r.score }.sum
-104
-(byebug)
+(ruby) ratings.map { |r| r.score }.sum
+39
 ```
 
-In order to find out the avarage value, you will still have to devide the sum by the total number of items. Check out the <code>count</code> method, which can be used to find the total:
+In order to find out the avarage value, you will still have to devide the sum by the total number of items. Check how the <code>count</code> method works:
 
 ```ruby
-(byebug) ratings.count
-5
-(byebug) ratings.map{ |r| r.score }.sum / ratings.count
+(ruby) ratings.count
+  Rating Count (2.2ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+2
 ```
 
 and then form a oneliner to find the avarage value:
 
+
 ```ruby
-(byebug) ratings.map{ |r| r.score }.sum / ratings.count
-20
-(byebug)
+(ruby) ratings.map { |r| r.score }.sum / ratings.count
+  Rating Count (2.2ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+19
 ```
 
 you will see that the result is rounded erroneously. The problem is evidently that both the devidend and divisor are integers. Change to float one of them. Before you do it, check how the method works to change integers to floats:
 
 ```ruby
-(byebug) 1.to_f
-1.0
-(byebug)
+> 1.to_f
+=> 1.0
 ```
 
 If you don't know how to do something with Ruby, Google knows.
 
-Think of a proper search term and you will have an answer quite certainly. You'll have to be careful though, and check out a couple of Google answers at least. You will have to make sure at least that the answer is for a version of both Ruby and Rails which are modern enough. For instance, a number of things in Rails 2 and 3 changed in the fourth version.
+Think of a proper search term and you will have an answer quite certainly. You'll have to be careful though, and check out a couple of Google answers at least. You will have to make sure at least that the answer is for a version of both Ruby and Rails which are modern enough.
 
 In Ruby and Rails there is typically a ready-made method or gem for almost everything, so you should always google or check the documentation instead of reinventing the wheel.
 
 You can make now the final version of your code to find the avarage value:
 
 ```ruby
-(byebug) ratings.map{ |r| r.score }.sum / ratings.count.to_f
-20.8
-(byebug)
+(ruby) ratings.map { |r| r.score }.sum / ratings.count.to_f
+  Rating Count (2.4ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+19.5
 ```
 
-The code is now ready tested, so you can copy it into a method:
+The code is now ready and tested, so you can copy it into a method:
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   belongs_to :brewery
   has_many :ratings, dependent: :destroy
 
@@ -227,89 +238,169 @@ class Beer < ActiveRecord::Base
 end
 ```
 
-Test the method now: exit from the debugger (typing c, that is, continuing the execution of the previously empty method till the end, _loading_ the new code, retrieving the object and executing the method:
+Test the method now: exit from the debugger, _loading_ the new code, retrieving the object and executing the method:
+
 
 ```ruby
-(byebug) c
-2.0.0-p451 :006 > reload!
-Reloading...
-2.0.0-p451 :007 > b = Beer.first
-2.0.0-p451 :008 > b.average
- => 20.8
-2.0.0-p451 :009 >
+irb(main):001:0> b = Beer.first
+irb(main):002:0> b.average
+  Rating Load (1.8ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+  Rating Count (2.3ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+=> 19.5
 ```
 
 The following test will reveal that there is something wrong, however:
 
 ```ruby
-2.0.0-p451 :009 > b = Beer.last
- => #<Beer id: 17, name: "Hardcore IPA", style: "IPA", brewery_id: 4, created_at: "2015-01-17 17:04:50", updated_at: "2015-01-17 17:04:50">
-2.0.0-p451 :010 > b.average
- => NaN
-2.0.0-p451 :011 >
+irb(main):003:0> b = Beer.second
+irb(main):004:0> b.average
+  Rating Load (2.3ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 2]]
+  Rating Count (3.1ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 2]]
+=> NaN
 ```
 
-Hardcode IPA's rating avarage value is <code>NaN</code>. Go back to your debugger. Write the command <code>byebug</code> in the method for the avarage value, reload the code and call the method to the problematic object:
+Rating avarage value of the second beer in the database is <code>NaN</code>. Go back to your debugger. Write the command <code>binding.pry</code>in the method for the avarage value, reload the code and call the method for the problematic object:
 
 ```ruby
-[3, 12] in /Users/mluukkai/kurssirepot/ratebeer/app/models/beer.rb
-    3:
-    4:   belongs_to :brewery
-    5:   has_many :ratings, dependent: :destroy
-    6:
-    7:   def average
-    8:     byebug
-=>  9:     ratings.map{ |r| r.score }.sum / ratings.count.to_f
-   10:   end
-   11:
-   12: end
-(byebug)
+irb(main):008:0> b.average
+[7, 15] in /myapp/app/models/beer.rb
+     7|   def to_s
+     8|     "#{name} #{brewery.name}"
+     9|   end
+    10|
+    11|   def average
+=>  12|     binding.pry
+    13|     ratings.map{ |r| r.score }.sum / ratings.count.to_f
+    14|   end
+    15| end
 ```
 
 Evaluate the expression parts in the debugger:
 
 ```ruby
-(byebug) ratings.map{ |r| r.score }.sum
+(ruby) ratings.map{ |r| r.score }.sum
+  Rating Load (2.5ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 2]]
 0
-(byebug) ratings.count.to_f
+(ruby) ratings.count.to_f
+  Rating Count (2.1ms)  SELECT COUNT(*) FROM "ratings" WHERE "ratings"."beer_id" = ?  [["beer_id", 2]]
 0.0
-(byebug)
 ```
 
-You are dividing integers by zero. See the result of the operation:
+
+We are dividing integers by zero. See the result of the operation:
 
 ```ruby
-(byebug) 0/0.0
+(ruby) 0/0.0
 NaN
-(byebug)
 ```
 
-In order to prevent a number is devided by zero, the method will have to handle the case separately:
+In order to prevent a number being devided by zero, the method will have to handle the case separately:
 
 ```ruby
-  def average
+def average
+  return 0 if ratings.empty?
+  ratings.map{ |r| r.score }.sum / ratings.count.to_f
+end
+```
+
+We are using an oneliner-if and the collection method <code>empty?</code> which evaluates whether the collection is empty and will be evaluated as true if it is so. This is Ruby's way to check emptiness, whereas a Java user would write:
+
+```ruby
+def average
+  if ratings.count == 0
+    return 0
+  end
+  ratings.map{ |r| r.score }.sum / ratings.count.to_f
+end
+```
+
+In any case, you should comply to the peculiar style of the language you are using, expecially if you are dealing with a project where there are various different developers.
+
+If using the debugger has not become a routine yet, do review last week's debugger material.
+
+## Rubocop: it's all about style
+
+In bigger software projects teams usually set common styling policies, eg. naming conventions, how brackets are placed, where to use space and where not to. Rail conventions already cover some of these, namely on class and  method naming level.
+
+Let's implement [Rubocop](https://github.com/rubocop-hq/rubocop), which will help us define styling rules for our project and to enforce them. Rubocop is a similar _static analysis_ tool such as [ESLint](https://eslint.org/) from the JavaScript world and [checkstyle](http://checkstyle.sourceforge.net/) for Java.
+
+Rubocop is installed from your command line
+ 
+    gem install rubocop
+
+The styling rules monitored by Rubocop are defined in _.rubocop.yml_ that is placed in the project root. Create the file in your project (note the dot at the start of the name) and copy content for it from [here](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/misc/.rubocop.yml).
+
+The rules defined there are based on the [Relaxed Ruby](https://relaxed.ruby.style/) style but they are a bit stricter on some points. The file contents also define that some files are to be left out of any style checks.
+
+A code style check is executed with the command _rubocop_ on the command line.
+
+There are quite a few problems in the code, for example:
+
+<pre>
+app/models/beer.rb:8:5: C: Layout/EmptyLineAfterGuardClause: Add empty line after guard clause.
     return 0 if ratings.empty?
-    ratings.map{ |r| r.score }.sum / ratings.count.to_f
-  end
-```
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+</pre>
 
-We are using an oneliner-if and the collection method <code>empty?</code> which evaluates whether the collection is empty. This is Ruby's way to check emptiness, wheras a Java user would write:
+Line 8 of file _beer.rb_ breaks the rule [Layout/EmptyLineAfterGuardClause](http://docs.rubocop.org/en/latest/cops_layout/#layoutemptylineafterguardclause).
+
+Documentation of the [rules](http://docs.rubocop.org/en/latest/cops/) tells us what this is all about: The problem is that there is no empty line following the first line, which is a so called _guard clause_, of our recently made method _average_. 
 
 ```ruby
-  def average
-    if ratings.count == 0
-      return 0
-    end
-    ratings.map{ |r| r.score }.sum / ratings.count.to_f
-  end
+def average
+  return 0 if ratings.empty?
+  ratings.map{ |r| r.score }.sum / ratings.count.to_f
+end
 ```
 
-In any case, you should comply to the peculiar style of the language when you use a new one, expecially if you are dealing with a project where there are various different developers.
+The next error
 
-If using the debugger has not become a routine yet, rember to review last week [debugger material].
-(https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#lis%C3%A4%C3%A4-rails-sovelluksen-debuggaamisesta)
+<pre>
+app/models/concerns/rating_average.rb:9:38: C: Layout/SpaceAroundOperators: Surrounding space missing for operator +.
+    ratings.reduce(0.0){ |sum, r| sum+r.score } / ratings.count    
+                                     ^
+</pre>
 
-## Users and sessions
+breaks the rule that [mathematical operators must have empty spaces before and after](http://docs.rubocop.org/en/latest/cops_layout/#layoutspacearoundoperators).
+
+Many of our problems have to do with missing or extra spaces and line-breaks:
+<pre>
+app/models/concerns/rating_average.rb:10:6: C: Layout/TrailingWhitespace: Trailing whitespace detected.
+  end
+     ^^
+app/models/concerns/rating_average.rb:11:1: C: Layout/EmptyLinesAroundModuleBody: Extra empty line detected at module body end.
+app/models/concerns/rating_average.rb:12:4: C: Layout/TrailingBlankLines: Final newline missing.
+end
+
+app/models/rating.rb:7:1: C: Layout/TrailingWhitespace: Trailing whitespace detected.
+</pre>
+
+
+> ## Exercise 1
+>
+> Fix all style errors in your code to fit our defined styling rules.
+>
+> NOTE: You can also run the check for just one  file/directory. Eg. command _rubocop app/models/beer.rb_ checks file _beer.rb_
+>
+> NOTE2: If you don't quite understand some error, check the [documentation](https://docs.rubocop.org/rubocop/.
+
+> ## Exercise 2
+>
+>Add a rule that forbids methods over 15 lines long. Check that _rubocop_ announces if you you have a too long method in your code.
+> 
+> Instructions for defining style rules can be found in the Metrics section of [documentation](https://docs.rubocop.org/rubocop/cops_metrics.html).
+
+Rubocop might mention in its reports that some errors could be fixed automatically:
+
+
+```bash
+31 files inspected, 19 offenses detected, 19 offenses autocorrectable
+```
+
+You can fix such errors automatically with the command `rubocop -A`. 
+
+From now on, we recommend that you make sure that any code you create follows Rubocop's rules. You can edit the already configured rules to your liking if you wish.
+## User and session
 
 Next, you will expand your application, so that users will be able to register a user name for themselves in the system.
 You will soon modify the functionality so that each rating will belong to a registered user.
