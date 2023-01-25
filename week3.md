@@ -328,7 +328,7 @@ Rubocop is installed from your command line
  
     gem install rubocop
 
-The styling rules monitored by Rubocop are defined in _.rubocop.yml_ that is placed in the project root. Create the file in your project (note the dot at the start of the name) and copy content for it from [here](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/misc/.rubocop.yml).
+The styling rules monitored by Rubocop are defined in _.rubocop.yml_ that is placed in the project root. Create the file in your project (note the dot at the start of the name) and copy content for it from [here](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/misc/.rubocop.yml).
 
 The rules defined there are based on the [Relaxed Ruby](https://relaxed.ruby.style/) style but they are a bit stricter on some points. The file contents also define that some files are to be left out of any style checks.
 
@@ -405,7 +405,7 @@ From now on, we recommend that you make sure that any code you create follows Ru
 Next, you will expand your application, so that users will be able to register a user name for themselves in the system.
 You will soon modify the functionality so that each rating will belong to a registered user.
 
-![mvc picture](http://yuml.me/ddc9b7c9)
+![mvc picture](http://yuml.me/4abc9b51.png)
 
 Start with creating a user object which has a user name, and later add a password too.
 
@@ -413,30 +413,33 @@ Create a model, a view, and a controller for the user, with the command <code>ra
 
 New users are created according Rails conventions with the form at the address <code>users/new</code>. It would be more natural however, if the address were <code>signup</code>. Add an optional route in routes.rb.
 
-    get 'signup', to: 'users#new'
+```ruby
+get 'signup', to: 'users#new'
+```
 
-So the HTTP GET request to the signup address will also be handled with the help of the Users controller method <code>new</code>.
+So the HTTP GET request to the signup address will also be handled by the Users controller method <code>new</code>.
 
-HTTP is a stateless protocol, which means that all the requests executed with an HTTP protocol are mutually dependent. If we want to implement a state in our Web application, for instance user registration, the information of a Web session state will have to be transmitted together with every browser HTTP request. The most common way to transmit state information is to use coockies, see http://en.wikipedia.org/wiki/HTTP_cookie
+HTTP is a stateless protocol, which means that all the requests executed with an HTTP protocol are mutually independent. If we want to implement a state in our Web application, for instance user registration or a web store shopping basket, the information of a Web session state will have to be transmitted together with every browser HTTP request. The most common way to transmit state information is to use cookies, see http://en.wikipedia.org/wiki/HTTP_cookie
 
-To tell a long story short, the idea behind coockies is the following: when the browser tries to access a Web site, the server can answer the browser and send a request to store a coockie. After that, the browser will add a coockie to all the HTTP requests for the Web site. A coockie is nothing else than a small amount of data, and the server can make use of the coockie data as it prefer to recognise the coockie browser.
+To tell a long story short, the idea behind cookies is the following: when the browser tries to access a Web site, the server can answer the browser and send a request to store a coockie. After that, the browser will add a cookie to all the HTTP requests for the Web site. A cookie is nothing else than a small amount of data, and the server can make use of the cookie data as it prefers to recognise browser owning the cookie.
 
-Rails application developers will not have to work with coockies directly, because thanks to coockies, Rails has implemented __sessions__ which work at higher level and which are used by the application to "remember" browser information, such as the user identity, and the time of various HTTP requests, see
+Rails application developers will not have to work with cookies directly, because thanks to cookies, Rails has implemented __sessions__ which work at higher level and which are used by the application to "remember" browser information, such as the user identity, and the time of various HTTP requests, see
 http://guides.rubyonrails.org/action_controller_overview.html#session.
 
-Try to use sessions to remember what users did their last rating. In Rails applications, you have access to the session of a user (or of a browser) who did an HTTP request through the object <code>session</code> which works like a hash.
+Let's try to use sessions to remember an user's latest rating. In Rails applications, you have access to the session of a user (or of a browser) who did an HTTP request through the object <code>session</code> which works like a hash.
 
 Store the rating session by adding the following chunk in the rating controller:
 
 ```ruby
-  def create
-    rating = Rating.create params.require(:rating).permit(:score, :beer_id)
+def create
+  # save the creted rating into a variable
+  rating = Rating.create params.require(:rating).permit(:score, :beer_id)
 
-    # we store the new rating in the session
-    session[:last_rating] = "#{rating.beer.name} #{rating.score} points"
+  # save the rating to a session
+  session[:last_rating] = "#{rating.beer.name} #{rating.score} points"
 
-    redirect_to ratings_path
-  end
+  redirect_to ratings_path
+end
 ```
 
 add the following chunk of code to the application layout (tiedostoon app/views/layouts/application.html.erb) to make sure the rating will be seen in all pages:
@@ -448,6 +451,7 @@ add the following chunk of code to the application layout (tiedostoon app/views/
   <p>previous rating: <%= session[:last_rating] %></p>
 <% end %>
 ```
+
 Try your application now. There is nothing stored in the session at the beginning, and the value of <code>session[:last_rating]</code> is <code>nil</code>, meaning that the page should say "no ratings given". Create a rating and see that it is saved in the session. Create a new rating again and see that it will overwrite the session data.
 
 Open your application in an incognito window or another browser now. You will see that the session value is <code>nil</code> in the other browser. This means that the session is dependent on the browser.
@@ -456,19 +460,19 @@ Open your application in an incognito window or another browser now. You will se
 
 The idea is implementing the registration functionality so that when users sign in, the <code>ID</code> of the corresponding <code>User</code> object is  saved in the session. When users sign out, the session is reset.
 
-Attention: almost any kind of object can be saved in the session basically, and you could save in the session also the <code>User</code> object corresponding to the users who signed in. It is a best practice however (see http://guides.rubyonrails.org/security.html#session-guidelines) to store as little data as possible in the session (you can save up to 4kB of information in Rails sessions, by default). You should store right the amount you need to identify users who signed in, whereas their other information can be retrieven from the database if needed.
+Attention: almost any kind of object can be saved in the session basically, and you could save in the session also the <code>User</code> object corresponding to the users who signed in. It is a best practice however (see http://guides.rubyonrails.org/security.html#session-guidelines) to store as little data as possible in the session (you can save up to 4kB of information in Rails sessions, by default). You should store just the the amount of data you need to identify users who signed in, whereas their other information can be retrieved from the database if needed.
 
-Create now a controller to sign in and out of your application. Tipically, you should follow Rails RASTful idea and conventional path names to implement the signing in functionality.
+Create now a controller to sign in and out of your application. Typically, you should follow Rails RESTful idea and conventional path names to implement the signing in functionality.
 
-You can think of the session as something which is born when users sign up, and signing up can almost be considered as the same kind of resource as a beer, fo instance. Accondingly, the controller for signing up will be called <code>SessionsController</code>.
+You can think of the session as something which is born when users sign up, and a session can almost be considered as the same kind of resource as a beer, fo instance. Accondingly, the controller for signing up will be called <code>SessionsController</code>.
 
 A session resource is anyway different than beers, for instance, because users either are or are not signed in, in a particular moment. Differently than beers, a user can have not many but maximum one session. Differently than beers, it does not make sense to have a list with all sessions. Routes should be written in singular and this can be at least done when you create a session routes into routes.rb with the <code>resource</code> command:
 
-    resource :session, only: [:new, :create, :delete]
+    resource :session, only: [:new, :create, :destroy]
 
 **Attention: make sure you write the routes.rb definition exactly in the form above, and not _resources_ as it is in the definitions of other paths.**
 
-The sign up address is now **session/new**. The POST call to the address **session** executes the signing in, creating a session for the user. Users sign out when their session is distroyed, with the execution of a POST-delete call to the address **session**.
+The sign up address is now **session/new**. The POST call to the address **session** executes the signing in, creating a session for the user. Users sign out when their session is destroyed, with the execution of a POST-delete call to the address **session**.
 
 Create a controller for sessions (in the file app/controllers/sessions_controller.rb):
 
@@ -503,27 +507,27 @@ The code of the sign up page app/views/sessions/new.html.erb is below:
 ```erb
 <h1>Sign in</h1>
 
-<%= form_tag session_path do %>
-  <%= text_field_tag :username, params[:username] %>
-  <%= submit_tag "Log in" %>
+<%= form_with url: session_path, method: :post do |form| %>
+  <%= form.text_field :username %>
+  <%= form.submit "Log in" %>
 <% end %>
 ```
 
-Differently than the form you made for the ratings (review [the information from last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#lomake-ja-post)), the form you are going to create is not an object and you will create it with method <code>form_tag</code>, see http://guides.rubyonrails.org/form_helpers.html#dealing-with-basic-forms
+Differently than the form you made for the ratings (review [the information from last week](https://github.com/mluukkai/webdevelopment-rails/main/week2.md#form-and-post)), the form you are going to create is not based on an object and you will create it with method <code>form_with</code>-, see http://guides.rubyonrails.org/form_helpers.html#dealing-with-basic-forms
 
 Sending the form will cause an HTTP POST request to the session_path (notice the singular) that is the address **session**.
 
 The method to handle the call takes the user ID which was saved in the <code>param</code> object and retrieves the corresponding user object from the database to save the object ID to the session, if the object exists. At the end, users are redirected to their own page. Once more, the controller code looks like below:
 
 ```ruby
-  def create
-    user = User.find_by username: params[:username]
-    session[:user_id] = user.id if not user.nil?
-    redirect_to user
-  end
+def create
+  user = User.find_by username: params[:username]
+  session[:user_id] = user.id if not user.nil?
+  redirect_to user
+end
 ```
 
-Attention 1: the command <code>redirect_to user</code> is a short form for <code>redirect_to user_path(user)</code>, see [week 1](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko1.md#kertausta-polkujen-ja-kontrollerien-niment%C3%A4konventiot).
+Attention 1: the command <code>redirect_to user</code> is a short form for <code>redirect_to user_path(user)</code>, see [week 1](https://github.com/mluukkai/webdevelopment-rails/main/week1.md#review-naming-conventions-for-paths-and-controllers).
 
 Attention 2: Instead of the <code>if not</code> combination we can use <code>unless</code> in Ruby, and the second line of the method could have been written like
 
@@ -531,7 +535,14 @@ Attention 2: Instead of the <code>if not</code> combination we can use <code>unl
   session[:user_id] = user.id unless user.nil?
 ```
 
-Add the following code to the applicaiton layout to add the name of the signed in user to all the pages (you can delete now the session code we added for training in the last section):
+The best form for the command is however
+```ruby
+  session[:user_id] = user.id if user
+```
+
+You see, in Ruby all values apart from _nil_ and _false_ are evaluated as true. Therefore now the command is performed if _user_ is something else than _nil_ and this is exactly how we want it to work.
+
+Add the following code to the application layout to add the name of the signed in user to all the pages (you can delete now the session code we added for training in the last section):
 
 ```erb
 <% if not session[:user_id].nil? %>
@@ -539,17 +550,17 @@ Add the following code to the applicaiton layout to add the name of the signed i
 <% end %>
 ```
 
-Users can now sign in the application at the address [http://localhost:3000/session/new](/session/new) (if users have been created in the application). Signing out does work work yet.
+Users can now sign in the application at the address [http://localhost:3000/session/new](/session/new) (assuming users have been created in the application at http://localhost:3000/signup). Signing out does not work yet.
 
 **ATTENTION:** if you see the error message <code>uninitialized constant SessionController></code> **make sure that you properly defined all the routes in routes.rb, like**
 
 ```ruby
-  resource :session, only: [:new, :create, :delete]
+  resource :session, only: [:new, :create, :destroy]
 ```
 
-> ## Exercise 1
+> ## Exercise 3
 >
-> Implement all the changes above and make sure that signing in works out smoothly with an existing user ID (so that a signed in user is shown on the page.) You can create the ID at [http://localhost:3000/signup][/signup]). Even though signing out is not possible, you can sign in with a new ID and the old signing in will be overwritten.
+> Implement all the changes above and make sure that signing in works out smoothly with an existing user ID (so that a signed in user is shown on the page.) You can create an user at [http://localhost:3000/signup][/signup]). Even though signing out is not possible, you can sign in with a new ID and the old signing in will be overwritten.
 
 ## Controller and view auxiliary method
 
@@ -557,9 +568,7 @@ Making a database request in the view code is quite bad (as we did a moment ago 
 
 ```ruby
 class ApplicationController < ActionController::Base
-  protect_from_forgery
-
-  # defines that the method current_user will be used also in the views
+  # defines that the method current_user is accessible also from views
   helper_method :current_user
 
   def current_user
@@ -569,13 +578,24 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-Because all the application controllers inherits the class <code>ApplicationController</code>, the method you are defining will be available to all the controllers. You also defined the method <code>current_user</code> as a helper method, which will be available not only to all the controllers but to all views, too. We can change the code added to the application layout in the following way:
+Because all the application controllers inherit the class <code>ApplicationController</code>, the method you are defining will be available to all the controllers. We also defined the method <code>current_user</code> as a helper method, which will be available not only to all the controllers but to all views, too. We can change the code added to the application layout in the following way:
 
 ```erb
 <% if not current_user.nil? %>
   <p><%= current_user.username %> signed in</p>
 <% end %>
 ```
+
+We can also style it more nicely:
+
+```erb
+<% if current_user %>
+  <p><%= current_user.username %> signed in</p>
+<% end %>
+```
+
+Just <code>current_user</code> is enough as a condition as Ruby evaluates `nil` as false.
+
 
 The signing in address __sessions/new__ is annoying. Create another more natural address and call it __signin__. Define also a route to sign out. Implement these two things by adding the following code to routes.rb:
 
@@ -592,43 +612,40 @@ The following would also have worked
   get 'signout', to: 'sessions#destroy'
 ```
 
-so that singing out would happen through HTTP GET. It is not a best practice, though, that HTTP GET requests modify the application status. Stick to the the REST phylosophy conventions, which tell to destroy resources with HTTP DELETE requests. In this case, the resource is only a wider issue, users signing in.
+so that singing out would happen through HTTP GET. It is not a best practice, though, that HTTP GET requests modify the application status. Stick to the the REST philosophy conventions, which tell to destroy resources with HTTP DELETE requests. In this case, the resource is only a broader concept, users signing in.
 
-Attention: if you see the error message <code>BCrypt::Errors::InvalidHash</code> when you try to sign in, you will have most probably forgotten to set up a password for the user. So set upt the password from your console, and try again.
-
-> ## Exercise 2
+> ## Exercise 4
 >
-> Modify the navigation bar in the application layout so that the bar will contain link to sign in and out. Notice that you should use HTTP DELETE for the signing out functionality, you find an example of this from the page which lists all users.
+> Modify the navigation bar in the application layout so that the bar will contain links to sign in and out. Notice that you should use HTTP DELETE for the signing out functionality. Rails version 7  links don't have direct support for using delete but you can [make links use delete method](https://github.com/heartcombo/devise/issues/5439#issuecomment-997927041)
 >
-> In addition to the previous two, add a link to the page with all users to the navigation bar, as welll as the signed up user name, which should link to the user personal page. When the user is signed in, the bar should also show a link to create a new beer rating.
+> In addition to the previous two, add a link to the page with all users to the navigation bar, as welll as the signed up user name, which should link to the user's personal page. When the user is signed in, the bar should also show a link to create a new beer rating.
 >
-> Remember: you can see the defined routes and path methods using the command <code>rake routes</code> from the command line, or you can go to whatever unexisting application address, like [http://localhost:3000/wrong](http://localhost:3000/wrong)
+> Remember: you can see the defined routes and path methods using the command <code>rails routes</code> from the command line, or you can go to whatever unexisting application address, like [http://localhost:3000/wrong](http://localhost:3000/wrong)
 
 At the end of the exercise, your application will look more or less like the following, if a user is signed in:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-1.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-1.png)
 
 and if users are not signed in, it will be like below (notice also the sign up link now):
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-2.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-2.png)
 
 ## User ratings
 
+Now we'll make ratings belong to an user. After that, associations between objects should look like this:
 
-Muutetaan seuraavaksi sovellusta siten, että reittaus kuuluu kirjautuneena olevalle käyttäjälle, eli tämän vaiheen jälkeen olioiden suhteen tulisi näyttää seuraavalta:
+![pic](http://yuml.me/4abc9b51.png)
 
-![kuva](http://yuml.me/ccdb3938)
-
-The change will be nothing special at model level:
+The change will be nothing new at model level:
 
 ```ruby
-class User < ActiveRecord::Base
-  has_many :ratings   # a user have many ratings
+class User < ApplicationRecord
+  has_many :ratings   # user has many ratings
 end
 
-class Rating < ActiveRecord::Base
+class Rating < ApplicationRecord
   belongs_to :beer
-  belongs_to :user   # a rating also belongs to one user
+  belongs_to :user   # rating belongs to an user
 
   def to_s
     "#{beer.name} #{score}"
@@ -636,98 +653,86 @@ class Rating < ActiveRecord::Base
 end
 ```
 
-Our solution does not work like this, however. Because of the connections, you need a reference to the user ID as foreign key in your _rating_ database table. All the changes in Rails databases are implemented in Ruby code with the help of *migrations. Create a migration which adds a new column. Generate a migration file from the command line first, using the command:
+Our solution does not work like this, however. Because of the connections, you need a reference to the user ID as foreign key in your _rating_ database table. All the changes in Rails databases are implemented in Ruby code with the help of _migrations_. Create a migration which adds a new column. Generate a migration file from the command line first, using the command:
 
     rails g migration AddUserIdToRatings
 
 A file will appear in the directory _db/migrate_, with the following contents
 
 ```ruby
-class AddUserIdToRatings < ActiveRecord::Migration
+class AddUserIdToRatings < ActiveRecord::Migration[7.0]
   def change
   end
 end
 ```
 
-Notice that the directory already contains its own migration files for all the database tables created. Each migration will contain the information about the change in the database as well as how to cancel such change eventually. If the migration is simple enough, so that Rails can derive the cancel operation based on the addition you executed, it will be enough for the migration if it contains only the method <code>change</code>. If the migration is more complex, you will have to define the methods <code>up</code> and <code>down</code> which define separately how to execute the migration and how to cancel it.
+Notice that the directory already contains its own migration files for all the database tables created. Each migration will contain the information about the change in the database as well as how to cancel such change if needed. If the migration is simple enough, so that Rails can derive also  the cancel operation based on the addition you executed, it will be enough for the migration if it contains only the method <code>change</code>. If the migration is more complex, you will have to define the methods <code>up</code> and <code>down</code> which define separately how to execute the migration and how to cancel it.
 
 
 This time, the migration we need is simple:
 
 ```ruby
-class AddUserIdToRatings < ActiveRecord::Migration
+class AddUserIdToRatings < ActiveRecord::Migration[7.0]
   def change
     add_column :ratings, :user_id, :integer
   end
 end
 ```
 
-In order to implement the migration change, execute the well-known commande <code>rake db:migrate</code> from the command line.
+In order to implement the migration change, execute the well-known commande <code>rails db:migrate</code> from the command line.
 
 Migration are a vast field, and we will go back to them later on in the course. More information about migrations can be found at the address http://guides.rubyonrails.org/migrations.html
 
 You will see from the console, that the connection between objects is implemented correctly:
 
 ```ruby
-2.0.0-p451 :001 > u = User.first
-2.0.0-p451 :002 > u.ratings
-  Rating Load (0.4ms)  SELECT "ratings".* FROM "ratings"  WHERE "ratings"."user_id" = ?  [["user_id", 1]]
- => #<ActiveRecord::Associations::CollectionProxy []>
-2.0.0-p451 :003 >
-irb(main):003:0>
+> u = User.first
+> u.ratings
+  Rating Load (0.3ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."user_id" = ?  [["user_id", 1]]
+=> []
 ```
 
-The rating you gave does not have a user at the moment:
+The ratings you have given previously do not have an user at the moment:
 
 ```ruby
-2.0.0-p451 :003 > r = Rating.first
-2.0.0-p451 :004 > r.user
+> r = Rating.first
+> r.user
  => nil
-2.0.0-p451 :005 >
+>
 ```
 
-You want to define the first user created as the user of all the existing ratings:
+We will define the first user created as the user of all the existing ratings:
 
 ```ruby
-2.0.0-p451 :005 > u = User.first
-2.0.0-p451 :006 > Rating.all.each{ |r| u.ratings << r }
- => 14
-2.0.0-p451 :008 >
+> u = User.first
+> Rating.all.each{ |r| u.ratings << r }
+>
 ```
 
-**ATTENTION:** creating ratings from the user interface does not work properly at the moment, because the beers created in this way will not belong to any user. You will fix this soon.
+**ATTENTION:** creating ratings from the user interface does not work properly at the moment, because the ratings created in this way will not belong to any user. You will fix this soon.
 
-> ## Exercise 3
+> ## Exercise 5
 >
 >  Add the followin things in the user page, which is the view app/views/users/show.html.erb:
-> – the user amount of ratings and their avarage (attention: use the module defined last week, <code>RatingAvarage</code> to find the avarage!)
+> – the amount of that user's ratings and their avarage (attention: use the module defined last week, <code>RatingAvarage</code> to find the avarage!)
 > – a list of the user ratings and the possibility to delete them
+>
+> Instead of the partial, make changes directly to app/views/users/show.html.erb, completely remove the reference to partial from that file
 
-The user page will look more or less like below (**ATTENTION:** we should have added information about the user rating avarage value, but we forgot...):
+The user page will look more or less like below:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-3.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-3.png)
 
-After a rating is deleted, users will be redirected to the page with all ratings. The most natural thing to do would be returning to the user page after a deletion. To make this happen, implement the change below in the rating controller:
-
-
-```ruby
-  def destroy
-    rating = Rating.find(params[:id])
-    rating.delete
-    redirect_to :back
-  end
-```
-
-As you might guess, <code>redirect_to :back</code> makes so that users are redirected to the address of the link they clicked and that executed the HTTP DELETE request. 
 
 Creating new ratings from the www-page does not work yet, because ratings are not connected to the signed in user. Change the rating controller so that a signed in user will be linked to the rating created.
 
 ```ruby
-  def create
-    rating = Rating.create params.require(:rating).permit(:score, :beer_id)
-    current_user.ratings << rating
-    redirect_to current_user
-  end
+def create
+  rating = Rating.new params.require(:rating).permit(:score, :beer_id)
+  rating.user = current_user
+  rating.save
+  redirect_to current_user
+end
 ```
 
 Notice that <code>current_user</code> is the method we just added to the class <code>ApplicationController</code>, and it returns the signed up user by executing the code:
@@ -738,13 +743,13 @@ Notice that <code>current_user</code> is the method we just added to the class <
 
 After we create a rating, the controller redirects the browser to the page of the signed in user.
 
-> ## Exercise 4
+> ## Exercise 6
 >
-> Change your application so that users can not delete ratings at the page with all ratings. Also, it should be possible to see the name of who created a rating, and there should be a link to their page.
+> Change your application so that users can not delete ratings at the page with all ratings. Also, it should be possible to see the name of who created a rating next to the rating, and there should be a link to their page.
 
 The page with all ratings should look like below, after doing the exercise:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-4.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-4.png)
 
 ## Polishing the signing up
 
@@ -753,51 +758,51 @@ You application will give you pains at the moment, if users try to sign in with 
 Change your application to dedirect users back to the sign in page, if signing in does not work out. Change the session controller like below:
 
 ```ruby
-    def create
-      user = User.find_by username: params[:username]
-      if user.nil?
-        redirect_to :back
-      else
-        session[:user_id] = user.id
-        redirect_to user
-      end
-    end
+def create
+  user = User.find_by username: params[:username]
+  if user.nil?
+    redirect_to signin_path
+  else
+    session[:user_id] = user.id
+    redirect_to user
+  end
+end
 ```
 
-change the code above to give messages to user, explaining what happened:
+change the code above further to give messages to user, explaining what happened:
 
 ```ruby
-    def create
-      user = User.find_by username: params[:username]
-      if user.nil?
-        redirect_to :back, notice: "User #{params[:username]} does not exist!"
-      else
-        session[:user_id] = user.id
-        redirect_to user, notice: "Welcome back!"
-      end
-    end
+def create
+  user = User.find_by username: params[:username]
+  if user.nil?
+    redirect_to signin_path, notice: "User #{params[:username]} does not exist!"
+  else
+    session[:user_id] = user.id
+    redirect_to user, notice: "Welcome back!"
+  end
+end
 ```
 
 If you want that your message will be seen in the sign up page, add the element below to the view ```app/views/sessions/new.html.erb```:
 
 ```erb
-<p id="notice"><%= notice %></p>
+<p style="color: red"><%= notice %></p>
 ```
 
 The element is ready in the user page template (unless you have deleted it by mistake), so the message will work there.
 
-The __flashes__ are the messages connected to redirections and that have to be remembered for the next HTTP request and that have to be shown on the page when needed. They are implemented in Rails thanks to the sessions, more about this at http://guides.rubyonrails.org/action_controller_overview.html#the-flash
+The __flashes__ are the messages connected to eg. redirections and that are remembered until the next HTTP request and that are shown on the page when needed. They are implemented in Rails thanks to the sessions, more about this at http://guides.rubyonrails.org/action_controller_overview.html#the-flash
 
-## Olioiden kenttien validointi
+## Validating object fields
 
 Our application has a small problem now: it is possible to create many users with the same user name. In the <code>create</code> method of our user controller there should be the functionality to check that the <code>username</code> is not used.
 
-A versitile mechanism to validate object fields comes built-in with Rails, see http://guides.rubyonrails.org/active_record_validations.html and http://apidock.com/rails/ActiveModel/Validations/ClassMethods
+A versitile mechanism to validate object fields comes built-in with Rails, see http://guides.rubyonrails.org/active_record_validations.html.
 
 Validating the unicity of user names is simple, and you just need to add a short chunk of code to your User class:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include RatingAverage
 
   validates :username, uniqueness: true
@@ -816,10 +821,10 @@ Add other validations right away too. Add the requirement that user ID length sh
   validates :username, length: { minimum: 3 }
 ```
 
-If various validation rules concern the same attribute, they can all be connected under one <code>validates :attribuutti</code> call:
+If various validation rules concern the same attribute, they can all be connected under one <code>validates :attribute</code> call:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include RatingAverage
 
   validates :username, uniqueness: true,
@@ -834,7 +839,7 @@ The controllers created with Rails scaffold generator are implemented in a way t
 How can the controller know, whether the validation worked out? The validation happens when it tries to save something in the database. If the controller saves the object with the method <code>save</code>, the controller can test the method return value whether the validation worked out or not:
 
 ```ruby
-  @user = User.new(parametrit)
+  @user = User.new(parameters)
   if @user.save
   	# the validation worked out, so the browser is redirected to the appropriate page
   else
@@ -844,21 +849,20 @@ How can the controller know, whether the validation worked out? The validation h
 
 The controller generated by scaffold is a bit more complex:
 
-
 ```ruby
-  def create
-    @user = User.new(user_params)
+def create
+  @user = User.new(user_params)
 
-    respond_to do |format|
-      if @user.save
-        format.html { redirect_to @user, notice: 'User was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @user }
-      else
-        format.html { render action: 'new' }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
+  respond_to do |format|
+    if @user.save
+      format.html { redirect_to user_url(@user), notice: "User was successfully created." }
+      format.json { render :show, status: :created, location: @user }
+    else
+      format.html { render :new, status: :unprocessable_entity }
+      format.json { render json: @user.errors, status: :unprocessable_entity }
     end
   end
+end
 ```
 
 First of all, where does <code>user_params</code> come from which is used as parameter to create the object? You'll see that the following method is defined at the bottom of the file:
@@ -875,22 +879,22 @@ so the first line of the method <code>create</code> is the same as
    @user = User.new(params.require(:user).permit(:username))
 ```
 
-So what does <code>respond_to</code> which defines a method? If the object is created with a normal form and if the browser receives an HTML answer, the functionality will be this, by default:
+So what does <code>respond_to</code> at the end of the method do? If the object is created with a normal form and and the browser expects to receive an HTML answer, the functionality will be this, by default:
 
 ```ruby
- if @user.save
-  redirect_to @user, notice: 'User was successfully created.'
- else
-   render action: 'new'
- end
+if @user.save
+  redirect_to user_url(@user), notice: "User was successfully created."
+else
+  render :new, status: :unprocessable_entity 
+end
 ```
 
-the code chunk of the entry <code>format.html</code> (which technically is a method call) is executed in the code chunk of the command <code>respond_to</code> (which is also a method). However, if the HTTP POST call to create a user object was made so to expect an answer in json-form (which would happen for instance if the request was done in Javascript for a different service or Web page), it would execute the doce of <code>format.json</code>. The syntax could look strange at first, but you'll soon get acquainted with it.
+the code chunk of the entry <code>format.html</code> (which technically is a method call) is executed in the code chunk of the command <code>respond_to</code> (which is also a method). However, if the HTTP POST call to create a user object was made so to expect an answer in json-form (which would happen for instance if the request was done in Javascript for a different service or Web page), it would execute the code of <code>format.json</code>. The syntax could look strange at first, but you'll soon get acquainted with it.
 
-Continue with your validations in pairs. Define that beer ratings have to be integers between 1-50:
+We'll continue with validations. Define that beer ratings have to be integers between 1-50:
 
 ```ruby
-class Rating < ActiveRecord::Base
+class Rating < ApplicationRecord
   belongs_to :beer
   belongs_to :user
 
@@ -898,31 +902,33 @@ class Rating < ActiveRecord::Base
                                     less_than_or_equal_to: 50,
                                     only_integer: true }
 
-   # ...
+  # ...
 end
 ```
 
-If users create inappropriate ratings, they won't be saved any more. You will notice however, that users won't receive any error message. The problem is that you created the form by hand, it does not contain error reports like the forms generated automatically with scaffold and the controller will never check whether the validation worked out.
+If users create inappropriate ratings, they won't be saved any more. You will notice however, that users won't receive any error message. The problem is that you created the form by hand, it does not contain error report functionality like the forms generated automatically with scaffold. Also the controller will never check whether the validation worked out.
 
 Change first the rating controller method <code>create</code> so that it renders again the form to create ratings if the validation failed:
 
-```ruby
-  def create
-    @rating = Rating.new params.require(:rating).permit(:score, :beer_id)
 
-    if @rating.save
-      current_user.ratings << @rating
-      redirect_to user_path current_user
-    else
-      @beers = Beer.all
-      render :new
-    end
+```ruby
+def create
+  @rating = Rating.new params.require(:rating).permit(:score, :beer_id)
+  @rating.user = current_user
+
+  if @rating.save
+    redirect_to user_path current_user
+  else
+    @beers = Beer.all
+    render :new, status: :unprocessable_entity
   end
+end
 ```
 
-The method creates a Rating object with the command <code>new</code> first, and this is not saved in the database yet. Then, it executes the database saving process with the method <code>save</code>. Before saving, it validates the object, and if this fails, the method returns false, and the object will not be saved in the database. In such case, the new view template will be rendered. Rendering the view template requires that the beer list is stored in the variable <code>@beers</code>.
+The method creates first a Rating object with the command <code>new</code>, and this is not saved in the database yet. Then, it executes the database saving process with the method <code>save</code>. During this, it validates the object, and if this fails, the method returns false, and the object will not be saved in the database. In such case, the new view template will be rendered. Rendering the view template requires that the beer list is stored in the variable <code>@beers</code>.
+[Rails 7 won't render the error messages](https://stackoverflow.com/questions/71751952/rails-7-signup-form-doesnt-show-error-messages) unless we return also a symbol :unprocessable_entity using HTTP status code 422. Read more about status codes from [wikipedia](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) or with pictures [here](https://http.cat/).
 
-As you try to create an erroneous rating, users remain in the view showing the form (which technically is rendered again after the POST call). However there is no error message, yet.
+As you try to create an erroneous rating, the user remains in the view showing the form (which technically is rendered again after the POST call). However there is no error message, yet.
 
 When the validation fails, Rails validator saves the error messages in the field <code>@rating.errors</code> (which belongs to the object <code>@ratings</code>.
 
@@ -933,7 +939,7 @@ Change the form to show the value of <code>@rating.errors</code>, if the field c
 
 <%= form_for(@rating) do |f| %>
   <% if @rating.errors.any? %>
-  	<%= @rating.errors.inspect %>
+    <%= @rating.errors.inspect %>
   <% end %>
 
   <%= f.select :beer_id, options_from_collection_for_select(@beers, :id, :to_s) %>
@@ -969,32 +975,58 @@ Take the view template views/users/_form.html.erb as example and change your for
 
 <% end %>
 ```
+
 When it finds valitation errors, the view template renders all the error message contained in <code>@rating.errors.full_messages</code>.
 
 **Attention:** when the validation fails the redirection is not executed (why doesn't it work here?), but the view template is rendered instead, as it usually happens when you execute the <code>new</code> method.
 
 You find help for the next exercises at
-http://guides.rubyonrails.org/active_record_validations.html ja http://apidock.com/rails/ActiveModel/Validations/ClassMethods
+http://guides.rubyonrails.org/active_record_validations.html ja https://apidock.com/rails/v4.2.7/ActiveModel/Validations/ClassMethods/validates
 
-> ## Exercise 5
+> ## Exercise 7
 >
 > Add the following validations to your program
-> * whether the beer and brewery names are not empty
-> * the brewery founding year is an integer between 1042-2015
-> * the length of the user ID – that is, the username attribute of the User class – is 3 – 15 characters
+> * beer and brewery names are not empty
+> * the brewery founding year is an integer between 1040-2022
+> * the length of the username attribute of the User class is 3 – 30 characters
 
-> ## Exercise 6
+If you try to create a beer with an empty name, you get an error message
+![kuva](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-9.png)
+
+Why? If beer creation fails due to an error in validation the <code>create</code> method of beer controller executes the else branch. That is, re-renders the beer creation form. The form for beer creation uses the <code>@styles</code> variable containing the list of beer styles in generating the form. The reason for the error message is that this variable is not initialized in this case (as it is when coming from the controller method  <code>new</code>). The form also assumes that the variable <code>@breweries</code> contains the list of all breweries.
+Therefore we can fix our issue by initializing these variables in the else branch:
+
+```ruby
+def create
+  @beer = Beer.new(beer_params)
+
+  respond_to do |format|
+    if @beer.save
+      format.html { redirect_to beers_path, notice: 'Beer was successfully created.' }
+      format.json { render :show, status: :created, location: @beer }
+    else
+      @breweries = Brewery.all
+      @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter", "Lowalcohol"]
+      format.html { render :new }
+      format.json { render json: @beer.errors, status: :unprocessable_entity }
+    end
+  end
+end
+```
+
+
+> ## Exercise 8
 >
-> ### doing this exercise is not essential to continue with the rest of the week material, so you should not get stuck with it. You can also do this exercise only after you have done the rest of the week.
+> ### doing this exercise is not essential to continue with the rest of the week's material, so you should not get stuck with it. You can also do this exercise after you have done the rest of the week.
 >
-> Improve exercise 5 validations so that the brewery founding year is an integer which is at least 1042 and maximum the current year. You cannot hard-code the year.
+> Improve exercise 7 validations so that the brewery founding year is an integer which is at least 1040 and maximum the current year. You cannot hard-code the year.
 >
 > Notice that this will not work as you want:
 >
 >   validates :year, numericality: { less_than_or_equal_to: Time.now.year }
 >
-> <code>Time.now.year</code> is evaluated when the program loads the class code. If the program starts to run at the end of 2015, in 2016 users will not to register a 2016 brewery, because when the program started it evaluated 2015 as the year upper limit and the validation will fail.>
-> A possible way is acting on the validation method definition http://guides.rubyonrails.org/active_record_validations.html#custom-methods
+> <code>Time.now.year</code> is evaluated when the program loads the class code. If the program starts to run at the end of 2021, in 2022 users will not to be able to register a 2022 brewery, because when the program started it evaluated 2021 as the year upper limit and the validation will fail.>
+> A possible way is defining your own validation method http://guides.rubyonrails.org/active_record_validations.html#custom-methods
 >
 > You could find even an even shorter solution in terms of code, a hint could be lambda/Proc/whatever...
 
@@ -1003,7 +1035,7 @@ http://guides.rubyonrails.org/active_record_validations.html ja http://apidock.c
 
 One beer has many ratings, and a rating has always one user, which means a beer has a user who made many ratings. Similarly, a user has many ratings and a rating has one beer. This means that a user has many rated beers. The connection between beers and users is **many to many** where the rating table acts as a union table.
 
-We can create this many to many connection at code level easily using the way we got acquainted with [last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#olioiden-ep%C3%A4suora-yhteys), the **has_many through** connection:
+We can create this many to many connection at code level easily using the way we got acquainted with [last week](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#inderect-object-connection), the **has_many through** connection:
 
 ```ruby
 class Beer < ActiveRecord::Base
@@ -1296,7 +1328,7 @@ Notice that simply removing the **delete** link does not prevent deleting other 
 
 > ## Exercise 13
 >
-> Laajenna vielä sovellusta siten, että käyttäjän tuhoutuessa käyttäjän tekemät reittaukset tuhoutuvat automaattisesti. Ks. https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#orvot-oliot
+> Laajenna vielä sovellusta siten, että käyttäjän tuhoutuessa käyttäjän tekemät reittaukset tuhoutuvat automaattisesti. Ks. https://github.com/mluukkai/WebPalvelinohjelmointi2015/master/web/viikko2.md#orvot-oliot
 >
 > Jos teit tehtävät 7-8 eli toteutit järjestelmään olutkerhot, tuhoa käyttäjän tuhoamisen yhteydessä myös käyttäjän jäsenyydet olutkerhoissa
 
@@ -1412,7 +1444,7 @@ If the program updated version is deployed in heroku, you will run into problems
 
 ![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w2-12.png)
 
-As we saw [last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#ongelmia-herokussa) you will have to find the reason from heroku logs.
+As we saw [last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/master/web/viikko2.md#ongelmia-herokussa) you will have to find the reason from heroku logs.
 
 The page with all users causes the following error:
 
