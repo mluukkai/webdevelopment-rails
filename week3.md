@@ -624,11 +624,11 @@ so that singing out would happen through HTTP GET. It is not a best practice, th
 
 At the end of the exercise, your application will look more or less like the following, if a user is signed in:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-1.png?raw=true)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-1.png)
 
 and if users are not signed in, it will be like below (notice also the sign up link now):
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-2.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-2.png)
 
 ## User ratings
 
@@ -721,7 +721,7 @@ We will define the first user created as the user of all the existing ratings:
 
 The user page will look more or less like below:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-3.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-3.png)
 
 
 Creating new ratings from the www-page does not work yet, because ratings are not connected to the signed in user. Change the rating controller so that a signed in user will be linked to the rating created.
@@ -749,7 +749,7 @@ After we create a rating, the controller redirects the browser to the page of th
 
 The page with all ratings should look like below, after doing the exercise:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/images/ratebeer-w3-4.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-4.png)
 
 ## Polishing the signing up
 
@@ -1033,12 +1033,12 @@ end
 
 ## Connections many to many
 
-One beer has many ratings, and a rating has always one user, which means a beer has a user who made many ratings. Similarly, a user has many ratings and a rating has one beer. This means that a user has many rated beers. The connection between beers and users is **many to many** where the rating table acts as a union table.
+One beer has many ratings, and a rating has always one user, which means a beer has many users who made a rating. Similarly, a user has many ratings and a rating has one beer. This means that a user has many rated beers. The connection between beers and users is **many to many** where the rating table acts as a union table.
 
 We can create this many to many connection at code level easily using the way we got acquainted with [last week](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#inderect-object-connection), the **has_many through** connection:
 
 ```ruby
-class Beer < ActiveRecord::Base
+class Beer < ApplicationRecord
   include RatingAverage
 
   belongs_to :brewery
@@ -1048,7 +1048,7 @@ class Beer < ActiveRecord::Base
   # ...
 end
 
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include RatingAverage
 
   has_many :ratings
@@ -1061,55 +1061,93 @@ end
 And the many to many connection will work for users:
 
 ```ruby
-2.0.0-p451 :009 > User.first.beers
- => #<ActiveRecord::Associations::CollectionProxy [#<Beer id: 1, name: "Iso 3", style: "Lager", brewery_id: 1, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">, #<Beer id: 1, name: "Iso 3", style: "Lager", brewery_id: 1, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">, #<Beer id: 11, name: "Punk IPA", style: "IPA", brewery_id: 4, created_at: "2015-01-17 13:12:12", updated_at: "2015-01-17 13:12:12">, #<Beer id: 11, name: "Punk IPA", style: "IPA", brewery_id: 4, created_at: "2015-01-17 13:12:12", updated_at: "2015-01-17 13:12:12">, #<Beer id: 11, name: "Punk IPA", style: "IPA", brewery_id: 4, created_at: "2015-01-17 13:12:12", updated_at: "2015-01-17 13:12:12">, #<Beer id: 12, name: "Nanny State", style: "lowalcohol", brewery_id: 4, created_at: "2015-01-17 13:12:27", updated_at: "2015-01-17 13:12:52">, #<Beer id: 12, name: "Nanny State", style: "lowalcohol", brewery_id: 4, created_at: "2015-01-17 13:12:27", updated_at: "2015-01-17 13:12:52">, #<Beer id: 7, name: "Helles", style: "Lager", brewery_id: 3, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">, #<Beer id: 1, name: "Iso 3", style: "Lager", brewery_id: 1, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">, #<Beer id: 4, name: "Huvila Pale Ale", style: "Pale Ale", brewery_id: 2, created_at: "2015-01-11 14:29:25", updated_at: "2015-01-11 14:29:25">, ...]>
-2.0.0-p451 :011 >
+User.first.beers
+=> [#<Beer:0x00007fbe23b8a770
+  id: 1,
+  name: "Iso 3",
+  style: "Lager",
+  brewery_id: 1,
+  created_at: Sun, 21 Aug 2022 15:25:05 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:25:05 UTC +00:00>,
+ #<Beer:0x00007fbe23b8a608
+  id: 1,
+  # ...
 ```
 
 and for beers:
 
 ```ruby
-2.0.0-p451 :011 > Beer.first.users
- => #<ActiveRecord::Associations::CollectionProxy [#<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 2, username: "pekka", created_at: "2015-01-24 16:51:42", updated_at: "2015-01-24 16:51:42">]>
-2.0.0-p451 :013 >
-irb(main):010:0>
+irb(main):007:0> Beer.first.users
+   (0.2ms)  SELECT sqlite_version(*)
+  Beer Load (2.3ms)  SELECT "beers".* FROM "beers" ORDER BY "beers"."id" ASC LIMIT ?  [["LIMIT", 1]]
+  User Load (2.0ms)  SELECT "users".* FROM "users" INNER JOIN "ratings" ON "users"."id" = "ratings"."user_id" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+=>
+[#<User:0x00007faf15b47aa0
+  id: 1,
+  username: "mluukkai",
+  created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00>,
+ #<User:0x00007faf15b4dc20
+  id: 1,
+  username: "mluukkai",
+  created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00>
+]
 ```
 
-It looks like working, but it seems stupid to refer to users who rated a beer with the name <code>users</code>. A more natural to refer to users who rated a beer could be perharps <code>raters</code>. This works if you change the connection definition in the following way:
+It seems to work, but it feels odd to refer to users who rated a beer with the name <code>users</code>. A more natural way to refer to users who rated a beer could be perhaps <code>raters</code>. This works if you change the connection definition in the following way:
 
 ```ruby
 has_many :raters, through: :ratings, source: :user
 ```
 
-By default, <code>has_many</code> will look for a table whose name is the same as its parameter. Because <code>raters</code> is not the name of the connection destination, this has to be defined apart using the _source_ option.
+By default, <code>has_many</code> will look for a table whose name is the same as its first parameter. Because <code>raters</code> is not the name of the connection destination, this has to be defined apart using the _source_ option.
 
 The new name of our connection will work now:
 
 ```ruby
-2.0.0-p451 :014 > b = Beer.first
-2.0.0-p451 :015 > b.raters
- => #<ActiveRecord::Associations::CollectionProxy [#<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 2, username: "pekka", created_at: "2015-01-24 16:51:42", updated_at: "2015-01-24 16:51:42">]>
-2.0.0-p451 :016 >
+irb(main):009:0> Beer.first.raters
+   (0.2ms)  SELECT sqlite_version(*)
+  Beer Load (2.2ms)  SELECT "beers".* FROM "beers" ORDER BY "beers"."id" ASC LIMIT ?  [["LIMIT", 1]]
+  User Load (2.0ms)  SELECT "users".* FROM "users" INNER JOIN "ratings" ON "users"."id" = "ratings"."user_id" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+=>
+[#<User:0x00007faf160f7748
+  id: 1,
+  username: "mluukkai",
+  created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00>,
+ #<User:0x00007faf160bad48
+  id: 1,
+  username: "mluukkai",
+  created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00>]
 ```
 
-Because the same user can create various ratings of the same beer, the user will be seen various times among the beer raters. If you want that one rater is seen only once, you can do like thi:
+Because the same user can create various ratings of the same beer, the user will be seen various times among the beer raters. If you want that one rater is seen only once, you can do like this:
 
 ```ruby
-irb(main):013:0> b.raters.uniq
-2.0.0-p451 :016 > b.raters.uniq
- => [#<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 14:20:10">, #<User id: 2, username: "pekka", created_at: "2015-01-24 16:51:42", updated_at: "2015-01-24 16:51:42">]
-2.0.0-p451 :017 >
+irb(main):010:0> Beer.first.raters.uniq
+  Beer Load (1.7ms)  SELECT "beers".* FROM "beers" ORDER BY "beers"."id" ASC LIMIT ?  [["LIMIT", 1]]
+  User Load (2.2ms)  SELECT "users".* FROM "users" INNER JOIN "ratings" ON "users"."id" = "ratings"."user_id" WHERE "ratings"."beer_id" = ?  [["beer_id", 1]]
+=>
+[#<User:0x00007faf15cfd020
+  id: 1,
+  username: "mluukkai",
+  created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+  updated_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00>]
+irb(main):011:0>
 ```
 
-It would also be possible to define that by default beer <code>raters</code> should return singular users only once. You could implement this by setting __scope__ to the <code>has_many</code> attribute, limiting the sets of the users that are shown to refer to the association:
+It would also be possible to define that by default beer <code>raters</code> should return individual users only once. You could implement this by setting *[scope](https://guides.rubyonrails.org/association_basics.html#scopes-for-has-many) \_distinct* to the <code>has_many</code> attribute, limiting the sets of associated objects so that each object is shown only once:
+
 
 ```ruby
-class Beer < ActiveRecord::Base
-  #…
+class Beer < ApplicationRecord
+  #...
 
-  has_many :raters, -> { uniq }, through: :ratings, source: :user
+  has_many :raters, -> { distinct }, through: :ratings, source: :user
 
-  #…
+  #...
 end
 ```
 
@@ -1117,56 +1155,60 @@ More about defining connections in normal and more complicated circumstances at 
 
 Attention: there is also another way to create many-to-many connections on Rails, <code>has_and_belongs_to_many</code>, see http://guides.rubyonrails.org/association_basics.html#the-has-and-belongs-to-many-association which might be useful if the only purpose of your connection table is to establish a connection.
 
-However the trend is to use the has_many through combination and explicitely defined connection tables, instead of the method has_and_belongs_to_many (because of its various issues). Among the others, Chad Fowler suggests that users should avoid using has_and_belongs_to_many in his book [Rails recepies](http://pragprog.com/book/rr2/rails-recipes), Obie Fernandez gives the same suggestion in his autoritative work [Rails 4 Way](https://leanpub.com/tr4w)
+However the trend is to use the has_many through combination and explicitely defined connection tables, instead of the method has_and_belongs_to_many (because of its various issues). Among the others, Chad Fowler suggests that users should avoid using has_and_belongs_to_many in his book [Rails recepies](http://pragprog.com/book/rr2/rails-recipes), Obie Fernandez gives the same suggestion in his autoritative work [Rails 5 Way](https://leanpub.com/tr5w)
 
-> ## Exercises 7-8: Beer clubs
+> ## Exercises 9-10: Beer clubs
 >
 > ### This and the following exercise are not essential to continue with the week material. You can also do them after the other exercises of the week.
 >
-> Extend the system so that users can be beer_clubs_members.
+> Extend the system so that users can be members of _beer clubs_.
 >
 > Use scaffold to create <code>BeerClub</code> with the attributes <code>name</code> (a string) <code>founded</code> (an integer) and <code>city</code> (a string)
 >
-> Create a many-to-many connection between <code>BeerClub</code> and <code>User</code>. Create a connection table for this, the <code>Membership</code> model, with the foreign keys to the objects <code>User</code> and <code>BeerClub</Code> as attributes (they are <code>beer_club_id</code> and <code>user_id</code>, notice how the capital letter in the middle of the object name becomes an underscore!). Use scaffold for this model too.
+> Create a many-to-many connection between <code>BeerClub</code> and <code>User</code>. Create a connection table for this, the <code>Membership</code> model, with the foreign keys to the objects <code>User</code> and <code>BeerClub</Code> as attributes (they are <code>beer_club_id</code> and <code>user_id</code>). You can use scaffold for this model too.
 >
-> At this point, you can implement the functionality to add members to beer clubs as the current beer rating functionality – adding the link "join a club" to the navigation bar, which adds registered users to one of the beer clubs in the list.
+> At this point, you can implement the functionality to add members to beer clubs similarly as the current beer rating functionality – adding the link "join a club" to the navigation bar, through which registered users can be added to one of the beer clubs in the list.
 >
-> List all the members in the beer club page, and similarly, list all the beer clubs that a person belongs to on his page. Add a link to the list with all beer clubs in the navigation bar.
+> List all the members in the beer club page, and similarly, list all the beer clubs that a person belongs to on their page. Add a link to the list with all beer clubs in the navigation bar.
 >
-> You don't need to implement the functionality to remove a user from a beer club, so far.
-
-> # Exercise 9
+> You don't need to implement the functionality to remove a user from a beer club, yet.
 >
-> Refine the previous exercise so that users cannot be assigned various times to the same beer club.
+> In this exercise you need to be careful with Rails naming conventions. The class defining a BeerClub is written BeerClub, the matching foreign key is beer_club_id and in other objects eg. Memberships, the beer clubs are referenced to as beer_club.
 
-The following two pictures will help you understand what your application should look like after exercises 7–9.
+> # Exercise 11
+>
+> Refine the previous exercise so that users cannot join the same beer club multiple times.
+>
+> There are many ways to accomplish this but using validations might not be the most sensible way. It doesn't really make sense to even offer beer clubs that the user is already a member of on the joining form.
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-5.png)
+The following two pictures will help you understand what your application should look like after exercises 9–11.
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-6.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-5.png)
+
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-6.png)
 
 ## Password
 
-Modify your application again so that users will have a password. Because of information security issues, you should avoiding storing passwords in the database. In the database, we only store the password hash, which was calculated with a parallel function. Let's implement a migration for this:
+Modify your application again so that users will have a password. Because of information security issues, you should never save passwords to the database. In the database, we only store the password digest, which was calculated with a one-way function. Let's implement a migration for this:
 
     rails g migration AddPasswordDigestToUser
 
 the code of your migration (see the folder db/migrate) should be like below:
 
 ```ruby
-class AddPasswordDigestToUser < ActiveRecord::Migration
+class AddPasswordDigestToUser < ActiveRecord::Migration[7.0]
   def change
     add_column :users, :password_digest, :string
   end
 end
 ```
 
-notice that the name of the added column should be <code>password_digest</code>.
+notice that the name of the added column must be <code>password_digest</code>.
 
-Add the code below to <code>User</code>:
+Add the code below to <code>User</code> class:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   include RatingAverage
 
   has_secure_password
@@ -1175,82 +1217,78 @@ class User < ActiveRecord::Base
 end
 ```
 
-<code>has_secure_password</code> (see http://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html) provides the class with the functionality to save the password _hash_ into the database and the user can be identified when needed.
+<code>has_secure_password</code> (see http://api.rubyonrails.org/classes/ActiveModel/SecurePassword/ClassMethods.html) provides the class with the functionality to save the password _digest_ into the database and the user can be authenticated when needed.
 
-Rails uses the <code>bcrypt-ruby</code> gem to store the hash. Get started with it by adding the following line to the Gemfile
+Rails uses the <code>bcrypt-ruby</code> gem to store the digest. Get started with it by adding the following line to the Gemfile
 
     gem 'bcrypt', '~> 3.1.7'
 
 After this, run <code>bundle install</code> from the command line to set up the gem.
 
-**Attention:** if you are using an older Rails version, you will have to take a different gem:
-
-    gem 'bcrypt-ruby', '~> 3.1.2'
-
-
-Try out the new functionality from the console now (you will have to restart the console to set up the new gem).
+Try out the new functionality from the console now (you will have to restart the console to set up the new gem). It is recommend to also restart the application at this point.
 
 __Also, remember to execute the migration!__
 
-The password functionality <code>has_secure_password</code> adds the attributes <code>password</code> and <code>password_confirmation</code> to the object. The idea is that to place password and its confirmation in these attributes. When the object is stored in the database – for instance with the <code>save</code> method call – the hash which is stored in the database as value in the column <code>password_digest</code> will be calculated. The proper password, the attribute of <code>password</code> is not stored in the database, and only its representation is recorded by the object.
+The password functionality <code>has_secure_password</code> adds the attributes <code>password</code> and <code>password_confirmation</code> to the object. The idea is that the password and its confirmation are placed in these attributes. When an object is stored in the database – for instance with the <code>save</code> method call – the digest which is stored in the database as value in the column <code>password_digest</code> will be calculated. The proper password, the attribute of <code>password</code> is not stored in the database, and only its representation is recorded by the object.
 
 
 Storing a password for our user
 
 ```ruby
-2.0.0-p451 :004 > u = User.first
-2.0.0-p451 :005 > u.password = "salainen"
-2.0.0-p451 :006 > u.password_confirmation = "salainen"
-2.0.0-p451 :007 > u.save
-   (0.2ms)  begin transaction
-  User Exists (0.3ms)  SELECT  1 AS one FROM "users"  WHERE ("users"."username" = 'mluukkai' AND "users"."id" != 1) LIMIT 1
-Binary data inserted for `string` type on column `password_digest`
-  SQL (0.4ms)  UPDATE "users" SET "password_digest" = ?, "updated_at" = ? WHERE "users"."id" = 1  [["password_digest", "$2a$10$DZaWkl73GurTQG3ilOVz9./X6jGT49ngZb3Q9ZCF3YjVvXPrl1JLm"], ["updated_at", "2015-01-24 18:28:24.069587"]]
-   (0.8ms)  commit transaction
- => true
-2.0.0-p451 :008 >
+> u = User.first
+> u.password = "secret"
+> u.password_confirmation = "secret"
+> u.save
+  TRANSACTION (0.1ms)  begin transaction
+  User Exists? (2.9ms)  SELECT 1 AS one FROM "users" WHERE "users"."username" = ? AND "users"."id" != ? LIMIT ?  [["username", "mluukkai"], ["id", 1], ["LIMIT", 1]]
+  User Update (15.3ms)  UPDATE "users" SET "updated_at" = ?, "password_digest" = ? WHERE "users"."id" = ?  [["updated_at", "2022-08-25 11:41:12.367244"], ["password_digest", "[FILTERED]"], ["id", 1]]
+  TRANSACTION (10.8ms)  commit transaction
+=> true
 ```
-
-If the command <code>u.password = "salainen"</code> causes the error message <code>NoMethodError: undefined method `password_digest=' for ...</code>, remember to restart the console and execute the migration!
 
 The authentication happens thanks to the method <code>authenticate</code> which was added to the <code>User</code> object:
 
 ```ruby
-2.0.0-p451 :008 > u.authenticate "salainen"
- => #<User id: 1, username: "mluukkai", created_at: "2015-01-24 14:20:10", updated_at: "2015-01-24 18:28:24", password_digest: "$2a$10$DZaWkl73GurTQG3ilOVz9./X6jGT49ngZb3Q9ZCF3Yj...">
-2.0.0-p451 :009 > u.authenticate "wrong"
- => false
-2.0.0-p451 :010 >
+>  u.authenticate "salainen"
+=>
+#<User:0x00007f320cdbba38
+ id: 1,
+ username: "mluukkai",
+ created_at: Sun, 21 Aug 2022 15:35:05.281921000 UTC +00:00,
+ updated_at: Thu, 25 Aug 2022 11:41:12.367244000 UTC +00:00,
+ password_digest: "[FILTERED]">
+irb(main):006:0>
 ```
 
 the method <code>authenticate</code> returns <code>false</code> if the password given as parameter is wrong. If the password is right. the method returns the object itself.
 
-Implement the functionality to check the password when users sign in. Change first the sing-in page (app/views/sessions/new.html.erb) so that in addition to ask for the user name, it asks for the password (notice that the type of the form field is *password_field*, which only shows stars instead of the written password):
+Implement the functionality to check the password when users sign in. Change first the sing-in page (app/views/sessions/new.html.erb) so that in addition to asking the user name, it asks for the password as well (notice that the type of the form field is *password_field*, which only shows stars instead of the written password):
 
 ```erb
 <h1>Sign in</h1>
 
 <p id="notice"><%= notice %></p>
 
-<%= form_tag session_path do %>
-  username <%= text_field_tag :username, params[:username] %>
-  password <%= password_field_tag :password, params[:password] %>
-  <%= submit_tag "Log in" %>
+<%= form_with url: session_path, method: :post do |form| %>
+  username <%= form.text_field :username %>
+  password <%= form.password_field :password %>
+  <%= form.submit "Log in" %>
 <% end %>
 ```
 
-and change the sessions-controller so that it uses the method <code>authentificate</code> to verify whether the form password is right.
+and change the sessions controller so that it uses the method <code>authenticate</code> to verify whether the form password is right.
 
 ```ruby
-    def create
-      user = User.find_by username: params[:username]
-      if user && user.authenticate(params[:password])
-        session[:user_id] = user.id
-        redirect_to user_path(user), notice: "Welcome back!"
-      else
-        redirect_to :back, notice: "Username and/or password mismatch"
-      end
-    end
+def create
+  user = User.find_by username: params[:username]
+  # check that user exists and the password is correct
+  if user && user.authenticate(params[:password])
+    session[:user_id] = user.id
+    redirect_to user_path(user), notice: "Welcome back!"
+  else
+    redirect_to signin_path, notice: "Username and/or password mismatch"
+  end
+end
 ```
 
 Try out whether signing in works (**attention: you will have to restart rails server to set up bcrypt-gem**). So far, signing in only works for the users whose passwords were added from the console by hand.
@@ -1258,87 +1296,91 @@ Try out whether signing in works (**attention: you will have to restart rails se
 Add a password input field to the user creation (that is to say, to the view view/users/_form.html.erb):
 
 ```erb
-  <div class="field">
-    <%= f.label :password %><br />
-    <%= f.password_field :password %>
-  </div>
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation  %>
-  </div>
+<div>
+  <%= form.label :password, style: "display: block"%>
+  <%= form.password_field :password %>
+</div>
+
+<div>
+  <%= form.label :password_confirmation, style: "display: block"%>
+  <%= form.password_field :password_confirmation %>
+</div>
 ```
 
-The controller auxiliary method <code>user_params</code> which is in charge of creating users has to be modified so that it can retrieve the form password and its authentification:
+
+The controller auxiliary method <code>user_params</code> which is in charge of creating users has to be modified so that it can retrieve the password and its confirmation sent from the form:
+
 
 ```erb
  def user_params
-     params.require(:user).permit(:username, :password, :password_confirmation)
-  end
+   params.require(:user).permit(:username, :password, :password_confirmation)
+ end
 ```
 
 Try to see what happens if you give an erroneous value to the password confirmation.
 
-> ## Exercise 10
->
-> Implement a user validation to the class, to make sure the password is at least four characters and it contains at least one capital letter and one figure.
+Attention: If you get the error message  <code>BCrypt::Errors::InvalidHash</code> upon trying to sign in, it is most likely caused by the user not having a password set. Add the password from console and try again.
 
-**Attention**: you can test Ruby's regular expressions with the Rubular application: http://rubular.com/
+> ## Exercise 12
+>
+> Implement a user validation to the class, to make sure the password is at least four characters longs and it contains at least one capital letter and one figure (You don't need to worry about the scandic letters (ä, ö, ... )).
+
+**Attention**: you can test Ruby's regular expressions with the Rubular application: http://rubular.com/. You can of course solve this exercise with other techniques as well.
 
 
 ## Deleting only one's own ratings
 
-At this point, whatever user is able to delete the ratings of anyone else. Modify your application so that users can remove only their own ratings. It will be simple if it's verified in the rating controller:
+At this point, an user is able to delete the ratings of anyone else. Modify your application so that users can remove only their own ratings. It will be simple if it's verified in the rating controller:
 
 ```ruby
-  def destroy
-    rating = Rating.find params[:id]
-    rating.delete if current_user == rating.user
-    redirect_to :back
-  end
+def destroy
+  rating = Rating.find params[:id]
+  rating.delete if current_user == rating.user
+  redirect_to user_path(current_user)
+end
 ```
 
-implement the remove operation only if the ```current_user``` is the same as the rating user.
+so we execute the remove operation only if the ```current_user``` is the same as the rating user.
 
-There is no reason actually why you should show the rating remove link in other pages than in the personal page of the signep up user. So change the user show page like below:
+There is no reason actually why you should show the rating remove link in other pages than in the personal page of the signed in user. So change the user show page like below:
 
 ```erb
-  <ul>
-    <% @user.ratings.each do |rating| %>
-      <li>
-        <%= rating %>
-        <% if @user == current_user %>
-            <%= link_to 'delete', rating, method: :delete, data: { confirm: 'Are you sure?' } %>
-        <% end %>
-      </li>
-    <% end %>
-  </ul>
+<ul>
+  <% user.ratings.each do |rating| %>
+    <li><%= "#{rating.to_s}" %>
+      <% if @user == current_user %>
+        <%= link_to "Delete", rating, data: {turbo_method: :delete} %>
+      <% end %>
+    </li>
+  <% end %>
+</ul>
 ```
 
-Notice that simply removing the **delete** link does not prevent deleting other users ratings, because it is extremely easy to make an HTTP DELETE operation to the urls of a massive number of ratings. Therefore, it is essential to check the identity of the signed-in user in the control method which executes the deletion.
-
-> ## Exercise 11
->
-> The list with all users [http://localhost:3000/users](http://localhost:3000/users) contains the links **destroy** and **edit** now, which can be used to destroy users and to edit their information. Remove both links and add them to the user page (you can move only delete, actually, because edit is already there).
->
-> Show the edit and distroy links only to the personal page of the signed-in user. Change also the <code>update</code> and <code>destroy</code> methods of the User controller so that updating or deleting the object information can only be done by the signed-in user.
-
-> ## Exercise 12
->
-> Create a new user name, make the user sign in, and then distroy the user. Deleting the user name will cause an annoying error. **You will get over it by deleting the browser cookies.** Try to think what caused the error and fix the bug in the application too, so that deleting a user would not bring about an error situation.
+Notice that simply removing the **delete** link does not prevent deleting other users ratings, because it is extremely easy to make an HTTP DELETE operation to the urls of a of ratings. Therefore, it is essential to check the identity of the signed-in user in the control method which executes the deletion.
 
 > ## Exercise 13
 >
-> Laajenna vielä sovellusta siten, että käyttäjän tuhoutuessa käyttäjän tekemät reittaukset tuhoutuvat automaattisesti. Ks. https://github.com/mluukkai/WebPalvelinohjelmointi2015/master/web/viikko2.md#orvot-oliot
+> Each user's page [http://localhost:3000/user/1](http://localhost:3000/user/1) contains the button **destroy this user** , which can be used to destroy users and a link **edit** to edit their information.
 >
-> Jos teit tehtävät 7-8 eli toteutit järjestelmään olutkerhot, tuhoa käyttäjän tuhoamisen yhteydessä myös käyttäjän jäsenyydet olutkerhoissa
+> Show the editing and destroying links/buttons only on the signed in user's personal user page. 
+> Change also the <code>update</code> and <code>destroy</code> methods of the User controller so that updating or deleting the object information can only be done by the signed-in user.
 
+> ## Exercise 14
+>
+> Create a new user name, sign in as that user, and then distroy the user. Deleting the user name will cause an annoying error. **You will get over it by deleting the browser cookies.** Try to think what caused the error and fix the bug in the application too, so that deleting a user would not bring about an error situation.
+
+> ## Exercise 15
+>
+> Extend your application so that when an user is deleted, their ratings are also automatically deleted. See https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#orphan-objects
+>
+> If you completed exercises 9-11, that is, implemented the beer clubs, make sure that destroying an user destroys also their beer club memberships.
 
 
 ## More adjustments
 
 Among the user editing actions you can also change the <code>username</code>. This does not make much sense, so remove the option.
 
-Creating a new user and editing it make use of the same form, which is defined in the file views/users/_form.html.erb. The view templates which start with an underscore are Rails so-called [partials](http://guides.rubyonrails.org/layouts_and_rendering.html#using-partials), which are put together other templates in case of a <code>render</code> call.
+Creating a new user and editing it make use of the same form, which is defined in the file views/users/_form.html.erb. In Rails, forms generated by scaffolding are also partials and attached to other templates with the <code>render</code> call.
 
 The view template for editing users is below:
 
@@ -1347,67 +1389,68 @@ The view template for editing users is below:
 
 <%= render 'form' %>
 
-<%= link_to 'Show', @user %> |
-<%= link_to 'Back', users_path %>
+<%= link_to "Show this user", @user %> |
+<%= link_to "Back to users", users_path %>
 ```
 
 first it renders the elements in the _form template, and then a couple of links. The form code is below:
 
 ```erb
-<%= form_for(@user) do |f| %>
-  <% if @user.errors.any? %>
-    <div id="error_explanation">
-      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
+<%= form_with(model: user) do |form| %>
+  <% if user.errors.any? %>
+    <div style="color: red">
+      <h2><%= pluralize(user.errors.count, "error") %> prohibited this user from being saved:</h2>
 
       <ul>
-      <% @user.errors.full_messages.each do |msg| %>
-        <li><%= msg %></li>
-      <% end %>
+        <% user.errors.each do |error| %>
+          <li><%= error.full_message %></li>
+        <% end %>
       </ul>
     </div>
   <% end %>
 
-  <div class="field">
-    <%= f.label :username %><br>
-    <%= f.text_field :username %>
-  </div>
-  <div class="field">
-    <%= f.label :password %><br />
-    <%= f.password_field :password %>
-  </div>
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation  %>
+  <div>
+    <%= form.label :username, style: "display: block" %>
+    <%= form.text_field :username %>
   </div>
 
-  <div class="actions">
-    <%= f.submit %>
+  <div>
+    <%= form.label :password, style: "display: block"%>
+    <%= form.password_field :password %>
+  </div>
+
+  <div>
+    <%= form.label :password_confirmation, style: "display: block"%>
+    <%= form.password_field :password_confirmation %>
+  </div>
+
+  <div>
+    <%= form.submit %>
   </div>
 <% end %>
-
 ```
 
-This means you also want to delete the following chunk of code from the form
+This means we want to delete the following chunk of code from the form
 
 ```erb
-  <div class="field">
-    <%= f.label :username %><br>
-    <%= f.text_field :username %>
+<div>
+  <%= form.label :username, style: "display: block" %>
+  <%= form.text_field :username %>
+</div>
+```
+
+_if_ we are editing the user information – that is, if the user object has been already created previously.
+
+
+With the method <code>new_record?</code>, you can request from the object <code>@user</code> whether it has been already stored in the database. In this way, you will show the <code>username</code> field in the form only when it's being used for creating a new user.
+
+```erb
+<% if @user.new_record? %>
+  <div>
+    <%= form.label :username, style: "display: block" %>
+    <%= form.text_field :username %>
   </div>
-```
-
-_if_ you are editing the user information – that is, if the user object was already created.
-
-
-With the method <code>new_record</code>, you can request from the object <code>@user</code> whether the form hasn't been stored in the database. In this way, you will show the <code>username</code> field in the form only when it's being created a new user:
-
-```erb
-  <% if @user.new_record? %>
-    <div class="field">
-      <%= f.label :username %><br />
-      <%= f.text_field :username %>
-    </div>
-  <% end %>
+<% end %>
 ```
 
 Your form will do now, but it is still possible to change the user name by sending an HTTP POST request with a new username straight to the server.
@@ -1415,36 +1458,40 @@ Your form will do now, but it is still possible to change the user name by sendi
 Implement another verification in the <code>update</code> method of the User controller, to prevent changing the user name:
 
 ```ruby
-  def update
-    respond_to do |format|
-      if user_params[:username].nil? and @user == current_user and @user.update(user_params)
-        format.html { redirect_to @user, notice: 'User was successfully updated.' }
-        format.json { head :no_content }
-      else
-        format.html { render action: 'edit' }
-        format.json { render json: @user.errors, status: :unprocessable_entity }
-      end
+def update
+  respond_to do |format|
+    if user_params[:username].nil? and @user == current_user and @user.update(user_params)
+      format.html { redirect_to @user, notice: 'User was successfully updated.' }
+      format.json { head :no_content }
+    else
+      format.html { render action: 'edit' }
+      format.json { render json: @user.errors, status: :unprocessable_entity }
     end
   end
+end
 ```
 
 The form to change the user information will look like below, after all the changes you've implemented:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-7.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-7.png)
 
-> ## Exercise 14
+> ## Exercise 16
 >
-> The only information of users are their password now. Change the form to modify the user information so that it will look like the picture below. Notice, that the new user signup has to look like before.
+> The only information of users are their password now. Change the form used in modifying the user information so that it will look like the picture below. Notice, that the new user signup has to look like before.
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w3-8.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-8.png)
+
+## Application to Internet
+
+To end your week, it is time to deploy again your application to either Heroku or Fly.io. Deployment to Fly.io might go without problems as Fly.io automatically executes any database migrations defined in the application. Not so with Heroku.
 
 ## Problems with heroku
 
 If the program updated version is deployed in heroku, you will run into problems again. The page with all ratings, the one with all users, and the signup link cause a well-known error:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w2-12.png)
+![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2017/raw/master/images/ratebeer-w2-12.png)
 
-As we saw [last week](https://github.com/mluukkai/WebPalvelinohjelmointi2015/master/web/viikko2.md#ongelmia-herokussa) you will have to find the reason from heroku logs.
+As we saw [last week](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#problems-with-heroku) you will have to find the reason from heroku logs.
 
 The page with all users causes the following error:
 
@@ -1452,21 +1499,23 @@ The page with all users causes the following error:
 
 so the *users* database table does not exist because the application recent migrations haven't been executed in heroku. The issue will be solved by executing the migrations:
 
-    heroku run rake db:migrate
+    heroku run rails db:migrate
 
 The signup page will also work after executing the migrations.
 
 The issue with the rating page will not be solved with the help of migrations, and you will have to look into the logs to find a solution:
 
 ```ruby
-2015-01-24T19:19:58.672580+00:00 app[web.1]: ActionView::Template::Error (undefined method `username' for nil:NilClass):
-2015-01-24T19:19:58.672582+00:00 app[web.1]:     2:
-2015-01-24T19:19:58.672583+00:00 app[web.1]:     3: <ul>
-2015-01-24T19:19:58.672584+00:00 app[web.1]:     4:   <% @ratings.each do |rating| %>
-2015-01-24T19:19:58.672586+00:00 app[web.1]:     5:     <li> <%= rating %> <%= link_to rating.user.username, rating.user %> </li>
-2015-01-24T19:19:58.672588+00:00 app[web.1]:     6:   <% end %>
-2015-01-24T19:19:58.672589+00:00 app[web.1]:     7: </ul>
-2015-01-24T19:19:58.672590+00:00 app[web.1]:     8:
+2022-08-24T16:28:33.610096+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4] ActionView::Template::Error (undefined method `name' for nil:NilClass):
+2022-08-24T16:28:33.610221+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     2:
+2022-08-24T16:28:33.610225+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     3: <ul>
+2022-08-24T16:28:33.610227+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     4:  <% @ratings.each do |rating| %>
+2022-08-24T16:28:33.610229+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     5:    <li> <%= rating %> <%= link_to rating.user.username, rating.user %></li>
+2022-08-24T16:28:33.610231+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     6:  <% end %>
+2022-08-24T16:28:33.610232+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     7: </ul>
+2022-08-24T16:28:33.610234+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]     8:
+2022-08-24T16:28:33.610239+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4]
+2022-08-24T16:28:33.610241+00:00 app[web.1]: [2fb11437-8b3c-4ec2-a65c-5f725a7e65b4] app/models/rating.rb:10:in `to_s'
 ```
 
 The reason is the old one – the view code tries to call the <code>username</code> method of a nil object. It must be beacuse of the parameter in the <code>link_to</code> method
@@ -1482,11 +1531,8 @@ Even though the database migration has been executed, a part of the data are sti
 Create a user in the database and use heroku console make so the first user created becomes the user of all existing ratings.
 
 ```ruby
-irb(main):002:0> u = User.first
-=> #<User id: 1, username: "mluukkai", created_at: "2015-01-24 19:56:38", updated_at: "2015-01-24 19:56:38", password_digest: "$2a$10$g3AEFZtiOa186yfBql3tOO9ELAIgBUwOFnnWIVwwfYS...">
-irb(main):003:0> Rating.all.each{ |r| u.ratings << r }
-=> [#<Rating id: 1, score: 21, beer_id: 1, created_at: "2015-01-17 17:55:43", updated_at: "2015-01-24 19:56:51", user_id: 1>, #<Rating id: 2, score: 15, beer_id: 2, created_at: "2015-01-18 20:12:59", updated_at: "2015-01-24 19:56:51", user_id: 1>]
-irb(main):004:0>
+> u = User.first
+> Rating.all.each{ |r| u.ratings << r }
 ```
 
 Now your application will work.
@@ -1494,12 +1540,20 @@ Now your application will work.
 Let me repeat the conclusion of "Problems in heroku" from last week, to end this week too.
 
 <quote>
-Most commonly, the problems we have in production depend of the inconsistent state that some beers have got because of our changes in the database scheme. For instance, they may be belonging to objects which do not exist or the references might be missing. **It is a good practice to deploy the application in the production mode as often as possible**, in this way, you will know that the potential problems are caused by the changes you have done and fixing them will be easier.
+Most commonly, the problems we have in production depend on the inconsistent state that some objects have got because of our changes in the database scheme. For instance, they may be belonging to objects which do not exist or the references might be missing. **It is a good practice to deploy the application in the production mode as often as possible**, in this way, you will know that the potential problems are caused by the changes you have just done and fixing them will be easier.
 </quote>
+
+## Rubocop
+
+Remember to use Rubocop to check that your code still follows the configured style rules.
+
+If you are using Visual Studio Code you can install the [ruby-rubocop](https://marketplace.visualstudio.com/items?itemName=misogi.ruby-rubocop) plugin. The editor will then notify you immediately of any styling errors:
+
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-10.png)
 
 ## Returning the exercises
 
 
-Commit all your changes and push the code to Github. Deploy to the newest version of Heroku, too.
+Commit all your changes and push the code to Github. Deploy to the newest version to Heroku or Fly.io, too.
 
-You should mark that you have returned the exercises at http://wadrorstats2015.herokuapp.com
+Mark that the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
