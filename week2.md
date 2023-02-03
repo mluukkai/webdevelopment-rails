@@ -1507,13 +1507,13 @@ The next thing to do is fixing the objects which cause the problem. Because you 
 >
 ```
 
-Most commonly, the problems we have in production depend of the inconsistent state that some objects have got because of our changes in the database scheme. For instance, they may be belonging to objects which do not exist or the references might be missing. **It is a good practice to deploy the application in the production mode as often as possible**, in this way, you will know that the potential problems are caused by the changes you have just done and fixing them will be easier.
+Most commonly, the problems we have in production depend on the inconsistent state that some objects have got because of our changes in the database scheme. For instance, they may be belonging to objects which do not exist or the references might be missing. **It is a good practice to deploy the application in the production mode as often as possible**, in this way, you will know that the potential problems are caused by the changes you have just done and fixing them will be easier.
 
 Because it is a program in production, resetting the database (<code>rails db:drop</code>) in never aa acceptable way to "fix" a database inconsistency because the data in production cannot be destroyed. You should start from the beginning to learn reading logs and finding out problems as you are meant to do.
 
 ## Returning the exercises
 
-Commit all your changes and push the code to Github. Deploy to the newest version of Heroku or Fly.io, as well.
+Commit all your changes and push the code to Github. Deploy to the newest version to Heroku or Fly.io, as well.
 
 Mark that the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
 
