@@ -1,91 +1,88 @@
 
-You will continue to develop your application from the point you arrived at the end of week 3. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week [from the course repository](https://github.com/mluukkai/WebPalvelinohjelmointi2015/tree/master/malliv/viikko1). If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
-
-If you start working this week on the base of last week sample answer, copy the folder from the course repository (assuming you have alrady cloned it) and make a new repository of the folder with the application.
-
-**Attention:** some Mac users have found problems with the pg-gem which Heroku needs. Gems are not needed locally and we defined to set them only in the production environment. If you have problems, you can set gems by adding the following expression to <code>bundle install</code>:
-
-    bundle install --without production
-
-This setting will be remembered later on, so a simple `bundle install` will be enough if you want to set up new dependences.
-
 ## Some things to keep in mind
+
+### Rubocop
+
+Remember to use Rubocop to check that all your future code still follows the configured style rules.
+
+If you are using Visual Studio Code, consider installing the [ruby-rubocop](https://marketplace.visualstudio.com/items?itemName=misogi.ruby-rubocop) plugin.
 
 ### Issues with forms
 
-In week 2 we modified the beer creation form so that the style a brewery of the new beer are chosen from a pull-down menu. We modified the form to use _select_ instead of a text field:
+In week 2 we modified the beer creation form so that the style and the brewery of the new beer are chosen from a dropdown menu. We modified the form to use _select_ instead of a text field:
 
 ```ruby
-  <div class="field">
-    <%= f.label :style %><br>
-    <%= f.select :style, options_for_select(@styles) %>
-  </div>
-  <div class="field">
-    <%= f.label :brewery %><br>
-    <%= f.select :brewery_id, options_from_collection_for_select(@breweries, :id, :name) %>
-  </div>
+<div>
+  <%= form.label :style, style: "display: block" %>
+  <%= form.select :style, options_for_select(@styles) %>
+</div>
+
+<div>
+  <%= form.label :brewery_id, style: "display: block" %>
+  <%= form.select :brewery_id, options_from_collection_for_select(@breweries, :id, :name) %>
+</div>
 ```
 
-the selection options of pull-down menus are sent to the form through the variables <code>@styles</code> and <code>@breweries</code>, and their values are set by the controller method <code>new</code>:
+the selection options of dropdown menus are sent to the form through the variables <code>@styles</code> and <code>@breweries</code>, and their values are set by the controller method <code>new</code>:
 
 ```ruby
-  def new
-    @beer = Beer.new
-    @breweries = Brewery.all
-    @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter"]
-  end
+def new
+  @beer = Beer.new
+  @breweries = Brewery.all
+  @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter", "Lowalcohol"]
+end
 ```
 
 Interestingly after these changes, editing a beer information will stop working. It causes the error message <code>undefined method `map' for nil:NilClass</code>, which you have probably already encountered in the course:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w4-0.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w4-0.png)
 
-The reason for this is that creating a new beer and editing a beer require the use of the same view template to generate the form (app/views/beers/_form.html.erb). Also after the changes, the view requires that the variable <code>@breweries</code> contains a list of the breweries and that the variable <code>styles</code> contains the beers styles. You access the beer eiting page after executing <code>edit</code>, and you will have to fix the controller like shown below, if you want to fix the issue:
+The reason for this is that creating a new beer and editing a beer require the use of the same view template to generate the form (app/views/beers/_form.html.erb). Also after the changes, the view requires that the variable <code>@breweries</code> contains a list of the breweries and that the variable <code>styles</code> contains the beers styles. You access the beer editing page by executing the <code>edit</code> controller method, and you will have to fix the controller like shown below, if you want to fix the issue:
 
 ```ruby
-  def edit
-    @breweries = Brewery.all
-    @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter"]
-  end
+def edit
+  @breweries = Brewery.all
+  @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter", "Lowalcohol"]
+end
 ```
 
 You will find exactly the same problem if you try to create a beer which is not valid. In such case, the controller method <code>create</code> is the one which tries to render the view template which generates the form again. In fact, you will have to set a value to the variables <code>@style</code> and <code>@breweries</code> which need a template before rendering the page.
 
 ```ruby
-  def create
-    @beer = Beer.new(beer_params)
+def create
+  @beer = Beer.new(beer_params)
 
-    respond_to do |format|
-      if @beer.save
-        format.html { redirect_to beers_path, notice: 'Beer was successfully created.' }
-        format.json { render action: 'show', status: :created, location: @beer }
-      else
-        @breweries = Brewery.all
-        @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter"]
+  respond_to do |format|
+    if @beer.save
+      format.html { redirect_to beers_path, notice: 'Beer was successfully created.' }
+      format.json { render action: 'show', status: :created, location: @beer }
+    else
+      @breweries = Brewery.all
+      @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter"]
 
-        format.html { render action: 'new' }
-        format.json { render json: @beer.errors, status: :unprocessable_entity }
-      end
+      format.html { render action: 'new' }
+      format.json { render json: @beer.errors, status: :unprocessable_entity }
     end
   end
+end
 ```
 
-It's typical that the controller methods <code>new</code>, <code>create</code> and <code>edit</code> contain much of the same code, which is used to initiate the variables which need view templates. The best thing you can do is estracting the similar code into a method:
+It's typical that the controller methods <code>new</code>, <code>create</code> and <code>edit</code> contain much of the same code, which is used to initiate the variables which view templates need. The best thing you can do is extracting the similar code into a method:
 
 ```ruby
-  def set_breweries_and_styles_for_template
-    @breweries = Brewery.all
-    @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter"]
-  end
+def set_breweries_and_styles_for_template
+  @breweries = Brewery.all
+  @styles = ["Weizen", "Lager", "Pale ale", "IPA", "Porter", "Lowalcohol"]
+end
 ```
 
 The method can be called from the controller methods <code>new</code>, <code>create</code> and <code>edit</code>:
 
 ```ruby
-  def new
-    @beer = Beer.new
-    set_breweries_and_styles_for_template
-  end
+def new
+  @beer = Beer.new
+  set_breweries_and_styles_for_template
+end
 ```
 
  or you could do it with the <code>before_action</code> expression, which looks even better:
@@ -98,40 +95,41 @@ class BeersController < ApplicationController
   # ...
 ```
 
-in this way, the method to set the values of the variables <code>@styles</code> and <code>@breweries</code> is executed authomatically always before executing the methods <code>new</code>, <code>create</code> and <code>edit</code>. We might not need to set the variables values in the method <code>create</code> because they are needed only in case the validation fails. It might have made sense to use an explicit call to create.
+in this way, the method to set the values of the variables <code>@styles</code> and <code>@breweries</code> is executed authomatically always before executing the methods <code>new</code>, <code>create</code> and <code>edit</code>. We might not need to set the variables values in the method <code>create</code> because they are needed only in case the validation fails. It might have made sense to use an explicit call in create.
 
-### Problems with Heroku
+### Problems with Heroku or Fly.io
 
-Many students in the course have met problems with Heroku, or sometimes an application which was working perfectly locally has cause the same old, annoying error message in Heroku, _We're sorry, but something went wrong_.
+Many students in the course have met problems with Heroku where sometimes an application which was working perfectly locally has caused the same old, annoying error message in Heroku, _We're sorry, but something went wrong_.
 
 The thing to do right in the beginning is making sure all the code has been added from the local computer to the version management, that is <code>git status</code>!
 
-Non-trivial problems are always solved using Heroku's logs. You can inspect logs through the command <code>heroku logs</code>, from the command line
+Non-trivial problems are always solved using Heroku's logs. You can inspect logs through the command <code>heroku logs</code> for Heroku and <code>fly logs</code> for Fly.io, from the command line
 
-You find the log of a typical problem below:
+You find the log of a typical problem (in Heroku) below:
+
 
 ```ruby
 mbp-18:ratebeer-public mluukkai$ heroku logs
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-2015-02-03T18:53:05.867973+00:00 app[web.1]:
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                                           ^
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                WHERE a.attrelid = '"users"'::regclass
-2015-02-03T18:53:05.874380+00:00 app[web.1]: Completed 500 Internal Server Error in 10ms
-2015-02-03T18:53:05.878587+00:00 app[web.1]: :               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
-2015-02-03T18:53:05.878587+00:00 app[web.1]:                                           ^
-2015-02-03T18:53:05.878587+00:00 app[web.1]:
-2015-02-03T18:53:05.868310+00:00 app[web.1]:
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                  AND a.attnum > 0 AND NOT a.attisdropped
-2015-02-03T18:53:05.868310+00:00 app[web.1]:                ORDER BY a.attnum
-2015-02-03T18:53:05.878587+00:00 app[web.1]:                WHERE a.attrelid = '"users"'::regclass
-2015-02-03T18:53:05.867973+00:00 app[web.1]:                 FROM pg_attribute a LEFT JOIN pg_attrdef d
-2015-02-03T18:53:05.882824+00:00 app[web.1]: LINE 5:                WHERE a.attrelid = '"users"'::regclass
-2015-02-03T18:53:05.882824+00:00 app[web.1]:                                           ^
-2015-02-03T18:53:05.878587+00:00 app[web.1]:                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
-2015-02-03T18:53:05.878587+00:00 app[web.1]:                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-2015-02-03T18:53:05.874380+00:00 app[web.1]: Completed 500 Internal Server Error in 10ms
-2015-02-03T18:53:05.878587+00:00 app[web.1]: ActiveRecord::StatementInvalid (PG::UndefinedTable: ERROR:  relation "users" does not exist
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+2022-08-28T18:53:05.867973+00:00 app[web.1]:
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                                           ^
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                WHERE a.attrelid = '"users"'::regclass
+2022-08-28T18:53:05.874380+00:00 app[web.1]: Completed 500 Internal Server Error in 10ms
+2022-08-28T18:53:05.878587+00:00 app[web.1]: :               SELECT a.attname, format_type(a.atttypid, a.atttypmod),
+2022-08-28T18:53:05.878587+00:00 app[web.1]:                                           ^
+2022-08-28T18:53:05.878587+00:00 app[web.1]:
+2022-08-28T18:53:05.868310+00:00 app[web.1]:
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                  AND a.attnum > 0 AND NOT a.attisdropped
+2022-08-28T18:53:05.868310+00:00 app[web.1]:                ORDER BY a.attnum
+2022-08-28T18:53:05.878587+00:00 app[web.1]:                WHERE a.attrelid = '"users"'::regclass
+2022-08-28T18:53:05.867973+00:00 app[web.1]:                 FROM pg_attribute a LEFT JOIN pg_attrdef d
+2022-08-28T18:53:05.882824+00:00 app[web.1]: LINE 5:                WHERE a.attrelid = '"users"'::regclass
+2022-08-28T18:53:05.882824+00:00 app[web.1]:                                           ^
+2022-08-28T18:53:05.878587+00:00 app[web.1]:                      pg_get_expr(d.adbin, d.adrelid), a.attnotnull, a.atttypid, a.atttypmod
+2022-08-28T18:53:05.878587+00:00 app[web.1]:                   ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+2022-08-28T18:53:05.874380+00:00 app[web.1]: Completed 500 Internal Server Error in 10ms
+2022-08-28T18:53:05.878587+00:00 app[web.1]: ActiveRecord::StatementInvalid (PG::UndefinedTable: ERROR:  relation "users" does not exist
 ```
 
 if you read the logs carefully, you will find the reason is the following
@@ -142,115 +140,60 @@ ActiveRecord::StatementInvalid (PG::UndefinedTable: ERROR:  relation "users" doe
 
 you haven't executed the migrations. Fixing this will be easy:
 
-    heroku run rake db:migrate
+    heroku run rails db:migrate
 
-You find the log of another typical error situation below:
+Fly.io executes migrations automatically, so most likely you won't run into the above problem there.
 
-```ruby
-2015-02-03T19:04:43.830852+00:00 app[web.1]: Started POST "/ratings" for 84.253.203.234 at 2015-02-03 19:04:43 +0000
-2015-02-03T19:04:43.833992+00:00 app[web.1]:   Parameters: {"utf8"=>"✓", "authenticity_token"=>"n1VTj7WrICHZUT594fbxJBue2uqcSk6wrYQR7lY5nzk=", "rating"=>{"beer_id"=>"2", "score"=>"10"}, "commit"=>"Create Rating"}
-2015-02-03T19:04:43.833913+00:00 app[web.1]: Processing by RatingsController#create as HTML
-2015-02-03T19:04:43.833992+00:00 app[web.1]: Processing by RatingsController#create as HTML
-2015-02-03T19:04:43.833992+00:00 app[web.1]:   Parameters: {"utf8"=>"✓", "authenticity_token"=>"n1VTj7WrICHZUT594fbxJBue2uqcSk6wrYQR7lY5nzk=", "rating"=>{"beer_id"=>"2", "score"=>"10"}, "commit"=>"Create Rating"}
-2015-02-03T19:04:43.853276+00:00 app[web.1]:
-2015-02-03T19:04:43.851427+00:00 app[web.1]: Completed 500 Internal Server Error in 19ms
-2015-02-03T19:04:43.852028+00:00 app[web.1]: Completed 500 Internal Server Error in 19ms
-2015-02-03T19:04:43.853276+00:00 app[web.1]:   app/controllers/ratings_controller.rb:15:in `create'
-2015-02-03T19:04:43.853276+00:00 app[web.1]:
-2015-02-03T19:04:43.853276+00:00 app[web.1]: NoMethodError (undefined method `ratings' for nil:NilClass):
-2015-02-03T19:04:43.853276+00:00 app[web.1]:   app/controllers/ratings_controller.rb:15:in `create'
-2015-02-03T19:04:43.853276+00:00 app[web.1]:
-2015-02-03T19:04:43.853276+00:00 app[web.1]:
-2015-02-03T19:04:43.853276+00:00 app[web.1]: NoMethodError (undefined method `ratings' for nil:NilClass):
-2015-02-03T19:04:43.853276+00:00 app[web.1]:
-```
-
-The error was caused by the file *app/controllers/ratings_controller.rb*, at line 15, and the reason is <code>NoMethodError (undefined method `ratings' for nil:NilClass)</code>.
-
-Take a look at the file and at the line which cause the problem:
+You find the log of another typical error (also in Fly.io) situation below:
 
 ```ruby
-  def create
-    @rating = Rating.new params.require(:rating).permit(:score, :beer_id)
-
-    if @rating.save
-      current_user.ratings << @rating  ## virheen aiheuttanut rivi
-      redirect_to user_path current_user
-    else
-      @beers = Beer.all
-      render :new
-    end
-  end
+2022-08-28T19:32:31.609344+00:00 app[web.1]:     6:   <% @ratings.each do |rating| %>
+2022-08-28T19:32:31.609530+00:00 app[web.1]:
+2022-08-28T19:32:31.609530+00:00 app[web.1]:
+2022-08-28T19:32:31.609530+00:00 app[web.1]:   app/views/ratings/index.html.erb:6:in `_app_views_ratings_index_html_erb___254869282653960432_70194062879340'
+2022-08-28T19:32:31.609530+00:00 app[web.1]:
+2022-08-28T19:32:31.609530+00:00 app[web.1]: ActionView::Template::Error (undefined method `username' for nil:NilClass):
+2022-08-28T19:32:31.609344+00:00 app[web.1]:   app/views/ratings/index.html.erb:7:in `block in _app_views_ratings_index_html_erb___254869282653960432_70194062879340'
+2022-08-28T19:32:31.609530+00:00 app[web.1]:     7:       <li> <%= rating %> <%= link_to rating.user.username, rating.user %> </li>
+2022-08-28T19:32:31.609530+00:00 app[web.1]:     4:
+2022-08-28T19:32:31.609530+00:00 app[web.1]:     6:   <% @ratings.each do |rating| %>
+2022-08-28T19:32:31.609530+00:00 app[web.1]:     5: <ul>
+2022-08-28T19:32:31.609715+00:00 app[web.1]:    10:
 ```
 
-The problem was caused because you tried to make a rating in a situation where no user had signed in and <codee>current_user</code> was <code>nil</code>. You can fix the problem in the following way:
+The error was _ActionView::Template::Error (undefined method \`username' for nil:NilClass)_  and it was happened while executing line 7 in file _app/views/ratings/index.html.erb_ .
 
-```ruby
-  def create
-    @rating = Rating.new params.require(:rating).permit(:score, :beer_id)
-
-    if current_user.nil?
-		  redirect_to signin_path, notice:'you should be signed in'
-    elsif @rating.save
-      current_user.ratings << @rating  ## virheen aiheuttanut rivi
-      redirect_to user_path current_user
-    else
-      @beers = Beer.all
-      render :new
-    end
-  end
-```
-
-in this way, if the user didn't sign in, the brower will be directed to the sign-in page. You should also remove the link to the _ratings_ view which might have been left in your code and which makes possible to make a rating without being signed-in.
-
-Before going to the next topic, have a look at a classical error log:
-
-```ruby
-2015-02-03T19:32:31.609344+00:00 app[web.1]:     6:   <% @ratings.each do |rating| %>
-2015-02-03T19:32:31.609530+00:00 app[web.1]:
-2015-02-03T19:32:31.609530+00:00 app[web.1]:
-2015-02-03T19:32:31.609530+00:00 app[web.1]:   app/views/ratings/index.html.erb:6:in `_app_views_ratings_index_html_erb___254869282653960432_70194062879340'
-2015-02-03T19:32:31.609530+00:00 app[web.1]:
-2015-02-03T19:32:31.609530+00:00 app[web.1]: ActionView::Template::Error (undefined method `username' for nil:NilClass):
-2015-02-03T19:32:31.609344+00:00 app[web.1]:   app/views/ratings/index.html.erb:7:in `block in _app_views_ratings_index_html_erb___254869282653960432_70194062879340'
-2015-02-03T19:32:31.609530+00:00 app[web.1]:     7:       <li> <%= rating %> <%= link_to rating.user.username, rating.user %> </li>
-2015-02-03T19:32:31.609530+00:00 app[web.1]:     4:
-2015-02-03T19:32:31.609530+00:00 app[web.1]:     6:   <% @ratings.each do |rating| %>
-2015-02-03T19:32:31.609530+00:00 app[web.1]:     5: <ul>
-2015-02-03T19:32:31.609715+00:00 app[web.1]:    10:
-```
-
-If you look carefully, you will see from the log description that the problem is caused by _ActionView::Template::Error (undefined method `username' for nil:NilClass)_ and the error can be found in the file _app/views/ratings/index.html.erb_, line 7. The line which caused the error reads
+The line which caused the problem:
 
 ```ruby
 <li> <%= rating %> <%= link_to rating.user.username, rating.user %> </li>
 ```
 
-It seems the database contains a <code>rating</code> object, and its <code>user</code> is <code>nil</code>. It is the same problem that you saw in [week 2 ](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#ongelmia-herokussa).
+It seems that in the database there is a `rating` object whose associated user is `nil`. We already met this issue in [week 2](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#problems-with-heroku).
 
-The reason behind this is either a <code>nil</code> value for the <code>user_id</code> field of a rating, or an erroneous ID. One of the ways to solve the issue is destroying the 'bad' rating objects executing the command <code>heroku run console</code> and starting Heroku console:
+The reason behind this is either a <code>nil</code> value for the <code>user_id</code> field of a rating, or an erroneous ID. One of the ways to solve the issue is destroying the 'bad' rating objects from the console. Heroku console opens with <code>heroku run console</code> and Fly.io with first running <code>fly ssh console</code> and then <code>/app/bin/rails c</code>.
 
 
 ```ruby
-irb(main):001:0> bad_ratings = Rating.all.select{ |r| r.user.nil? or r.beer.nil? }
-=> [#<Rating id: 1, score: 10, beer_id: 2, created_at: "2015-02-03 19:04:43", updated_at: "2015-02-03 19:04:43", user_id: nil>]
-irb(main):002:0> bad_ratings.each{ |bad| bad.destroy }
-=> [#<Rating id: 1, score: 10, beer_id: 2, created_at: "2015-02-03 19:04:43", updated_at: "2015-02-03 19:04:43", user_id: nil>]
-irb(main):003:0> Rating.all.select{ |r| r.user.nil? or r.beer.nil? }
+> bad_ratings = Rating.all.select{ |r| r.user.nil? or r.beer.nil? }
+=> [#<Rating id: 1, score: 10, beer_id: 2, created_at: "2022-08-28 19:04:43", updated_at: "2022-08-28 19:04:43", user_id: nil>]
+> bad_ratings.each{ |bad| bad.destroy }
+=> [#<Rating id: 1, score: 10, beer_id: 2, created_at: "2022-08-28 19:04:43", updated_at: "2022-08-28 19:04:43", user_id: nil>]
+> Rating.all.select{ |r| r.user.nil? or r.beer.nil? }
 => []
-irb(main):004:0>
+>
 ```
 
 The commands above retrieve also the ratings that don't belong to any beer.
 
-So if you have troubles with Heroku, find out where is the problem: logs and console will help you out!
+So if you have troubles with Heroku or Fly.io, find out where is the problem: logs and console will always help you out!
 
 
 ### Cancelling a migration
 
 Sometimes you may want to cancel a migration you just executed – for instance if you create a bad scaffold, see the following section. This is possible through the command
 
-    rake db:rollback
+    rails db:rollback
 
 ### Bad scaffold
 
@@ -258,7 +201,7 @@ If you want to remove the files created by the scaffold generator, you can do it
 
     rails destroy scaffold resource_name
 
-where _resource_name_ is the name of the resource you created with scaffold. **ATTENTION:** if you executed a bad caffold migration already, you should definitely do <code>rake db:rollback</code> before using scaffold destroy.
+where _resource_name_ is the name of the resource you created with scaffold. **ATTENTION:** if you executed a bad scaffold migration already, you should definitely do <code>rails db:rollback</code> before using scaffold destroy.
 
 
 ## Testing
@@ -270,14 +213,17 @@ You can use Rspec for tests, see http://rspec.info/,  https://github.com/rspec/r
 Get started with rspec-rails gem by adding the following to your Gemfile:
 
 ```ruby
-group :development, :test do
-  gem 'rspec-rails', '~> 3.0'
+group :test do
+  # ...
+  gem 'rspec-rails', '~> 6.0.0.rc1'
 end
 ```
 
-You can set up the new gem in the common way, executing <code>bundle install</code> from the command line.
+> At the moment of writing, the only available version of rspec-rails 6 ends in .rc1. The repository of the rspec project recommends using version 6.0.0 which might start working agin during the course.
 
-You can initialize rspec in your application running
+You can set up the new gem in the familiar way, executing <code>bundle install</code> from the command line.
+
+You can initialize rspec in your application running the following from command line
 
     rails generate rspec:install
 
@@ -287,11 +233,11 @@ According to Rails standard but currently less common testing framework, the tes
 
 The tests – the correct words would be specs or specifications when it comes to rspec, we will be using the word test in the future however – can be written at different levels: unit tests for models and controllers, view tests, and integration tests for controllers. In addition to these, the application can be tested using a simulated browser with the help of the capybara gem https://github.com/jnicklas/capybara.
 
-We will be writing only unit tests for models as well as simulated browser-level tests with capybara.
+We will be writing mostly unit tests for models as well as simulated browser-level tests with capybara.
 
 ## Unit tests
 
-Try out a couple of unit tests for the class <code>User</code>. You can create a test by hand or from the command line with the rspec generator
+Let's try out a couple of unit tests for the class <code>User</code>. You can create a test by hand or from the command line with the rspec generator
 
     rails generate rspec:model user
 
@@ -300,143 +246,86 @@ The file user_spec.rb will appear in the folder /spec/models
 ```ruby
 require 'rails_helper'
 
-describe User do
+RSpec.describe User, type: :model do
   pending "add some examples to (or delete) #{__FILE__}"
 end
 ```
 
 Try to run the tests from the command line using the command <code>rspec spec</code> (attention: you might have to restart the terminal at this point!).
 
-Once you have executed the command, what will happen will depend from the Rails version in use. If you are using an older version, for instance the Rails 4.0.2. which is set up in the Virtual Box, you will probably see the code below:
+The test execution runs like this:
 
 ```ruby
-ratebeer git:(master) ✗ rspec spec
-/Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activerecord-4.0.2/lib/active_record/migration.rb:379:in `check_pending!': Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=test' to resolve this issue. (ActiveRecord::PendingMigrationError)
-```
-
-so it will cause an annoying, almost 30-line long error message. If you check the error message, you will find the reason of it right at the beginning
-
-     Migrations are pending; run 'bin/rake db:migrate RAILS_ENV=test' to resolve this issue.
-
-The migrations haven't been executed, for some reason. The reason is what was explained in [week 1](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko1.md#riippuvuuksien-hallinta-ja-suoritusymp%C3%A4rist%C3%B6t), that in Rails exist different environments for the application development, production and testing, and each environment has its own database. Even though the migrations are up to date in the development environment, the test environment migrations haven't been executed, and therefore, executing the tests will not work either. 
-
-*Attention:* in the newest Rails versions, test database migrations are executed automatically when rspec is initiated, and you will not run into the issue above.
-
-It is possible to execute the test environment migrations with the command <code>rake db:migrate RAILS_ENV=test</code>; however update the test environment with the command which is most used
-
-    rake db:test:prepare
-
-and try to execute the tests again:
-
-```ruby
-➜  ratebeer git:(master) ✗ rspec spec
+$ rspec spec
 *
 
-Pending:
-  User add some examples to (or delete) /Users/mluukkai/kurssirepot/rors/lagi/spec/models/user_spec.rb
-    # Not yet implemented
-    # ./spec/models/user_spec.rb:4
+Pending: (Failures listed here are expected and do not affect your suite's status)
 
-Finished in 0.00047 seconds (files took 1.48 seconds to load)
+  1) User add some examples to (or delete) /Users/mluukkai/opetus/ratebeer/spec/models/user_spec.rb
+     # Not yet implemented
+     # ./spec/models/user_spec.rb:4
+
+
+Finished in 0.00932 seconds (files took 3.31 seconds to load)
 1 example, 0 failures, 1 pending
 ```
 
-*Attention:* if tests work but when you run them you see a large amount of error messages (which happens most probably if you use a newer Rails version), add the following line to the file _spec/spec_hepler.rb_ 
-
-```ruby
-  config.warnings = false
-```
-
-The line should be place in the file between the <code>do</code>–<code>end</code> chunk.
 
 The command  <code>rspec spec</code> defines that you execute all the tests which are located inside spec subfolders. If you have a lot of tests, you can also run define the smaller group of tests you want to run:
 
     rspec spec/models                # executing the tests contained in the models folder
     rspec spec/models/user_spec.rb   # executing the tests defined by user_spect.rb
 
-rspect rails also creates rake commands, that is to say tasks for the test executing. You can list all test tasks with the command ```rake -T spec```.
 
-```ruby
-➜  ratebeer git:(master) ✗ rake -T spec
-rake spec         # Run all specs in spec directory (excluding plugin specs)
-rake spec:models  # Run the code examples in spec/models
-```
+You can also automate the test execution to run any time a test or the code concerning it changes.
+The library used to do this is [guard](https://github.com/guard/guard) and there are numerous extensions available for it.
 
-so the command <code>rake spec</code> is the same as <code>rspec spec</code>:
-
-```ruby
-➜  ratebeer git:(master) ✗ rake spec
-*
-
-Pending:
-  User add some examples to (or delete) /Users/mluukkai/kurssirepot/wadror/ratebeer/spec/models/user_spec.rb
-    # No reason given
-    # ./spec/models/user_spec.rb:4
-
-Finished in 0.00046 seconds
-1 example, 0 failures, 1 pending
-
-Randomized with seed 7711
-```
-
-The difference between the commands <code>rspec spec</code> and <code>rake spec</code> is that when you run rake, the test environment database is updated automatically. So if you use the command <code>rake spec</code>, you will not need to execute the command <code>rake db:test:prepare</code> even though there had been changes in the database scheme. We will use the <code>rspec</code> command in our material, from now on.
-
-Notice that the command <code>rake spec</code> will work (straight away) only if the gem <code>rspec-rails</code> is defined in the Gemfile not only with test scope but also with production scope.
-
-Running tests can be made automatic when the tests or their code change. [guard](https://github.com/guard/guard) is a library for this and you also find various expantions.
-
-Start to make your tests. First write a test to check whether the user name is correct:
+Let's start writing tests. First we'll create a test that tests that the constructor sets the username correctly (this in file _user_spec.rb_):
 
 ```ruby
 require 'rails_helper'
 
-describe User do
+RSpec.describe User, type: :model do
   it "has the username set correctly" do
-    user = User.new username:"Pekka"
+    user = User.new username: "Pekka"
 
-    user.username.should == "Pekka"
+    expect(user.username).to eq("Pekka")
   end
 end
 ```
 
-The test is written in the code chunk which is given to the method called <code>it</code>. The first parameter of the method is a string, which will act as test name. Despite this, the test is written in "xUnit style", meaning that the data to test is created first, later the action to test is executed, and at the end the result will be evaluated.
+The test is written in the code chunk which is given to the method called <code>it</code>. The first parameter of the method is a string, which will act as the test's name. otherwise the test is written in similarly to e.g. jUnit, meaning that the data to test is created first, later the action to test is executed, and at the end the result will be evaluated.
 
-Execute the test and see whether it goes through:
+Execute the test and we see that it goes through:
 
 ```ruby
-➜  ratebeer git:(master) ✗ rspec spec
+$ rspec spec
 
 Finished in 0.00553 seconds (files took 2.11 seconds to load)
 1 example, 0 failures
-➜  ratebeer git:(master) ✗
 ```
 
-The test execution will be followed by a warning message telling that you are using an old-dated syntax. Forget the warning message for a second and take a look at the test containts.
-
-Differently than in tests belong to the xUnit family, Rspecs don't make use of assert commands to evaluate the result. They make use of a more particular syntax, as the last test line shows:
-
-    user.username.should == "Pekka"
-
-Rspect adds the method <code>should</code> to each class, which helps you to define whether the test behaves as you want using a syntax which aims at reading as closely as possible natural language expressions.
-
-As it is usually in Ruby, also in Rspec there are various optional ways to do the same thing. Instead of the should method, you could write the same as above in a more modern rspec style:
+Differently from the jUnit testing framework, Rspecs don't make use of assert commands to evaluate the result. They make use of a more particular syntax, as the last test line shows:
 
     expect(user.username).to eq("Pekka")
 
-After the third version of rspec, the older should syntax has been deprecated, and you should not use it any more.
-Changing should to expect removed also the <code>Deprecation Warning</code>
+In the test you have just run, you used the command <code>new</code> so the object was not save in the database. Try to store the object now. You defined that User objects have a password whose length is over 4 and that contains at least one digit and one uppercase letter. So if the password is not set up, the object should not be stored in the database. 
 
-This material will make use of both styles, but mainly expect.
+Test this:
 
-In the test you have just run, you used the command <code>new</code> so the object was not save in the database. Try to store the object now. You defined that User objects have a password whose length is over 4 and that contains at least one digit and one uppercase letter. So if the password is not set up, the object should not be stored in the database. Test this:
 
 ```ruby
+RSpec.describe User, type: :model do
+
+  # previously written test code...
+
   it "is not saved without a password" do
-    user = User.create username:"Pekka"
+    user = User.create username: "Pekka"
 
     expect(user.valid?).to be(false)
     expect(User.count).to eq(0)
   end
+end
 ```
 
 The test goes smoothly.
@@ -444,91 +333,105 @@ The test goes smoothly.
 The first validation in the test
 
 ```ruby
-   expect(user.valid?).to be(false)
+expect(user.valid?).to be(false)
 ```
 
 is understandably. Thanks to rspec magic power, it can also be expressed like this.
 
 ```ruby
-    expect(user).not_to be_valid
+expect(user).not_to be_valid
 ```
 
 This form is based on the fact the object <code>user</code> has the method <code>valid?</code> which returns a true-false value.
 
-Notice that you are using two ways to check equality in tests: <code>be(false)</code> ja <code>eq(0)</code>. What is the difference between the two? The matcher <code>be</code> can help you to check if two objects are the same. When comparing true-false values, <code>be</code> is a useful matcher. It will not work with strings, for instance. Try to change the comparison of the first test:
+We notice that we are using two ways to check equality in tests: <code>be(false)</code> ja <code>eq(0)</code>. What is the difference between the two? The matcher <code>be</code> can help you to check if two objects are the same. When comparing true-false values, <code>be</code> is a useful matcher. It will not work with strings, for instance. Try to change the comparison of the first test:
 
 ```ruby
-  expect(user.username).to be("Pekka")
+expect(user.username).to be("Pekka")
 ```
+
 the test will not go through now:
 
 ```ruby
-       expected #<String:70243704887740> => "Pekka"
-            got #<String:70243704369920> => "Pekka"
+1) User has the username set correctly
+    Failure/Error: expect(user.username).to be("Pekka")
+
+      expected #<String:70322613325340> => "Pekka"
+          got #<String:70322613325560> => "Pekka"
+
+      Compared using equal?, which compares object identity,
+      but expected and actual are not the same object. Use
+      `expect(actual).to eq(expected)` if you don't care about
+      object identity in this example.
 ```
 
-When it is enough that the content of two objects is the same, you will have to use <code>eq</code>, which applies to most of the situations except when it comes to true-false values. In fact, you could use <code>eq</code> even with true-false values, writing
+When it is enough that the content of two objects is the same, you will have to use <code>eq</code>, which applies to most of the situations except when it comes to true-false values. Though, you could use <code>eq</code> even with true-false values, writing
+
 
 ```ruby
-   expect(user.valid?).to eq(false)
+expect(user.valid?).to eq(false)
 ```
 
-Make a test with a real password
+Make a test with a proper password
 
 ```ruby
-  it "is saved with a proper password" do
-    user = User.create username:"Pekka", password:"Secret1", password_confirmation:"Secret1"
+it "is saved with a proper password" do
+  user = User.create username: "Pekka", password: "Secret1", password_confirmation: "Secret1"
 
-    expect(user.valid?).to be(true)
-    expect(User.count).to eq(1)
-  end
+  expect(user.valid?).to be(true)
+  expect(User.count).to eq(1)
+end
 ```
 
-The first test "expectations" makes sure the new object validation is successful, so the method <code>valid?</code> will return true. The second expectation will make sure that there is only one object in the database.
+The first test "expectation" makes sure the new object validation is successful, so the method <code>valid?</code> will return true. The second expectation will make sure that there is one object in the database.
 
 You could have used another form which can be read even more easily for the user validation:
 
 ```ruby
-    expect(user).to be_valid
+expect(user).to be_valid
 ```
 
 You have to consider that rspec **will always reset the database after running each test**, so if you do a new test where you need Pekka, you have to create him again:
 
 ```ruby
-  it "with a proper password and two ratings, has the correct average rating" do
-    user = User.create username:"Pekka", password:"Secret1", password_confirmation:"Secret1"
-    rating = Rating.new score:10
-    rating2 = Rating.new score:20
+it "with a proper password and two ratings, has the correct average rating" do
+  user = User.create username: "Pekka", password: "Secret1", password_confirmation: "Secret1"
+  brewery = Brewery.new name: "test", year: 2000
+  beer = Beer.new name: "testbeer", style: "teststyle", brewery: brewery
+  rating = Rating.new score: 10, beer: beer
+  rating2 = Rating.new score: 20, beer: beer
 
-    user.ratings << rating
-    user.ratings << rating2
+  user.ratings << rating
+  user.ratings << rating2
 
-    expect(user.ratings.count).to eq(2)
-    expect(user.average_rating).to eq(15.0)
-  end
+  expect(user.ratings.count).to eq(2)
+  expect(user.average_rating).to eq(15.0)
+end
 ```
 
-As you might have guessed, it is not smart to initiate a test various times (creating the object to test), and the part in common can be extracted. You can do this by adding a <code>describe</code> chunk for each test containing the same initialization and defining a <code>let</code> command at the beginning of the chunk. The command will be executed before each test and it will initialize again a user variable each time:
+As you might have guessed, it is not smart to initiate a test object various times, and the part in common can be extracted. You can do this by adding a <code>describe</code> chunk for each test containing the same initialization and defining a <code>let</code> command at the beginning of the chunk. The command will be executed before each test and it will initialize again a user variable each time:
 
 ```ruby
 require 'rails_helper'
 
-describe User do
+RSpec.describe User, type: :model do
   it "has the username set correctly" do
-    user = User.new username:"Pekka"
+    user = User.new username: "Pekka"
 
-    user.username.should == "Pekka"
+    expect(user.username).to eq("Pekka")
   end
 
   it "is not saved without a password" do
-    user = User.create username:"Pekka"
+    user = User.create username: "Pekka"
 
     expect(user).not_to be_valid
     expect(User.count).to eq(0)
   end
 
   describe "with a proper password" do
-    let(:user){ User.create username:"Pekka", password:"Secret1", password_confirmation:"Secret1" }
+    let(:user){ User.create username: "Pekka", password: "Secret1", password_confirmation: "Secret1" }
+    let(:test_brewery) { Brewery.new name: "test", year: 2000 }
+    let(:test_beer) { Beer.create name: "testbeer", style: "teststyle", brewery: test_brewery }
 
     it "is saved" do
       expect(user).to be_valid
@@ -536,8 +439,8 @@ describe User do
     end
 
     it "and with two ratings, has the correct average rating" do
-      rating = Rating.new score:10
-      rating2 = Rating.new score:20
+      rating = Rating.new score: 10, beer: test_beer
+      rating2 = Rating.new score: 20, beer: test_beer
 
       user.ratings << rating
       user.ratings << rating2
@@ -549,14 +452,22 @@ describe User do
 end
 ```
 
+Initializing variables happens with the sligthly peculiar looking <code>let</code> method. E.g.:
+
+```ruby
+let(:user){ User.create username: "Pekka", password: "Secret1", password_confirmation: "Secret1" }
+```
+
+makes it so that after the definition, the variable _user_ refers to the User object created in the <code>let</code> method's code block.
+
 Even though the variable is initialized only in one part of the code, so far, the initialization will be executed again before each method. Attention: the method <code>let</code> executes the object initialization only when the objec is really needed, this will have unexpected results sometimes!
 
 Especially in older Rspec tests, you will see that the initialization happens through the <code>before :each</code> chunk. In such cases, the variable shared by various tests have to be defined as instance variable, like <code>@user</code>.
 
-The choice of tests and describe chunks names was not subject to chance. By defining the result of a test in the "documentation" format (with the -fd parameter), you will be able to print the tests results on the screen in a nice form:
+The choice of test and describe chunk names was not subject to chance. By defining the result of a test in the "documentation" format (with the -fd parameter), you will be able to print the tests results on the screen in a nice form:
 
 ```ruby
-➜  ratebeer git:(master) ✗ rspec -fd spec
+$ rspec -fd spec
 
 User
   has the username set correctly
@@ -573,45 +484,34 @@ You should aim at writing test names so that executing them will produce "specif
 
 You can also add the line ```-fd``` to the ```.rspec``` file, which will always show the rspec  tests of your project in the documentation format.
 
-**ATTENTION:** if you find the following annoying warning message in your test report
-
-<pre>
-[deprecated] I18n.enforce_available_locales will default to true in the future. If you really want to skip validation of your locale you can set I18n.enforce_available_locales = false to avoid this message.
-</pre>
-
-you will know you can get rid of it by adding the following line to the file spec/rails_helper.rb
-
-```ruby
-    I18n.enforce_available_locales = false
-```
-
 > ## Exercise 1
 >
-> Add tests to the User class to check that no object will be stored in the database if users create a password with the create method which is too short or made of letters only. Also, the validation of the new object should not succeed.
+> Add tests to the User class to check that no object will be stored in the database if users create a password (with the create method) which is too short or made of letters only. Also, the validation of the new object should not succeed.
 
 Remember to name your tests in a way so that the "spec" produced will sound grammatically appropriate after you run Rspec in the document format.
 
 > ## Exercise 2
 >
-> Create a test layout with Rspec generator (or by hand) for the class <code>Beer</code> and make tests to check that
-> * a beer can be created, and the created beer is stored in the database if the name and style of the beer have been set
+> Create a test base  with Rspec generator (or by hand) for the class <code>Beer</code> and make tests to check that
+> * a beer can be created, and the created beer is stored in the database if the name, brewery, and style of the beer have been set
 > * a beer won't be created (that is, no valid object will be brought about by create) if it is not given a name
 > * a beer won't be created, if its style hasn't been defined
 >
-> If the last test does not go through, extend your code so that it will pass the test.
+> If the last test does not go through, extend your code so that it will pass the test. Hint: A brewery id needs to be set for a beer but what if no brewery exists?
 >
 > If you create the test file by hand, remember to place it in the folder spec/models
 
 ## Text environments or fixtures
 
-What we did before, creating the object structures for the tests by hand, might not be the best thing to do in some cases. A better way is grouping the structures for the test environment – that is to say the data to initialise the tests – in their own place, a "test fixture". Instead of using Rails standard fixture mechanism to initialize the tests, try the gem called FactoryGirl, see
-https://github.com/thoughtbot/factory_girl/blob/master/GETTING_STARTED.md
+What we did before, creating the object structures for the tests by hand, might not be the best thing to do in some cases. A better way is grouping the structures for the test environment – that is to say the data to initialise the tests – in their own place, a "test fixture". Instead of using Rails standard fixture mechanism to initialize the tests, try the gem called FactoryBot, see
+https://github.com/thoughtbot/factory_bot and https://github.com/thoughtbot/factory_bot_rails
 
-Add the following chunk of code to your Gemfile
+Add the following to your Gemfile
 
 ```ruby
 group :test do
-  gem 'factory_girl_rails'
+  # ...
+  gem 'factory_bot_rails'
 end
 ```
 
@@ -620,79 +520,152 @@ and update the gems with the command <code>bundle install</code>
 Create the file spec/factories.rb for your fixtures and write the following:
 
 ```ruby
-FactoryGirl.define do
+FactoryBot.define do
   factory :user do
-    username "Pekka"
-    password "Foobar1"
-    password_confirmation "Foobar1"
-  end
-
-  factory :rating do
-    score 10
-  end
-
-  factory :rating2, class: Rating do
-    score 20
+    username { "Pekka" }
+    password { "Foobar1" }
+    password_confirmation { "Foobar1" }
   end
 end
 ```
 
-Define three "object factories" in the file. The first of them is called user:
-
-```ruby
-  factory :user do
-    username "Pekka"
-    password "Foobar1"
-    password_confirmation "Foobar1"
-  end
-```
-
-Factories can be used to create an object of class <code>User</code>. You did not have to define separately the class of the objects created by the factory, because FactoryGirl defines it straight according to the name of the fixture used, <code>user</code>.
-
-In your file, you will also want to define two factories which have different names but which both generate rating objects. FactoryGirl will not be able to decide the type of latter one straight from the name, and you will have to define it explicitly.
+The file defines an "object factory" for creating objects of `User` class. There is no need to explicitly define the class of the created objects as FactoryBot deduces it directly from the name of the used fixture, `user`.
 
 You can ask the defined factories to create objects in the following way:
 
+
 ```ruby
-  user = FactoryGirl.create(:user)
-  rating = FactoryGirl.create(:rating)
+user = FactoryBot.create(:user)
 ```
 
-Calling a FactoryGirl method will create an object in the testing environment database automatically.
+Calling the factoryBot method _create_ will create an object in the testing environment database automatically.
 
-Modify your tests now to use FactoryGirl.
+Modify your tests now to use FactoryBot for creating user objects.
 
 ```ruby
-  describe "with a proper password" do
-    let(:user){ FactoryGirl.create(:user) }
+describe "with a proper password" do
+  let(:user) { FactoryBot.create(:user) } # tämä rivi muuttui
+  let(:test_brewery) { Brewery.new name: "test", year: 2000 }
+  let(:test_beer) { Beer.create name: "testbeer", style: "teststyle", brewery: test_brewery }
 
-    it "is saved" do
-      expect(user).to be_valid
-      expect(User.count).to eq(1)
-    end
-
-    it "and with two ratings, has the correct average rating" do
-      user.ratings << FactoryGirl.create(:rating)
-      user.ratings << FactoryGirl.create(:rating2)
-
-      expect(user.ratings.count).to eq(2)
-      expect(user.average_rating).to eq(15.0)
-    end
+  it "is saved" do
+    expect(user).to be_valid
+    expect(User.count).to eq(1)
   end
+
+  it "and with two ratings, has the correct average rating" do
+    rating = Rating.new score: 10, beer: test_beer
+    rating2 = Rating.new score: 20, beer: test_beer
+
+    user.ratings << rating
+    user.ratings << rating2
+
+    expect(user.ratings.count).to eq(2)
+    expect(user.average_rating).to eq(15.0)
+  end
+end
+```
+
+The change is yet quite minimal. Let's expand the fixtures so that we can use them to create also the rating objects used in the tests. Change file spec/factories.rb:
+
+```ruby
+FactoryBot.define do
+  factory :user do
+    username { "Pekka" }
+    password { "Foobar1" }
+    password_confirmation { "Foobar1" }
+  end
+
+  factory :brewery do
+    name { "anonymous" }
+    year { 1900 }
+  end
+
+  factory :beer do
+    name { "anonymous" }
+    style { "Lager" }
+    brewery # the brewery associated with beer is created with brewery factory
+  end
+
+  factory :rating do
+    score { 10 }
+    beer # The beer associated with rating is created with beer factory
+    user # The user associated with rating is created with user factory
+  end
+end
+```
+
+On top of the factory creating ratings, fixtures for creating breweries and beers are also now defined in the file.
+
+The factory <code>FactoryBot.create(:brewery)</code> creates a brewery whose name is 'anonymous' and is founded in 1900.
+
+The factory <code>FactoryBot.create(:beer)</code> creates a beer whose style is 'Lager' and name 'anonymous' and a brewery is created for it. Accordingly, the factory <code>FactoryBot.create(:rating)</code> creates a rating which is associated with the beer and user created by the factory. Additionally the value of the rating, field _score_, is set to 10.
+
+The test can be edited to following:
+
+```ruby
+describe "with a proper password" do
+  let(:user) { FactoryBot.create(:user) }
+
+  it "is saved" do
+    expect(user).to be_valid
+    expect(User.count).to eq(1)
+  end
+
+  it "and with two ratings, has the correct average rating" do
+    FactoryBot.create(:rating, score: 10, user: user)
+    FactoryBot.create(:rating, score: 20, user: user)
+
+    expect(user.ratings.count).to eq(2)
+    expect(user.average_rating).to eq(15.0)
+  end
+end
+```
+
+The test creates two ratings, other's scrore is 10 and the other's 20, that are are associated with the user created with the help of a factory in the _let_ command.
+
+```ruby
+FactoryBot.create(:rating, score: 10, user: user)
+FactoryBot.create(:rating, score: 20, user: user)
 ```
 
 
-The test has been polished to some extent.
+So you can ask the same factory to create various objects:
 
-Attention: you can ask the same factory to create various objects:
-
-``` ruby
-  r1 = FactoryGirl.create(:rating)
-  r2 = FactoryGirl.create(:rating)
-  r3 = FactoryGirl.create(:rating)
+```ruby
+FactoryBot.create(:brewery)
+FactoryBot.create(:brewery)
+FactoryBot.create(:brewery)
 ```
 
-this would create three _different_objects which have the same contents. You could also ask the <code>user</code> fabric to create two different objects. This would throw an exeption anyway, because the <code>User</code> object validation requires that the username is unique whereas the fabric always creates the same "Pekka" username by default.
+would create three _different_ brewery objects that would all have identical values.
+
+You can edit the values of factory-created objects with parameters. E.g.:
+```ruby
+FactoryBot.create(:brewery)
+FactoryBot.create(:brewery, name: 'crapbrew')
+FactoryBot.create(:brewery, name: 'homebrew', year: 2011)
+```
+
+this would create three breweries of which one would get the default name _anonymous_ and foundation year _1900_. The second brewery would get the default foundation year but the name _crapbrew_. The third would get both its name and year from the given parameters. 
+
+Also the user factory could be called twice:
+
+```ruby
+FactoryBot.create(:user)
+FactoryBot.create(:user)
+```
+
+This would however raise an exception as <code>User</code> object validations expects that usernames are unique but the the factory by default always creates users with the username "Pekka".
+
+The follwing would however be okay; creating two users with different usernames, the default _Pekka_ and additionally _Vilma_
+
+```ruby
+FactoryBot.create(:user)
+FactoryBot.create(:user, username: 'Vilma')
+```
+
+More instructions for using FactoryBot at https://www.rubydoc.info/gems/factory_bot/file/GETTING_STARTED.md
 
 ## Users favourite beers, breweries, and styles
 
