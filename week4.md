@@ -1637,55 +1637,74 @@ Projects stored in GitHub are easy to set under GitHub Actions' watch.
 
 > ## Exercise 12 
 >
-> Let's also add Rubocop to GitHub Actions. Let's take advantage of an [action already found at the marketplace](https://github.com/marketplace/actions/rubocop-linter-action). We can add it to aour own actions.
+> Let's also add Rubocop to GitHub Actions. Let's take advantage of an [action already found at the marketplace](https://github.com/marketplace/actions/rubocop-linter-action). We can add it to our own actions.
 >
-> Add the following to <code>rubyonrails.yml</code>
+> Add the following to <code>rubyonrails.yml</code>:
+>
+> ```
+>  lint:
+>    runs-on: ubuntu-22.04
+>    steps:
+>      - name: Checkout code
+>        uses: actions/checkout@v3
+>      - name: Install Ruby and gems
+>        uses: ruby/setup-ruby@v1
+>        with:
+>          bundler-cache: true
+>      - name: RuboCop Linter Action
+>        uses: andrewmcodes-archive/rubocop-linter-action@v3.3.0
+>        env:
+>          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+> ```
+>
+> GIRHYB_TOKEN row uses an [automatic token provided by GitHub](https://docs.github.com/en/actions/security-guides/automatic-token-authentication) which enables authtenticating  GitHub applications
+>
+> Now GitHub should be able to run both the tests and Rubocop everytime changes are commited to the repository.
 
 ## Continuous delivery
 
-Continuous delivery is a practice one more step beyond the continuous integration (see http://en.wikipedia.org/wiki/Continuous_delivery). They both have in common a continuous deployment, that is the idea to deploy the code to an environment like the production environment or even straight to production in the best case, every time that the code is integrated. 
+Continuous delivery is a practice one more step beyond the continuous integration (see http://en.wikipedia.org/wiki/Continuous_delivery). A part of it is continuous deployment, that is the idea to deploy the code to a production-like environment or even straight to production in the best case, every time that the code is integrated. 
 
 Especially for Web application, continuous deployment can be an operation which does not require too much effort.
 
-> ## Exercise 12
+> ## Exercise 13
+> ### Doing this exercise is not vital for continuing the week. You can also do it after the other exercises.
 >
-> Implement a continuous deployment to Heroku in your application using Travis-CI. Configure the migrations too, so that they will be executed together with the deployment.
+> Implement a continuous deployment of your application to Heroku or Fly.io.
 >
-> You find helping guidelines at
-http://about.travis-ci.org/docs/user/deployment/heroku/
-and http://about.travis-ci.org/blog/2013-07-09-introducing-continuous-deployment-to-heroku/
+> Intructions for Fly.io: https://fly.io/docs/app-guides/continuous-deployment-with-github-actions/
 >
-> **ATTENTION** it is heartly suggested that you make the configuration using [travis command line tool](http://blog.travis-ci.com/2013-01-14-new-client/)! Notice that after setting it up, you will have to restart the console.
+> Instruction for Heroku: https://devcenter.heroku.com/articles/github-integration
 >
-> **ATTENTION2:** There have been problems of compatibility between Travis and Heroku from time to time. Look into the error messages and find out where is the problem, try to deploy again after some time (for instance, in a couple of hours). Don't get stuck with this!
-
+> **Attention**: If using Heroku, remember to choose "Wait for CI to pass before deploy".
+>
+> You can check if your CI/CD pipeline works by making some change to your application, committing the changes to GitHub and seeing whether that change happens also in your application in Heroku/Fly.io. In Heroku, from tab _Latest activity_ you can a find logs on what happens in your pipeline.
 ## Code quality metrics
 
 In addition to the test coverage, you should also pay attention to the code quality. Codeclimate (https://codeclimate.com) is a SaaS which allows you to generate various quality metrics for your Rails code.
 
-> ## Exercise 13
+> ## Exercise 14
 >
->Codeclimate is free for opensource projects. Register your project by pressing on the rather anonimous link "Add an OS repo" at https://codeclimate.com/pricing.
+>### Doing this exercise is not vital for continuing the week. You can also do it after the other exercises.
 >
->Codeclimate will complain about the repetitions in your code. It refers however to the quite bad code created by Rails scaffold, so you can leave it where it is.
+>Codeclimate is free for opensource projects. Sign in to Codeclimate at https://codeclimate.com/login/github/join and add your project in the _Open source_ section.
+>
+>Codeclimate will complain about the repetitions in your code. It refers however to the somewhat bad code created by Rails scaffold, so you can leave it where it is.
 >
 >Link the quality metric report to your repository README file, too:
 >
->```ruby
->[![Code Climate](https://codeclimate.com/github/mluukkai/ratebeer-public.png)](https://codeclimate.com/github/mluukkai/ratebeer-public)
->```
+> To find the link:
+> ![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w4-4c.png)
 >
 > Now codeclimate will also put enough pressure on you as the application developer to keep high quality code all the time!
 >
-> Notice that the last part of the link is the same as the one for your project Github repository. So the one below links to the Github repository https://github.com/mluukkai/ratebeer-public
 
-In addition to Codeclimate static analysis, you should follow a regular coding style when you develop a Rails application. You find a style guide developed by Rails community at https://github.com/bbatsov/rails-style-guide
 
-The amount of services to help the application developer life increases from day to day. Instead of or in addition to Simplecov, you can delegate the test coverage report to Coveralls https://coveralls.io/ -nimiselle pilvipalvelulle.
+The amount of services to help the application developer's life increases from day to day. Instead of or in addition to Simplecov, you can delegate the test coverage report to Coveralls https://coveralls.io/ -nimiselle pilvipalvelulle. This time we will skip that.
 
-## Actions for signed-in users
+## Functions for signed-in users
 
-Leave tests for a moment and go back to a couple of the previous themes. In week 2, you defined your application with http basic authentication so that users could delete breweries only with the admin password. [In week 3](https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko3.md#vain-omien-reittausten-poisto) you defined your application functionality so that deleting ratings was not possible for others than the user who created that rating. Instead, things like creating, removing, and editing beer groups and beers are possible even without signing up, so far.
+Leave tests for a moment and go back to a couple of the previous themes. In week 2, you defined your application with http basic authentication so that users could delete breweries only with the admin password. [In week 3](https://github.com/mluukkai/webdevelopment-rails/blob/main/week3.md#deleting-only-ones-own-ratings) you defined your application functionality so that deleting ratings was not possible for others than the user who created that rating. Instead, things like creating, removing, and editing beer clubs and beers are possible even without signing in, so far.
 
 Put http basic authentication aside, and change your application so that beers, breweries, and beer groups can be created, edited and deleted only by signed-in users.
 
@@ -1703,17 +1722,17 @@ For instance, you can remove the beers creation link for non-signed-in users fro
 
 ```erb
 <% if not current_user.nil? %>
-  <%= link_to('New Beer', new_beer_path) %>
+  <%= link_to "New beer", new_beer_path %>
 <% end %>
 ```
 
-So the creation link is shown only if the <code>current_user</code> is <code>nil</code>. And you can make use of the more compact form of if:
+So the creation link is shown only if the <code>current_user</code> is not <code>nil</code>. And you can make use of the more compact form of if:
 
 ```erb
 <%= link_to('New Beer', new_beer_path) if not current_user.nil? %>
 ```
 
-Now, the <code>link_to</code> method will be executed – that is, the link code will be rendered – only if the if condition is true. 'If not' conditions don't make a too good Ruby's code, a better option would be using <code>unless</code>:
+Now, the <code>link_to</code> method will be executed – that is, the link code will be rendered – only if the if condition is true. 'If not' conditions don't make a too good Ruby code, a better option would be using <code>unless</code>:
 
 ```erb
 <%= link_to('New Beer', new_beer_path) unless current_user.nil? %>
@@ -1731,19 +1750,20 @@ You will remove the adding, removing, and editing links soon, before doing it ho
 
 So you will still have to make sure at controller level that if users try for some reason to do a forbidden action straight with HTTP, the action will not be executed.
 
-You decide to lead users to the signed-in page if they try to do restricted actions.
+We decide to direct users to the signed-in page if they try to do restricted actions.
 
 Define the following method for the class <code>ApplicationController</code>:
 
 ```ruby
-  def ensure_that_signed_in
-    redirect_to signin_path, notice:'you should be signed in' if current_user.nil?
-  end
+def ensure_that_signed_in
+  redirect_to signin_path, notice: 'you should be signed in' if current_user.nil?
+end
 ```
 
 So if users call the medhod without being signed-in, they are redirected to the signed-in page. Because the method is located in the class <code>ApplicationController</code> and all the controllers inherit this class, the method will be available for all controllers.
 
-Add the method as a "before" filter (see http://guides.rubyonrails.org/action_controller_overview.html#filters and https://github.com/mluukkai/WebPalvelinohjelmointi2015/wiki/viikko-2#yksinkertainen-suojaus) for beer, brewery, and beer club controllers for all the methods except for index and show:
+Add the method as a "before" filter (see http://guides.rubyonrails.org/action_controller_overview.html#filters and https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#a-simple-protection) for beer, brewery, and beer club controllers for all the methods except for index and show:
+
 
 ```ruby
 class BeersController < ApplicationController
@@ -1757,32 +1777,25 @@ For instance, when a beer is being created Rails executes the filter <code>ensur
 
 Try out that the changes work with your browser. So non-signed-in users are redirected to the sign-in page when they do any action which is restriced with the "before" filter, but signed-in users can access the page smoothly.
 
-> ## Exercise 14
+> ## Exercise 15
 >
 > Using "before" filters, prevent non-signed-in users from doing any action connected to breweries and beer clubs except listing them and showing the information of singular resources (so the methods <code>show</code> and <code>index</code>)
 >
-> When you have made sure that the functionality works fine, you can remove from the view the superfluous creating, removing, and editing links for non-signed-in users.
+> When you have made sure that the functionality works fine, remove from the views all superfluous creating, removing, and editing links for non-signed-in users.
 
-> ## Exercise 15
+> ## Exercise 16
 >
-> Some of the program tests which you have done before the extentions in exercise 14 are broken. Fix the tests
+> The extensions done before exercise 15 have broken some of you tests. Fix the tests
 
-## Polishing the application face
+## Polishing the application interface
 
-If you want you can polish the application views. For instance, you can remove the resource removing and editing links from the listing page:
+If you want, you can polish the application views. For instance, you can remove the creating, deleting and editing links from non-signed-in users. These changes are not compulsory and are not excepted to have been done in the following weeks.
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w4-2.png)
+## Submitting the exercises
 
-and add the removing link to the page of singular resources:
+Commit all your changes and push the code to Github. Deploy to the newest version of Heroku or Fly.io, too.
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w4-3.png)
+Mark that the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
 
-these changes will not be essential and will not be undertaken in the following weeks either.
-
-## Tehtävien palautus
-
-Commit all your changes and push the code to Github. Deploy to the newest version of Heroku, too.
-
-You should mark that you have returned the exercises at http://wadrorstats2015.herokuapp.com/
 
 
