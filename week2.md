@@ -1511,7 +1511,7 @@ Most commonly, the problems we have in production depend on the inconsistent sta
 
 Because it is a program in production, resetting the database (<code>rails db:drop</code>) in never aa acceptable way to "fix" a database inconsistency because the data in production cannot be destroyed. You should start from the beginning to learn reading logs and finding out problems as you are meant to do.
 
-## Returning the exercises
+## Submitting the exercises
 
 Commit all your changes and push the code to Github. Deploy to the newest version to Heroku or Fly.io, as well.
 

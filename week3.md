@@ -1551,7 +1551,7 @@ If you are using Visual Studio Code you can install the [ruby-rubocop](https://m
 
 ![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w3-10.png)
 
-## Returning the exercises
+## Submitting the exercises
 
 
 Commit all your changes and push the code to Github. Deploy to the newest version to Heroku or Fly.io, too.
