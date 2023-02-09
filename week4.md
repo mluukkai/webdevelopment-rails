@@ -501,7 +501,7 @@ Remember to name your tests in a way so that the "spec" produced will sound gram
 >
 > If you create the test file by hand, remember to place it in the folder spec/models
 
-## Text environments or fixtures
+## Test environments or fixtures
 
 What we did before, creating the object structures for the tests by hand, might not be the best thing to do in some cases. A better way is grouping the structures for the test environment – that is to say the data to initialise the tests – in their own place, a "test fixture". Instead of using Rails standard fixture mechanism to initialize the tests, try the gem called FactoryBot, see
 https://github.com/thoughtbot/factory_bot and https://github.com/thoughtbot/factory_bot_rails
@@ -676,16 +676,16 @@ Orthodox TDD requires that you do not code anything before it is required by a m
 
 
 ```ruby
-  it "has method for determining the favorite_beer" do
-    user = FactoryGirl.create(:user)
-    expect(user).to respond_to(:favorite_beer)
-  end
+it "has method for determining the favorite_beer" do
+  user = FactoryBot.create(:user)
+  expect(user).to respond_to(:favorite_beer)
+end
 ```
 
 The test will fail, so create the method body in the class User:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   # ...
 
   def favorite_beer
@@ -696,112 +696,97 @@ end
 The test succeeds. Next add a test to check that without ratings, users will not have a favourite beer, so the method should return nil:
 
 ```ruby
-  it "without ratings does not have a favorite beer" do
-    user = FactoryGirl.create(:user)
-    expect(user.favorite_beer).to eq(nil)
-  end
+it "without ratings does not have a favorite beer" do
+  user = FactoryBot.create(:user)
+  expect(user.favorite_beer).to eq(nil)
+end
 ```
 
 The test will pass because Ruby's methods return nil by default.
 
-Refactor the test adding a personal <code>describe</code> chunk to the two tests you have just written.
+Refactor by adding a personal <code>describe</code> chunk to the two tests you have just written.
 
 ```ruby
-  describe "favorite beer" do
-    let(:user){FactoryGirl.create(:user) }
+describe "favorite beer" do
+  let(:user){ FactoryBot.create(:user) }
 
-    it "has method for determining one" do
-      user.should respond_to :favorite_beer
-    end
-
-    it "without ratings does not have one" do
-      expect(user.favorite_beer).to eq(nil)
-    end
-  end
-```
-
-Add a test then to check the method is able to return the rated beer, if there is only one rating. In addition to the rating object, for the test you will need the brewery object which has the rating. Extend the fixtures first and add the following things:
-
-```ruby
-  factory :brewery do
-    name "anonymous"
-    year 1900
+  it "has method for determining one" do
+    expect(user).to respond_to(:favorite_beer)
   end
 
-  factory :beer do
-    name "anonymous"
-    brewery
-    style "Lager"
+  it "without ratings does not have one" do
+    expect(user.favorite_beer).to eq(nil)
   end
+end
 ```
 
-The code <code>create(:brewery)</code> creates a brewery whose name is 'anonymous' and the founding year is 1900. Similarly, <code>create(:beer)</code> creates a beer whose style is 'Larger' and name is 'anonymous', then it creates a brewery which the beer belongs to. If there hadn't been brewery in the definition code, the beer brewery value would have been <code>nil</code> meaning that the beer would have belonged to no brewery. The <code>create(:rating)</code> which you defined earlier creates a rating object whose score is set to 10, but the rating will not be linked automatically to either a beer or a user.
-
-Using factoryGirl, you can now create a beer in your test (which will belong to a brewery automatically) as well as a rating which belongs to the created beer and to the user:
+Add a test then to check the method is able to return the rated beer, if there is only one rating.
 
 ```ruby
-    it "is the only rated if only one rating" do
-      beer = FactoryGirl.create(:beer)
-      rating = FactoryGirl.create(:rating, beer:beer, user:user)
+it "is the only rated if only one rating" do
+  beer = FactoryBot.create(:beer)
+  rating = FactoryBot.create(:rating, score: 20, beer: beer, user: user)
 
-      # jatkuu...
-    end
+  # continues...
+end
 ```
 
-So first you have created a beer, and then a rating. The rating is given the beer object and the user object (which had both been created using FactoryGirl) as parameters of the <code>create</code> method.
+First a beer is created, the a rating. The <code>create</code> method of rating is given the score, beer object and user object (both created with Factorybot) as parameters. These are to be associated with the rating.
 
-The rating created will belong to a user and it will be the only rating of that user. The test will expect at the end that the rated beer is the user favourite beer:
+The created rating is connected to the user and is that user's only rating. In the end, the test expects that the beer associated with the rating is the user's favorite beer:
 
 ```ruby
-    it "is the only rated if only one rating" do
-      beer = FactoryGirl.create(:beer)
-      rating = FactoryGirl.create(:rating, beer:beer, user:user)
+it "is the only rated if only one rating" do
+  beer = FactoryBot.create(:beer)
+  rating = FactoryBot.create(:rating, score: 20, beer: beer, user: user)
 
-      expect(user.favorite_beer).to eq(beer)
-    end
+  expect(user.favorite_beer).to eq(beer)
+end
 ```
 
 Your test will not succeed, because your method does not do anything so far, and its return value is always <code>nil</code>.
 
-Use [in the spirit of TDD](http://codebetter.com/darrellnorton/2004/05/10/notes-from-test-driven-development-by-example-kent-beck/) a "fake solution", without trying to make the final working version yet:
+Use [in the spirit of TDD](https://stanislaw.github.io/2016/01/25/notes-on-test-driven-development-by-example-by-kent-beck.html) a "fake solution", without trying to make the final working version yet:
 
 ```ruby
-class User < ActiveRecord::Base
+class User < ApplicationRecord
   # ...
 
   def favorite_beer
     return nil if ratings.empty?   # returns nil if there are no ratings
+
     ratings.first.beer             # returns the beer which belongs to the first rating
   end
 end
 ```
 
-Make another test which will force you to make a real implementation [(see triangulation)](http://codebetter.com/darrellnorton/2004/05/10/notes-from-test-driven-development-by-example-kent-beck/):
+Make another test which will force you to make a real implementation [(see triangulation)](https://stanislaw.github.io/2016/01/25/notes-on-test-driven-development-by-example-by-kent-beck.html):
 
 ```ruby
-    it "is the one with highest rating if several rated" do
-      beer1 = FactoryGirl.create(:beer)
-      beer2 = FactoryGirl.create(:beer)
-      beer3 = FactoryGirl.create(:beer)
-      rating1 = FactoryGirl.create(:rating, beer:beer1, user:user)
-      rating2 = FactoryGirl.create(:rating, score:25,  beer:beer2, user:user)
-      rating3 = FactoryGirl.create(:rating, score:9, beer:beer3, user:user)
+it "is the one with highest rating if several rated" do
+  beer1 = FactoryBot.create(:beer)
+  beer2 = FactoryBot.create(:beer)
+  beer3 = FactoryBot.create(:beer)
+  rating1 = FactoryBot.create(:rating, score: 20, beer: beer1, user: user)
+  rating2 = FactoryBot.create(:rating, score: 25, beer: beer2, user: user)
+  rating3 = FactoryBot.create(:rating, score: 9, beer: beer3, user: user)
 
-      expect(user.favorite_beer).to eq(beer2)
-    end
+  expect(user.favorite_beer).to eq(beer2)
+end
 ```
 
-Create three beers first and then ratings which belong to the beers as well as to the user object. The first rating will receive the default score of 10 points. The second and third rating are given a score in parameter.
+This creates three beers first and then ratings which belong to the beers as well as to the user object. 
 
 The test will not succeed naturally, because the implementation of the method <code>favorite_beer</code> was left incomplete earlier.
 
 Modify the method implementation to look like below:
 
 ```ruby
-  def favorite_beer
-    return nil if ratings.empty?
-    ratings.sort_by{ |r| r.score }.last.beer
-  end
+def favorite_beer
+  return nil if ratings.empty?
+
+  ratings.sort_by{ |r| r.score }.last.beer
+end
 ```
 
 So first the ratings are sorted by score, the last rating – the one with the highest score – is taken, and its beer is returned.
@@ -809,16 +794,16 @@ So first the ratings are sorted by score, the last rating – the one with the h
 Because sorting was directly based on the rating attribute <code>score</code>, the last line of the method could have been written in a more compact form
 
 ```ruby
-    ratings.sort_by(&:score).last.beer
+ratings.sort_by(&:score).last.beer
 ```
 
 How does the method work, actually? Execute the operation from the console:
 
 ```ruby
-irb(main):020:0> u = User.first
-irb(main):021:0> u.ratings.sort_by(&:score).last.beer
-  Rating Load (0.2ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."user_id" = ?  [["user_id", 1]]
-  Beer Load (0.1ms)  SELECT "beers".* FROM "beers" WHERE "beers"."id" = ? ORDER BY "beers"."id" ASC LIMIT 1  [["id", 1]]
+> u = User.first
+> u.ratings.sort_by(&:score).last.beer
+  Rating Load (1.4ms)  SELECT "ratings".* FROM "ratings" WHERE "ratings"."user_id" = ?  [["user_id", 1]]
+  Beer Load (0.4ms)  SELECT  "beers".* FROM "beers" WHERE "beers"."id" = ? LIMIT ?  [["id", 1], ["LIMIT", 1]]
 ```
 
 It produces 2 SQL enquiries, where the first
@@ -827,59 +812,70 @@ It produces 2 SQL enquiries, where the first
 SELECT "ratings".* FROM "ratings" WHERE "ratings"."user_id" = ?  [["user_id", 1]]
 ```
 
-retrieves all the user ratings from the database. The ratings are sorted in the central memory. If the amount of ratings belonging to the user is extremely vast, you had better optimize the operation so that it is executed at database level.
+retrieves all the user ratings from the database. The ratings are sorted in the main memory. If the amount of ratings belonging to the user is extremely vast, you had better optimize the operation so that it is executed at database level.
 
 If you look at the documentation (http://guides.rubyonrails.org/active_record_querying.html#ordering and http://guides.rubyonrails.org/active_record_querying.html#limit-and-offset) you will reach the following conclusion:
 
 ```ruby
-  def favorite_beer
-    return nil if ratings.empty?
-    ratings.order(score: :desc).limit(1).first.beer
-  end
+def favorite_beer
+  return nil if ratings.empty?
+  ratings.order(score: :desc).limit(1).first.beer
+end
 ```
 
 You can check the SQL enquiry which resulted from the operation by hand from the console (notice the method <code>to_sql</code>):
 
 ```ruby
-irb(main):033:0> u.ratings.order(score: :desc).limit(1).to_sql
+> u.ratings.order(score: :desc).limit(1).to_sql
 => "SELECT  \"ratings\".* FROM \"ratings\"  WHERE \"ratings\".\"user_id\" = ?  ORDER BY \"ratings\".\"score\" DESC LIMIT 1"
 ```
 
 
-In order to optimize the execution capability, you should be patient and avoid optimizing each operation in the developing phase, if not necessary. 
+You should be patient when it comes to optimizing the execution capability and avoid optimizing each operation in the developing phase, if not necessary. 
 
 ## Auxiliary methods for tests
 
-You must have noticed that the code to build the beers needed in tests is annoying. You could configure beers with ratings in FactoryGirl. You want to create however an auxiliary method <code>create_beer_with_rating</code> in the test file:
+You must have noticed that the code to build the beers needed in tests is annoying. You could configure beers with ratings in FactoryBot. We decide to create however an auxiliary method <code>create_beer_with_rating</code> in the test file:
 
 ```ruby
-    def create_beer_with_rating(score, user)
-      beer = FactoryGirl.create(:beer)
-      FactoryGirl.create(:rating, score:score, beer:beer, user:user)
-      beer
-    end
+def create_beer_with_rating(object, score)
+  beer = FactoryBot.create(:beer)
+  FactoryBot.create(:rating, beer: beer, score: score, user: object[:user] )
+  beer
+end
 ```
 
 Making use of the auxiliary method will help you to polish your test
 
 ```ruby
-    it "is the one with highest rating if several rated" do
-      create_beer_with_rating(10, user)
-      best = create_beer_with_rating(25, user)
-      create_beer_with_rating(7, user)
+it "is the one with highest rating if several rated" do
+  create_beer_with_rating({ user: user }, 10 )
+  create_beer_with_rating({ user: user }, 7 )
+  best = create_beer_with_rating({ user: user }, 25 )
 
-      expect(user.favorite_beer).to eq(best)
-    end
+  expect(user.favorite_beer).to eq(best)
+end
 ```
 
-Auxiliary method can (and should) be defined in rspec files. If the auxiliary method is needed in only one test file, it can be place at the end of the file, for instance.
+Passing the user who did the rating to the auxiliary methods is done in a somewhat peculiar way: as Ruby hash value. We could have defined that the user is passed as a normal parameter, similarly to the rating score:
+
+```ruby
+def create_beer_with_rating(user, score)
+  beer = FactoryBot.create(:beer)
+  FactoryBot.create(:rating, beer: beer, score: score, user: user )
+  beer
+end
+```
+However the previous method is more flexible in this case. It makes expanding the <code>create_beer_with_rating</code> method (needed in exercises 3 and 4) without breaking any test code possible.
+
+Auxiliary method can (and should) be defined in rspec files. If the auxiliary method is needed in only in one test file, it can be place at the end of the file, for instance.
 
 Improve again what you did before by defining another method <code>create_beers_with_ratings</code>, which allows to create various rated beers. The method receives as parameter a variable-length list which behaves like a table (see http://www.ruby-doc.org/docs/ProgrammingRuby/html/tut_methods.html, section "Variable-Length Argument Lists"):
 
 ```ruby
-def create_beers_with_ratings(*scores, user)
+def create_beers_with_many_ratings(object, *scores)
   scores.each do |score|
-    create_beer_with_rating(score, user)
+    create_beer_with_rating(object, score)
   end
 end
 ```
@@ -887,7 +883,7 @@ end
 If you call the method like
 
 ```ruby
-    create_beers_with_ratings(10, 15, 9, user)
+create_beers_with_many_ratings( {user: user}, 10, 15, 9)
 ```
 
 the parameter <code>scores</code> will have a collection as value, containing the numbers 10, 15, and 9. The method creates three beers (with the help of the method <code>create_beer_with_rating</code>). They are given a user as parameter, the user has a rating, and the ratings will be given a score based on the numbers of the <code>scores</code> parameter.
@@ -897,57 +893,61 @@ Again, below you find the whole code to test the favourite beer:
 ```ruby
 require 'rails_helper'
 
-describe User do
+RSpec.describe User, type: :model do
 
   # ..
 
   describe "favorite beer" do
-    let(:user){FactoryGirl.create(:user) }
+    let(:user){ FactoryBot.create(:user) }
 
-    it "has method for determining one" do
-      user.should respond_to :favorite_beer
+    it "has method for determining the favorite beer" do
+      expect(user).to respond_to(:favorite_beer)
     end
 
-    it "without ratings does not have one" do
+    it "without ratings does not have a favorite beer" do
       expect(user.favorite_beer).to eq(nil)
     end
 
     it "is the only rated if only one rating" do
-      beer = create_beer_with_rating(10, user)
+      beer = FactoryBot.create(:beer)
+      rating = FactoryBot.create(:rating, score: 20, beer: beer, user: user)
 
       expect(user.favorite_beer).to eq(beer)
     end
 
     it "is the one with highest rating if several rated" do
-      create_beers_with_ratings(10, 20, 15, 7, 9, user)
-      best = create_beer_with_rating(25, user)
+      create_beers_with_many_ratings({user: user}, 10, 20, 15, 7, 9)
+      best = create_beer_with_rating({ user: user }, 25 )
 
       expect(user.favorite_beer).to eq(best)
     end
   end
-
 end # describe User
 
-def create_beers_with_ratings(*scores, user)
-  scores.each do |score|
-    create_beer_with_rating score, user
-  end
+def create_beer_with_rating(object, score)
+  beer = FactoryBot.create(:beer)
+  FactoryBot.create(:rating, beer: beer, score: score, user: object[:user] )
+  beer
 end
 
-def create_beer_with_rating(score,  user)
-  beer = FactoryGirl.create(:beer)
-  FactoryGirl.create(:rating, score:score,  beer:beer, user:user)
-  beer
+def create_beers_with_many_ratings(object, *scores)
+  scores.each do |score|
+    create_beer_with_rating(object, score)
+  end
 end
 ```
 
-### FactoryGirl troubleshooting
+### FactoryBot troubleshooting
 
-It is good to point out that if you define the FactoryGirl gem not only in the test environment but also in the development environment, like
+Here we have gathered some problem cases encountered in previous years
+
+####  Accidentally created object factory
+
+It is good to point out that if you define the FactoryBot gem not only in the test environment but also in the development environment, like
 
 ```ruby
 group :development, :test do
-    gem 'factory_girl_rails'
+   gem 'factory_bot_rails'
     # ...
 end
 ```
@@ -956,98 +956,91 @@ if you create new resources with Rails generator, fo instance:
 
     rails g scaffold bar name:string
 
-a default factory will also be create:
+a default factory will also be created:
 
 ```ruby
-mbp-18:ratebeer_temppi mluukkai$ rails g scaffold bar name:string
-      ...
-      invoke    rspec
-      create      spec/models/bar_spec.rb
-      invoke      factory_girl
-      create        spec/factories/bars.rb
-      ...
-```
-
-the default position and contents are the following:
-
-```ruby
-mbp-18:ratebeer_temppi mluukkai$ cat spec/factories/bars.rb
-# Read about factories at https://github.com/thoughtbot/factory_girl
-
-FactoryGirl.define do
+FactoryBot.define do
   factory :bar do
     name "MyString"
+  end
+
+  # ...
+end
+```
+
+
+This may put you into strange situations (if you define a factory with the same name yourself, the default one will be used instead!), so you'd better define the gem only in the test environment following the instructions of the section https://github.com/mluukkai/webdevelopment-rails/blob/main/week4.md#test-environments-or-fixtures.
+
+#### Objects left in test database
+
+Normally, rspec resets the database after each test execution. This is because rspec executes each test in a transaction by default which is rollbacked or canceled after the test execution. Tests are not saved in the dataabase, then.
+
+Occasionally objects can go to the database permanently during testing, however.
+
+Suppose that you are testing the class <code>Beer</code:
+
+
+```ruby
+describe "when one beer exists" do
+  beer = FactoryBot.create(:beer)
+
+  it "is valid" do
+    expect(beer).to be_valid
+  end
+
+  it "has the default style" do
+    expect(beer.style).to eq("Lager")
   end
 end
 ```
 
-This may put you into strange situations (if you define a factory with the same name yourself, the default one will be used instead!), so you'd better define the gem only in the test environment following the instructions of the section https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#testiymp%C3%A4rist%C3%B6t-eli-fixturet ohjeen.
-
-Normally, rspec resets the database after each test execution. This is because rspec executes each test in a transaction by default which is rollbacked or canceled after the test execution. Tests are not saved in the dataabase, then.
-
-Objects can go to the database for good in tests, however.
-
-Suppose that you are testing the class <code>Beer</code:
-
-```ruby
-  describe "when one beer exists" do
-    beer = FactoryGirl.create(:beer)
-
-    it "is valid" do
-      expect(beer).to be_valid
-    end
-
-    it "has the default style" do
-      expect(beer.style).to eq("Lager")
-    end
-  end
-```
-
-the <code>Beer</code> object created by the test would go to your test database for good, because the command <ode>FactoryGirl.create(:beer)</code>  is located outside the tests, and it is not executed it during cancel transactions
+the <code>Beer</code> object created by the test would go to your test database for good, because the command <ode>FactoryBot.create(:beer)</code>  is located outside the tests, and it is not executed it during canceling transactions!
 
 Therefore, you will not want to place object creation code outside the tests (except for the methods which are called by the tests). Objects should be created in the test contex, either inside the method <code>it</code>:
 
 ```ruby
-  describe "when one beer exists" do
-    it "is valid" do
-      beer = FactoryGirl.create(:beer)
-      expect(beer).to be_valid
-    end
-
-    it "has the default style" do
-      beer = FactoryGirl.create(:beer)
-      expect(beer.style).to eq("Lager")
-    end
+describe "when one beer exists" do
+  it "is valid" do
+    beer = FactoryBot.create(:beer)
+    expect(beer).to be_valid
   end
+
+  it "has the default style" do
+    beer = FactoryBot.create(:beer)
+    expect(beer.style).to eq("Lager")
+  end
+end
 ```
 
-inside the command <code>let</code> or <code>let!<code>;
+inside the command <code>let</code> or <code>let!</code>:
 
 ```ruby
-  describe "when one beer exists" do
-    let(:beer){FactoryGirl.create(:beer)}
+describe "when one beer exists" do
+  let(:beer){FactoryBot.create(:beer)}
 
-    it "is valid" do
-      expect(beer).to be_valid
-    end
-
-    it "has the default style" do
-      expect(beer.style).to eq("Lager")
-    end
+  it "is valid" do
+    expect(beer).to be_valid
   end
+
+  it "has the default style" do
+    expect(beer.style).to eq("Lager")
+  end
+end
 ```
 
-or only in the <code>before</code> chunk which you familiarize yourself with later on.
+or in the <code>before</code> chunk which you familiarize yourself with later on.
 
-You can delete the beers which eventually ended up in the test database by starting the console in the test environment with the command <code>rails c test</code>.
+You can delete the beers which eventually ended up in the test database by starting the console in the test environment with the command <code>rails c -e test</code>.
 
-The unicity options which are defined in the validation can produce something unespected sometimes. The User username has been defined as unique, so the test
+#### Validation
+
+The uniqueness restrictions which are defined in the validation can produce something unespected sometimes. The User username has been defined as unique, so the test
 
 ```ruby
 describe "the application" do
   it "does something with two users" do
-    user1 = FactoryGirl.create(:user)
-    user2 = FactoryGirl.create(:user)
+    user1 = FactoryBot.create(:user)
+    user2 = FactoryBot.create(:user)
 
   # ...
   end
@@ -1056,19 +1049,23 @@ end
 
 would cause the error message
 
-```ruby
-     Failure/Error: user2 = FactoryGirl.create(:user)
-     ActiveRecord::RecordInvalid:
-       Validation failed: Username has already been taken
 ```
-because FactoryGirl tries to create two user objects now through the definition
+1) User the application does something with two users
+    Failure/Error: user2 = FactoryBot.create(:user)
+
+    ActiveRecord::RecordInvalid:
+      Validation failed: Username has already been taken
+    # ./spec/models/user_spec.rb:77:in `block (3 levels) in <main>'
+```
+
+because FactoryBot tries to create two user objects now through the definition
 
 ```ruby
-  factory :user do
-    username "Pekka"
-    password "Foobar1"
-    password_confirmation "Foobar1"
-  end
+factory :user do
+  username { "Pekka" }
+  password { "Foobar1" }
+  password_confirmation { "Foobar1" }
+end
 ```
 
 so that 'Pekka' will be the username of both. You could solve the problem by giving another name to either of the objects which are being created:
@@ -1076,120 +1073,94 @@ so that 'Pekka' will be the username of both. You could solve the problem by giv
 ```ruby
 describe "the application" do
   it "does something with two users" do
-    user1 = FactoryGirl.create(:user)
-    user2 = FactoryGirl.create(:user, username:"Arto")
-
-  # ...
-  end
-end
-```
-Another option would be defining the usernames used by FactoryGirl with the help of sequences, see
-https://github.com/thoughtbot/factory_girl/blob/master/GETTING_STARTED.md#sequences
-
-Sometimes, the validation problem might be hiding deeper down.
-
-Suppose the brewery names had been defined as unique:
-
-```ruby
-class Brewery < ActiveRecord::Base
-  validates :name, uniqueness: true
-
-  #...
-end
-```
-
-if you created two beers in your test now
-
-```ruby
-describe "the application" do
-  it "does something with two beers" do
-    beer1 = FactoryGirl.create(:beer)
-    beer2 = FactoryGirl.create(:beer)
+    user1 = FactoryBot.create(:user)
+    user2 = FactoryBot.create(:user, username: "Vilma")
 
   # ...
   end
 end
 ```
 
-it would cause an error message
+Another option would be defining the usernames used by FactoryBot with the help of sequences, see
+https://www.rubydoc.info/gems/factory_bot/file/GETTING_STARTED.md#sequences
 
+The factory would change to:
 ```ruby
-     Failure/Error: beer2 = FactoryGirl.create(:beer)
-     ActiveRecord::RecordInvalid:
-       Validation failed: Name has already been taken
-```
-
-The error message might be confusing, because <code>Name has already been taken</code> refers exactly to the _brewery_ name!
-
-The reason is the following. The beer factory has been defined in this way:
-
-```ruby
-  factory :beer do
-    name "anonymous"
-    brewery
-    style "Lager"
+FactoryBot.define do
+  sequence :username do |n|
+    "Pekka#{n}"
   end
-```
 
-so it creates a _new_ brewery object for each beer by default and the object is created through the brewery factory:
-
-```ruby
-  factory :brewery do
-    name "anonymous"
-    year 1900
+  factory :user do
+    username { generate :username }
+    password { "Foobar1" }
+    password_confirmation { "Foobar1" }
   end
+
+  # ...
+end
 ```
 
-So _all_ breweries will be called 'anonymous' and if the brewery name has been defined as unique (which does not make sense, because there might be many breweries with the same name), when creating a new beer will cause an issue, because the brewery which is created together with the beer would break the unicity condition.
+Now the names of the users created by sequential <code>FactoryBot.create(:user)</code> factory calls would be _Pekka1_, _Pekka2_, _Pekka3_ ...
+
+**However, don't change** your factory to this form as it will break a part of this week's tests!
 
 ## Tests and debugger
 
-Hopefully you've made a rutine to use byebug. Because tests are also normal Ruby code, debug can also be used in both the test code and the code to be tested. The database status of the testing environment can be surprising sometimes, as que have seen in the examples above. In case of problems you should definitely stop your test code with the debugger and check whether the state of the ojects to test corresponds to what you expected. oletettua.
+Hopefully you've made a routine of using [debugger](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#debugger). Because tests are also normal Ruby code,  _binding.pry_  can also be used in both the test code and the code to be tested. The database status of the testing environment can be surprising sometimes, as you have seen in the examples above. In case of problems you should definitely stop your test code with the debugger and check whether the state of the ojects to test corresponds to what you expected.
+
+## Executing individual tests
+With rspec you can also execute individual tests or _describe_ blocks. Eg. the following would execute only the test starting from line 108 of file user_spec.rb:
+
+```ruby
+rspec spec/models/user_spec.rb:108
+```
+
+If/when you ran into problems:
+- don't run all tests, limit execution to only problematic tests
+- use debugger
 
 > ## Exercise 3
 >
-> ### This an the following exercise might be challenging. It is not essential that you make these two exercises if you want to continue with the material of the rest of the week, so do not get stuck here. You can also do them after you are done with the others.
+> ### This and the following exercise might be challenging. It is not essential that you make these two exercises if you want to continue with the material of the rest of the week, so do not get stuck here. You can also do them after you are done with the others.
 >
-> Make the method <code>favorite_style</code> for the <code>User</code> object in a TDD style. The method should return the style whose beers have received the highest avarage rating from the user. Add the information about the user favourite style in his page.
+> Make the method <code>favorite_style</code> for the <code>User</code> object in a TDD style. The method should return the style whose beers have received the highest avarage rating from the user.
 >
-> Do not do everything with one method (unless you solve the problem at database level with AcriveRecord, which is also possible!), instead, define the suitable auxiliary methods! If you notice that you method is more than 5-line long, you are doing either too much or too complex things, so refactor your code. Ruby's collections have various auxiliary methods which might be useful for the exercise, see http://ruby-doc.org/core-2.2.0/Enumerable.html
+>Add information about the user's favourite style to their page.
+>
+> Do not do everything with one method (unless you solve the problem at database level with ActiveRecord or another elegantly compact solution), instead, define the suitable auxiliary methods! If you notice that you method is more than 6 lines long, you are doing either too much or something too complicated, so refactor your code. Ruby's collections have various auxiliary methods which might be useful for the exercise, see http://http://ruby-doc.org/core-2.5.1/Enumerable.html
 
 > ## Exercise 4
 >
-> Make now the method <code>favorite_brewery</code> for the <code>User</code> object in a TDD style. The method should return the brewery whose beers have received the highest avarage rating from the user. Add the information about the user favourite brewery in his page.
+> Make now the method <code>favorite_brewery</code> for the <code>User</code> object in a TDD style. The method should return the brewery whose beers have received the highest avarage rating from the user.
 >
-> Create auxiliary methods in the rspect file if you need, in order to keep your tests clean and neat. If the auxiliary methods are similar, you should not copy-paste them, but abstract them.
-
-The functionality needed for the methods <code>favorite_brewery</code> and <code>favorite_style</code> is very similar and the methods will contain more or less copy-pasted code. The material will show an example of code polishing in week 5.
+>Add information about the user favourite brewery to their page.
+>
+> The methods <code>favorite_brewery</code> and <code>favorite_style</code> are similar, and most likely more or less copy-paste. On week 5 we will have an example of cleaning up code.
 
 ## Capybara
 
 We will move to program-level testing now. You are going to write automatic tests which use the application through the browser as normal users do. The de-facto solution for browser level testing with applications on Rails is Capybara https://github.com/jnicklas/capybara. The tests themselves are written in Rspec still, Capybara provides you with the browser simulation for the Rspec tests.
 
-Add the gems 'capybara' and 'launchy' to the Gemfile (in test scope), so your test scope should look like what is written below:
+Capybara is by default configured into the application. Add the helper library [launchy](https://github.com/copiousfreetime/launchy) to the Gemfile (in test scope), so your test scope should look like what is written below:
+
 
 ```ruby
 group :test do
-  gem 'factory_girl_rails'
-  gem 'capybara'
+  gem 'rspec-rails', '~> 6.0.0.rc1'
+  gem 'factory_bot_rails'
+  gem "capybara"
+  gem "selenium-webdriver"
+  gem "webdrivers"
   gem 'launchy'
 end
 ```
 
-In order to set up the gems, you will have to execute the command <code>bundle install</code>. The command execution will take quite long time on department computers, even 15 minutes.
-
-**ATTENTION** if bundle install does not work in the department computers, first run the following:
-
-    gem install nokogiri -- --with-xml2-include=/usr/include/libxml2/libxml/ --with-xml2-lib=/usr/lib  --with-xslt-include=/usr/include/libxslt --with-xslt-lib=/usr/lib
-
-
-You will also have to add the following line at the top of the spec/rails_helper.rb file
-
-    require 'capybara/rspec'
+In order to set up the gems, you will have to execute the command <code>bundle install</code>. 
 
 You are ready now for your first browser-level test.
 
-It is common to place the browser-level tests in the folder _spec/features_. Unit tests are usually organised so that the tests for each class are put in their own file. It is not always so clear how user-level tests which are executed through the browser should be organised. One option is using a file for each controller, another option is deviding the tests in different files according to the different functionalities of the system.
+It is common to place the browser-level tests in the folder _spec/features_. Unit tests are usually organised so that the tests for each class are put in their own file. It is not always so clear how user-level tests which are executed through the browser should be organised. One option is using a file for each controller, another option is dividing the tests in different files according to the different functionalities of the system.
 
 Get started by defining the tests for your breweries funcionality, and create the file spec/features/breweries_page_spec.rb:
 
@@ -1205,55 +1176,63 @@ describe "Breweries page" do
 end
 ```
 
-The test will start navigating to the brewery list using the method <code>visit</code>. As you will see, Rails path helpers are used by Rspec tests too. After doing this, it checks whether the rendered page contains the text 'Listing breweries' and whether it tells the brewery number is 0 – the text 'Number of breweries: 0'. Capybara sets the page whenever the test has the <code>page</code> variable.
+The test will start navigating to the brewery list using the method <code>visit</code>. As you will see, Rails path helpers are used by Rspec tests too. After doing this, it checks whether the rendered page contains the text 'Listing breweries' and whether it tells the brewery number is 0 – the text 'Number of breweries: 0'. Capybara sets the page where the test currently is into the <code>page</code> variable.
 
 While testing, there will be a (great) amount of situations where it is useful seeing the HTML source code of the page which corresponds to the <code>page</code> variable. This is possible adding the command <code>puts page.html</code> to the test.
 
-Another option is providing the test with the command <code>save_and_open_page</code>, which saves and opens the page in a default browser. In linux, you will have to defined the browser using the environment variable <code>BROWSER</code>. For instance, you can define Chrome in the department computers with the command:
+Another option is providing the test with the command <code>save_and_open_page</code>, which saves and opens the page in a default browser. In Linux, you will have to define the browser using the environment variable <code>BROWSER</code>. For instance, you can define Chrome in the department computers with the command:
 
     export BROWSER='/usr/bin/chromium-browser'
 
-The definition will be enforced only in the shell where you make it. If you want to make it stable, add it in the file ~/.bashrc
+The definition will be enforced only in the shell where you make it. If you want to make it persistant, add it in the file ~/.bashrc
+
+For both <code>puts page.html</code> and <code>save_and_open_page</code> command to work they need to be placed before the last line of test. In this test both could be placed even on the first line.
+
+Now execute the test as usual with <code>rspec spec</code>. If you want to execute only this newest test, remember that you can limit what tests are to be run by eg.:
+
+    rspec spec/features/breweries_page_spec.rb
+
+** The test most likely fails.** Figure out why and fix either the test or the text on the page. Using the command <code>save_and_open_page</code> is highly recommended!
 
 Add a test for a situation where there are three breweries in the database:
 
 ```ruby
-  it "lists the existing breweries and their total number" do
-    breweries = ["Koff", "Karjala", "Schlenkerla"]
-    breweries.each do |brewery_name|
-      FactoryGirl.create(:brewery, name:brewery_name)
-    end
-
-    visit breweries_path
-
-    expect(page).to have_content "Number of breweries: #{breweries.count}"
-
-    breweries.each do |brewery_name|
-      expect(page).to have_content brewery_name
-    end
+it "lists the existing breweries and their total number" do
+  breweries = ["Koff", "Karjala", "Schlenkerla"]
+  breweries.each do |brewery_name|
+    FactoryBot.create(:brewery, name: brewery_name)
   end
+
+  visit breweries_path
+
+  expect(page).to have_content "Number of breweries: #{breweries.count}"
+
+  breweries.each do |brewery_name|
+    expect(page).to have_content brewery_name
+  end
+end
 ```
 
 Also add a test to make sure that you can access a brewery page by clicking a link in the page with breweries. Make use of Capybara <code>click_link</code> method, which helps to click on a page links.
 
 ```ruby
-  it "allows user to navigate to page of a Brewery" do
-    breweries = ["Koff", "Karjala", "Schlenkerla"]
-    year = 1896
-    breweries.each do |brewery_name|
-      FactoryGirl.create(:brewery, name: brewery_name, year: year += 1)
-    end
-
-    visit breweries_path
-
-    click_link "Koff"
-
-    expect(page).to have_content "Koff"
-    expect(page).to have_content "established in 1897"
+it "allows user to navigate to page of a Brewery" do
+  breweries = ["Koff", "Karjala", "Schlenkerla"]
+  year = 1896
+  breweries.each do |brewery_name|
+    FactoryBot.create(:brewery, name: brewery_name, year: year += 1)
   end
+
+  visit breweries_path
+
+  click_link "Koff"
+
+  expect(page).to have_content "Koff"
+  expect(page).to have_content "Established at 1897"
+end
 ```
 
-The test wil go through if the page form is the same as in the texts. In case of problems you should add the command <code>save_and_open_page</code> in the page and check visually the contents of the page opened by the test.
+The test wil go through if the text on the page matches the tests. In case of problems you should add the command <code>save_and_open_page</code> in the test and check visually the contents of the page opened by the test.
 
 In the two last tests, the beginning is the same – you create three breweries first and then navigate to the breweries page.
 
@@ -1272,10 +1251,11 @@ describe "Breweries page" do
 
   describe "when breweries exists" do
     before :each do
+      # So that the variable is visible inside the it block, the name must start with @ 
       @breweries = ["Koff", "Karjala", "Schlenkerla"]
       year = 1896
       @breweries.each do |brewery_name|
-        FactoryGirl.create(:brewery, name: brewery_name, year: year += 1)
+        FactoryBot.create(:brewery, name: brewery_name, year: year += 1)
       end
 
       visit breweries_path
@@ -1292,7 +1272,7 @@ describe "Breweries page" do
       click_link "Koff"
 
       expect(page).to have_content "Koff"
-      expect(page).to have_content "established in 1897"
+      expect(page).to have_content "Established at 1897"
     end
 
   end
@@ -1301,23 +1281,25 @@ end
 
 Notice that the <code>before :each</code> inside the describe chunk is executed once before each test defined under describe and **each test starts in a situation where the database is empty**.
 
+Also note that if you must refer to variables created inside the <code>before :each</code> block from inside a test (ie. _it_ block) the variable names must start with the @ character.
+
 ## Testing user functionality
 
-Move to user functionality, create the file features/users_spec.rb for this. Get started with a test to check whether users can log in the system:
+Move to user functionality, create the file _spec/features/users_page_spec.rb_ for this. Get started with a test to check whether users can log in the system:
 
 ```ruby
 require 'rails_helper'
 
 describe "User" do
   before :each do
-    FactoryGirl.create :user
+    FactoryBot.create :user
   end
 
   describe "who has signed up" do
     it "can signin with right credentials" do
       visit signin_path
-      fill_in('username', with:'Pekka')
-      fill_in('password', with:'Foobar1')
+      fill_in('username', with: 'Pekka')
+      fill_in('password', with: 'Foobar1')
       click_button('Log in')
 
       expect(page).to have_content 'Welcome back!'
@@ -1327,9 +1309,10 @@ describe "User" do
 end
 ```
 
-The test demonstrate an interaction with the form, the command <code>fill_in</code> looks for a text field for the username and inputs the parameter value.  As you might have guessed, <code>click_button</code> searches for a button in the page and clicks on it.
 
-Notice the <code>before :each</code> chunk in the test, which uses FactoryGirl to create a User object before each test. Signing up would not work without the object, because the database is reset before each test execution.
+The test demonstrate an interaction with the form, the command <code>fill_in</code> looks for a text field based on the _id_ field and inputs the parameter value.  As you might have guessed, <code>click_button</code> searches for a button in the page and clicks on it.
+
+Notice the <code>before :each</code> chunk in the test, which uses FactoryBot to create a User object before each test. Signing up would not work without the object, because the database is reset before each test execution.
 
 More examples about various topics such as how to look for page elements using forms can be found in Capybara documentation, in the section The DSL, see https://github.com/jnicklas/capybara#the-dsl.
 
@@ -1341,8 +1324,8 @@ Implement a couple of tests more for user. The input of a wrong password should 
 
     it "is redirected back to signin form if wrong credentials given" do
       visit signin_path
-      fill_in('username', with:'Pekka')
-      fill_in('password', with:'wrong')
+      fill_in('username', with: 'Pekka')
+      fill_in('password', with: 'wrong')
       click_button('Log in')
 
       expect(current_path).to eq(signin_path)
@@ -1353,60 +1336,60 @@ Implement a couple of tests more for user. The input of a wrong password should 
 
 The tests uses the method <code>current_path</code> which returns the path where the test execution has led to when the method is called. The method helps making sure the user is redirected back to the sign-in page if signing in failed.
 
-It is not always so clear to what extent you should test your application business logic through browser-level tests. At least the logic to find out the user object favourite beer, brewery, and beer style should be tested with unit tests.
+It is not always so clear to what extent you should test your application business logic through browser-level tests. At least testing the logic to find out the user object favourite beer, brewery, and beer style with unit tests is sensible.
 
 User-level tests can be used for instance to make sure pages show the same situation that there is in the database. So for instance, in your brewery page test you generated three breweries and tested that they are all rendered in the brewery list.
 
 It makes sense to test that you can add and remove things on the pages, too. The test below for instance will make sure when a new user registers, the number of users in the system increases by one:
 
 ```ruby
-  it "when signed up with good credentials, is added to the system" do
-    visit signup_path
-    fill_in('user_username', with:'Brian')
-    fill_in('user_password', with:'Secret55')
-    fill_in('user_password_confirmation', with:'Secret55')
+it "when signed up with good credentials, is added to the system" do
+  visit signup_path
+  fill_in('user_username', with: 'Brian')
+  fill_in('user_password', with: 'Secret55')
+  fill_in('user_password_confirmation', with: 'Secret55')
 
-    expect{
-      click_button('Create User')
-    }.to change{User.count}.by(1)
-  end
+  expect{
+    click_button('Create User')
+  }.to change{User.count}.by(1)
+end
 ```
 
-Notice that the form fields were defined in the <code>fill_in</code> methods slightly differently than in the sign-in form. The fields ID can and should always be checked by looking at the page source code choosing _view page source_.
+Notice that the form fields were defined in the <code>fill_in</code> methods slightly differently than in the sign-in form. The fields' IDs can and should always be checked by looking at the page source code choosing _view page source_ in browser.
 
 The test expects that clicking the _Create user_ button will cause the number of saved users in the database to increase by one. The syntax is brilliant, but it will take some time before Rspec's strongly expressive language will start to feel familiar.
 
 You will have to take into consideration a small detail, that is, the method <code>expect</code> can be given parameters in two ways.
-If the method has to test a value, the value is given between brakets, like <code>expect(current_path).to eq(signin_path)</code>. Instead, if it tests the impact of an operation (like the one above, <code>click_button('Create User')</code>) on the value of an application object (<code>User.count</code>), the operation to execute is given to <code>expect</code> in a code chunk.
+If the method has to test a value, the value is given between brackets, like <code>expect(current_path).to eq(signin_path)</code>. Instead, if it tests the impact of an operation (like the one above, <code>click_button('Create User')</code>) on the value of an application object (<code>User.count</code>), the operation to execute is given to <code>expect</code> in a code chunk.
 
-Read more about this in Rspec documentation https://www.relishapp.com/rspec/rspec-expectations/v/2-14/docs/built-in-matchers
+Read more about this in Rspec documentation https://relishapp.com/rspec/rspec-expectations/docs/built-in-matchers
 
 So the last test checked whether the operation executed at browser level created an object in the database. Should you make a separate test to see whether a user name can sign in the system? Maybe. After all, the previous test did not questioned whether the user object was saved in the database correctly.
 
 The scope for testing is so wide, however, that a complete analysis is impossible and tests should be written in first place for things which might break.
 
-Create a new test for beer rating. Create the file spec/features/ratings_spec.rb right for the test.
+Create a new test for beer rating. Create the file _spec/features/ratings_page_spec.rb_ for the test.
 
 ```ruby
 require 'rails_helper'
 
 describe "Rating" do
-  let!(:brewery) { FactoryGirl.create :brewery, name:"Koff" }
-  let!(:beer1) { FactoryGirl.create :beer, name:"iso 3", brewery:brewery }
-  let!(:beer2) { FactoryGirl.create :beer, name:"Karhu", brewery:brewery }
-  let!(:user) { FactoryGirl.create :user }
+  let!(:brewery) { FactoryBot.create :brewery, name: "Koff" }
+  let!(:beer1) { FactoryBot.create :beer, name: "iso 3", brewery:brewery }
+  let!(:beer2) { FactoryBot.create :beer, name: "Karhu", brewery:brewery }
+  let!(:user) { FactoryBot.create :user }
 
   before :each do
     visit signin_path
-    fill_in('username', with:'Pekka')
-    fill_in('password', with:'Foobar1')
+    fill_in('username', with: 'Pekka')
+    fill_in('password', with: 'Foobar1')
     click_button('Log in')
   end
 
   it "when given, is registered to the beer and user who is signed in" do
     visit new_rating_path
-    select('iso 3', from:'rating[beer_id]')
-    fill_in('rating[score]', with:'15')
+    select('iso 3', from: 'rating[beer_id]')
+    fill_in('rating[score]', with: '15')
 
     expect{
       click_button "Create Rating"
@@ -1419,13 +1402,13 @@ describe "Rating" do
 end
 ```
 
-The test builds its brewery, two beers and a user with the method <code>let!</code> instead of <code>let</code> which we used earlier. In fact, the version without exclamative mark does not execute the operation immediatly, but only once the code refers to the object explicitely. The object <code>beer1</code> is mentioned only at the end of the code, so if you had created it with the method <code>let</code>, you would have run into a problem creating the rating, because its beer would have not existed in the database yet, and the corresponding select element would not have been found.
+The test builds its brewery, two beers and a user with the method <code>let!</code> instead of <code>let</code> which we used earlier. In fact, the version without exclamative mark does not execute the operation immediately, but only once the code refers to the object explicitely. The object <code>beer1</code> is mentioned only at the end of the code, so if you had created it with the method <code>let</code>, you would have run into a problem creating the rating, because its beer would have not existed in the database yet, and the corresponding select element would not have been found.
 
 
-The code contained in the <code>before</code> chunk of the test helps users to sign in the system. Most probably, the same code chunk will be useful in various different test files. You had better extract the test code needed in various different place and make a module, which can be included in all test files which need it. Create a module in the file /spec/support/helpers/own_test_helper.rb and put the sign-in code there:
+The code contained in the <code>before</code> chunk of the test helps users to sign in the system. Most probably, the same code chunk will be useful in various different test files. You had better extract the test code needed in various different places and make a [module](https://relishapp.com/rspec/rspec-core/docs/helper-methods/define-helper-methods-in-a-module), which can be included in all test files which need it. Create a module <code>Helpers</code> in a file named _helpers.rb_ in the _specs_ directory and put the sign-in code there:
 
 ```ruby
-module OwnTestHelper
+module Helpers
 
   def sign_in(credentials)
     visit signin_path
@@ -1438,21 +1421,25 @@ end
 
 So the method <code>sign_in</code> takes a hash parameter with the user name and password.
 
-Start to use the module method in your tests:
+In the file _rails_helper.rb_, add this line immediately after the other require commands:
+
+    require 'helpers'
+
+Start to use the module method in your tests with the <code>include Helpers</code> command:
 
 ```ruby
 require 'rails_helper'
 
-include OwnTestHelper
+include Helpers
 
 describe "Rating" do
-  let!(:brewery) { FactoryGirl.create :brewery, name:"Koff" }
-  let!(:beer1) { FactoryGirl.create :beer, name:"iso 3", brewery:brewery }
-  let!(:beer2) { FactoryGirl.create :beer, name:"Karhu", brewery:brewery }
-  let!(:user) { FactoryGirl.create :user }
+  let!(:brewery) { FactoryBot.create :brewery, name: "Koff" }
+  let!(:beer1) { FactoryBot.create :beer, name: "iso 3", brewery:brewery }
+  let!(:beer2) { FactoryBot.create :beer, name: "Karhu", brewery:brewery }
+  let!(:user) { FactoryBot.create :user }
 
   before :each do
-    sign_in(username:"Pekka", password:"Foobar1")
+    sign_in(username: "Pekka", password: "Foobar1")
   end
 ```
 
@@ -1461,34 +1448,34 @@ and
 ```ruby
 require 'rails_helper'
 
-include OwnTestHelper
+include Helpers
 
 describe "User" do
   before :each do
-    FactoryGirl.create :user
+    FactoryBot.create :user
   end
 
   describe "who has signed up" do
     it "can signin with right credentials" do
-      sign_in(username:"Pekka", password:"Foobar1")
+      sign_in(username: "Pekka", password: "Foobar1")
 
       expect(page).to have_content 'Welcome back!'
       expect(page).to have_content 'Pekka'
     end
 
     it "is redirected back to signin form if wrong credentials given" do
-      sign_in(username:"Pekka", password:"wrong")
+      sign_in(username: "Pekka", password: "wrong")
 
       expect(current_path).to eq(signin_path)
-      expect(page).to have_content 'username and password do not match'
+      expect(page).to have_content 'Username and/or password mismatch'
     end
   end
 
   it "when signed up with good credentials, is added to the system" do
     visit signup_path
-    fill_in('user_username', with:'Brian')
-    fill_in('user_password', with:'Secret55')
-    fill_in('user_password_confirmation', with:'Secret55')
+    fill_in('user_username', with: 'Brian')
+    fill_in('user_password', with: 'Secret55')
+    fill_in('user_password_confirmation', with: 'Secret55')
 
     expect{
       click_button('Create User')
@@ -1499,180 +1486,60 @@ end
 
 Letting an auxiliary method be in charge of sign-in implementation will also improve the test clarity, and if the sign-up page functionality changes later on, maintaining the tests will be easy, because changes will be required only in one place.
 
-**Attention:** if you see the error message <code>uninitialized constant OwnTestHelper (NameError)</code> move the definition
-<code>include OwnTestHelper</code> to the end of the document <code>rails_helper.rb</code>.
-
-**Attention2:** if the error message remains still, you can copy the defined auxiliary method straight at the end of the file <code>rails_helper.rb</code>.
-
+Moving the previously defined methods <code>create\_beer\_with\_rating</code> and <code>create\_beers\_with\_many\_ratings</code> (in _user_spec.rb_) to the Helpers module as well might be smart, especially if we'll be needing these functionalities in other places as well.
 > ## Exercise 5
 >
-> Make a test to verify that you can add a beer to the system through the www-page, if the beer name receives a valid value (meaning that it is not empty). Also make a test to verify that the browser is redirected to the beer creation page and is shown the appropriate error message, if the beer name is not valid, and that in this case, nothing is stored in the database.
+> Make a test to verify that you can add a beer to the system through the www-page, if the beer name receives a valid value (meaning that it is not empty).
 >
-> **ATTENTION:** your code might contain a bug in these situations, when you try to create an beer with an invalid name. Check out the fuctionality through your browser. The cause is explained at the beginning of week, https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#muutama-huomio. Fix the bug in your code.
+> Also make a test to verify that the browser is redirected to the beer creation page and is shown the appropriate error message, if the beer name is not valid, and that in this case, nothing is stored in the database.
+>
+> Note that the test must first create at least one brewery to make creating beers possible.
+>
+> **ATTENTION:** your code might contain a bug in situations, when you try to create an beer with an invalid name. Check out the fuctionality through your browser. The cause is explained at the beginning of week, https://github.com/mluukkai/webdevelopment-rails/blob/main/week4.md#some-things-to-keep-in-mind. Fix the bug in your code.
 >
 > Keep in mind you can use the command <code>save_and_open_page</code> if you run into problems!
 
 
 > ## Exercise 6
 >
-> Make a test to verify that the ratings in the database are shown in the page _ratings_ together with their amount. If their amount is not shown, fix this.
+> Make a test to verify that the ratings in the database are shown in the page _ratings_ together with their total amount. If their amount is not shown, fix this.
 >
-> *Hint**: one way you can make your test is creating ratings in the database with FactoryGirl first. Then you can test the content of the page 'ratings'.
+> *Hint**: one way you can make your test is creating ratings in the database with FactoryBot first. Then you can test the content of the page 'ratings' with Capybara.
 >
 > Keep in mind you can use the command <code>save_and_open_page</code> if you run into problems!
 
 
 > ## Exercise 7
 >
-> Make a test to verify the user ratings are shown in his page. So the user page will have to show all the user personal ratings but not the ratings made by other users.
+> Make a test to verify the user ratings are shown in their page. So the user page should to show all the user's personal ratings but not the ratings made by other users.
 >
-> Remember that you will have to give <code>user_path(user)</code> to the <code>visit</code> method. This will help the method to define the path and to navigate to the <code>user</code> page.
+> Remember that you will have to give <code>user_path(user)</code> to the <code>visit</code> method. This will help the method to define the path and to navigate to the <code>user</code> page. The commonly used shorter form (the object itself) does not work with Capybara.
 
 > ## Exercise 8
 >
->  Make a test to make sure when a user removes their own rating, the rating will be removed from the database.
+>  Make a test to make sure when a user deletes their own rating, the rating will be removed from the database.
 >
-> If there are various links with the same name, <code>click_lik</code> will not work. You will have to specify what link to choose, see http://rubydoc.info/github/jnicklas/capybara/master/Capybara/Node/Finders and [tämä](http://stackoverflow.com/questions/6733427/how-to-click-on-the-second-link-with-the-same-text-using-capybara-in-rails-3), for instance.
+> If there are various links with the same name, <code>click_link</code> will not work. You will have to specify what link to choose, and that might not be the easiest task. Help is found from [capybara documentation](http://rubydoc.info/github/jnicklas/capybara/master/Capybara/Node/Finders) and [here](http://stackoverflow.com/questions/6733427/how-to-click-on-the-second-link-with-the-same-text-using-capybara-in-rails-3).
+>
+> Even if the solution itself is compact, this exercise might not be the easiest. If you get stuck, first do the rest of the week and/or ask for help in Discord.
 
 
 > ## Exercise 9
 >
-> If you did the exercises 3-4, extend the user page so that it will show the user favourite style as well as favourite brewery. Also, make capybara tests for this. Tests which require more complex computetions do not require tests, because the unit tests ensure the functionality well enough. 
+> If you did the exercises 3-4, extend the user page so that it will show the user favourite style as well as favourite brewery. Also, make capybara tests for this. Functions using complex computations do not require tests, because the unit tests ensure the functionality well enough. 
 
-
-## Latest RSPec syntax styles
-
-As you found out while writing your first tests, Rspec has got various ways to express one same thing. Do now some unit tests for your Brewery model. Get started by generating a test layout with the command
-
-    rails generate rspec:model brewery
-
-Write first in the "old-fashoned", now also deprecated <code>should</code> syntax (see the test https://github.com/rspec/rspec-expectations/blob/master/Should.md), which makes sure the <code>create</code> sets up the brewery name and founding year correctly, and that the obect is stored in the database.
-
-```ruby
-require 'rails_helper'
-
-describe Brewery do
-  it "has the name and year set correctly and is saved to database" do
-    brewery = Brewery.create name:"Schlenkerla", year:1674
-
-    brewery.name.should == "Schlenkerla"
-    brewery.year.should == 1674
-    brewery.valid?.should == true
-  end
-end
-```
-
-The last condition – whether the brewery is valid and stored in the database – is expressed in a bad way. Because the brewery method <code>valid?</code> returns a true-false value, you can also express the same thing in the following way (see http://rubydoc.info/gems/rspec-expectations/RSpec/Matchers):
-
-```ruby
-  it "has the name and year set correctly and is saved to database" do
-    brewery = Brewery.create name:"Schlenkerla", year:1674
-
-    brewery.name.should == "Schlenkerla"
-    brewery.year.should == 1674
-    brewery.should be_valid
-  end
-```
-
-When you use a <code>be_something</code> predicate matcher, rspec expects the object has a true-false method called <code>something?</code>, which is like a "magic trick" made thanks to the conventions.
-
-The expression <code>brewery.should be_valid</code> is nearer to natural language, so it is definitely more favourable. If you use should negation – the method <code>should_not</code> – you will be able to create a test to check whether breweries can be stored without a name:
-
-```ruby
-  it "without a name is not valid" do
-    brewery = Brewery.create  year:1674
-
-    brewery.should_not be_valid
-  end
-```
-
-Also the <code>brewery.should be_invalid</code> form would work exactly in the same way.
-
-We used the <code>expect</code> syntax above instead of should (see http://rubydoc.info/gems/rspec-expectations/) which has taken over should (Rspec developers still use almost only should in their 2010 book http://pragprog.com/book/achbd/the-rspec-book!). Our test would look like the one below, with expect:
-
-```ruby
-  it "has the name and year set correctly and is saved to database" do
-    brewery = Brewery.create name:"Schlenkerla", year:1674
-
-    expect(brewery.name).to eq("Schlenkerla")
-    expect(brewery.year).to eq(1674)
-    expect(brewery).to be_valid
-  end
-
-  it "without a name is not valid" do
-    brewery = Brewery.create  year:1674
-
-    expect(brewery).not_to be_valid
-  end
-```
-
-The line <code>expect(brewery.year).to eq(1674)</code> could also be written in the form <code>expect(brewery.year).to be(1674)</code>; differently, <code>expect(brewery.name).to be("Schlenkerla")</code> would not work, the error message tells you something about the problem:
-
-```ruby
-  1) Brewery has the name and year set correctly and is saved to database
-     Failure/Error: expect(brewery.name).to be("Schlenkerla")
-
-       expected #<String:44715020> => "Schlenkerla"
-            got #<String:47598800> => "Schlenkerla"
-
-       Compared using equal?, which compares object identity,
-       but expected and actual are not the same object. Use
-       `expect(actual).to eq(expected)` if you don't care about
-       object identity in this example.
-```
-
-So <code>be</code> requires two same objects, it is not enough that their contents are the same. According to Ruby, there is only one integer which is 1674, so 'be' will work with years, but there can be an infinite amound of strings containing the word "Sclenkerla," so you will have to use the <code>eq</code> matcher to compare strings.
-
-It is possible to polish tests even better by using the syntax brought by Rspec 2 (https://www.relishapp.com/rspec/rspec-core/v/2-11/docs). In all your tests conditions, the _subject of your tests_ was the same – the object stored in the variable <code>brewery</code>. The new <code>subject</code> syntax makes it possible to define the subject of your tests only once, and then you will not need to refer to it explicitly. The following test is refactored using the new syntax:
-
-```ruby
-  describe "when initialized with name Schlenkerla and year 1674" do
-    subject{ Brewery.create name: "Schlenkerla", year: 1674 }
-
-    it { should be_valid }
-    its(:name) { should eq("Schlenkerla") }
-    its(:year) { should eq(1674) }
-  end
-```
-
-The text is more compact than before and it reads extremely fluently. What's more, even the test report generated in document format looks very natural:
-
-```ruby
-➜  ratebeer git:(master) ✗ rspec spec/models/brewery_spec.rb -fd
-
-Brewery
-  without a name is not valid
-  when initialized with name Schlenkerla and year 1674
-    should be valid
-    name
-      should eq "Schlenkerla"
-    year
-      should eq 1674
-
-Finished in 0.03309 seconds
-```
-
-**Attention:** the <code>its</code> syntax is not used any more in rspec core starting from Rspec version 3, and it will need the following gem to be set up and work:
-
-    gem 'rspec-its'
-
-More about the subject syntax at
-https://www.relishapp.com/rspec/rspec-core/v/2-11/docs/subject
-
-Advises to write well with Rspec can be found at
-http://betterspecs.org/
 
 ## Test coverage
 
-The tests line coverage measures the percentage of the program code lines that is executed when tests are executed. It is easy to measure the test coverage on Rails with the gem _simplecov_, see https://github.com/colszowka/simplecov
+The test line coverage measures the percentage of the program code lines that is executed when tests are executed. It is easy to measure the test coverage on Rails with the gem _simplecov_, see https://github.com/colszowka/simplecov
 
 Get started with the gem by adding the following line to the Gemfile test scope
 
     gem 'simplecov', require: false
 
-**Attention** instead of a normal <code>bundle install</code> command I personally had to execute the command <code>bundle update</code> at this point, in order to set up all the gem versions that were mutually fit.
+**Attention** instead of a normal <code>bundle install</code> command you might have to execute the command <code>bundle update</code> at this point, in order to set up all the gem versions that are mutually fit.
 
-In order to start using simplecov, you should the following code **in the first two lines** of the file rails_helper.rb:
+In order to start using simplecov, you should add the following code **in the first two lines** of the file rails_helper.rb:
 
 ```ruby
 require 'simplecov'
@@ -1682,84 +1549,97 @@ SimpleCov.start('rails')
 The run the tests (see the note above if you have problems here)
 
 ```ruby
-➜  ratebeer git:(master) ✗ rspec spec
-.............................
+$ rspec spec
+..................................
 
-Finished in 1.29 seconds (files took 3.63 seconds to load)
-29 examples, 0 failures
-Coverage report generated for RSpec to /Users/mluukkai/kurssirepot/ratebeer/coverage. 146 / 201 LOC (72.64%) covered.
+Finished in 1.25 seconds (files took 1.95 seconds to load)
+34 examples, 0 failures
+
+Coverage report generated for RSpec to /Users/mluukkai/opetus/ratebeer/coverage. 161 / 333 LOC (48.35%) covered.
 ```
 
-The tests line coverage is 72.64 percent. You find a more detailed report opening the file coverage/index.html with your browser. As it is shown by the picture, there are still large parts of the program which are tested poorly, especially as far as the controllers are concerned:
+The tests line coverage is 48.35 percent. You find a more detailed report opening the file coverage/index.html with your browser. As it is shown by the picture, there are still large parts of the program which are tested poorly, especially as far as the controllers are concerned:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w4-1.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w4-1.png)
 
-If you take a closer look at the report, you will notice that some classes are not even mentioned in the report! For instance, the beer club controller or method are not mentioned there. If there are no tests for a class, its class code will be left completely untuched in Simplecov report!
-
-If you add the following lines somewhere in the test
-
-```ruby
-BeerClub
-BeerClubsController
-```
-
-the classes code will be loaded during the test and simplecov will keep them in its report. The figures change slightly:
-
-```ruby
-➜  ratebeer git:(master) ✗ rspec spec
-.............................
-
-Finished in 1.3 seconds (files took 3.9 seconds to load)
-29 examples, 0 failures
-Coverage report generated for RSpec to /Users/mluukkai/kurssirepot/ratebeer/coverage. 158 / 234 LOC (67.52%) covered.
-```
 
 Wide-ranging tests does not mean that you are testing smart things, of course. Because it is easy to measure, it is better than nothing and it shows the most evident issues, at least.
 
 > ## Exercise 10
 >
-> Start to use Simplecov in your code. Make sure all the essential code – models, controllers, and methods – are taken into consideration in the report!
+> Start to use Simplecov in your code. Examine the report (by clicking yellow and red colored classes) to see which lines of your code are not tested at all.
 
 
 ## Continuous integration
 
-With the term [continuous integration](http://martinfowler.com/articles/continuousIntegration.html) we mean the custom where the program developers integrate their code changes into a common project as often as possible. The idea making sure the program developing version works all the time and eliminating in this way the difficult, separate integration stage. The continuous integration requires a wide-ranging group of automatic tests to work. It is common when it comes to continuous integration to use a centralized server, which pays attention to the repository where the developing version is located. When developers integrate their code in the developing version, the integration server sees the change, builds the code, and runs the tests. If the tests fail, the integration server reports this in a way or in another to whom it may concern.
+With the term [continuous integration](http://martinfowler.com/articles/continuousIntegration.html) we mean the custom where the program developers integrate their code changes into a common development branch as often as possible. The idea is to make sure the program's development version works all the time, thus eliminating the difficult, separate integration stage. The continuous integration requires a wide-ranging group of automatic tests to work. It is common when it comes to continuous integration to use a centralized server, which pays attention to the repository where the development version is located. When developers integrate their code in the developing version, the integration server sees the change, builds the code, and runs the tests. If the tests fail, the integration server reports this in a way or in another to whom it may concern.
 
-Travis https://travis-ci.org/ is a continuous integration service which follows the SaaS (Software as a Service) principle and which has been quickly favoured for Open Source projects.
+GitHub offers [Github Actions](https://github.com/features/actions) for developers' use. GitHub Actions has  gained much ground among other CI services. Notable motivations for using GitHub Actions is that it is directly integrated to GitHub and the Actions marketplace which contains more actions that can be implemented to your CI. More on these later.
 
-Github Rails projects can be set up easily to be scrutinized by Travis
+Projects stored in GitHub are easy to set under GitHub Actions' watch.
 
 > ## Exercise 11
 >
-> In the repository root, create the configuration file .travis.yml for Travis which the following contents (ATTENTION! Put your Ruby version next to ```rvm:``` ):
-> 
->```ruby
->language: ruby
+> ### Doing this and the couple following exercises is not vital for continuing the week. You can also do these after the other exercises.
 >
->rvm:
->  - 2.0.0
+> Go to your project repository and press _Actions_ from the topbar. If you have no pre-existing actions, github will take you directly to a page which suggests ready templates.
 >
->script:
->  - bundle exec rake db:migrate --trace
->  - RAILS_ENV=test bundle exec rake db:migrate --trace
->  - bundle exec rake db:test:prepare
->  - bundle exec rspec -fd spec/
->```
+> ![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w4-2.png)
 >
-> Then click on "sign in with github" from Travis page and write your username.
+> Select Ruby on Rails by pressing the _Configure_ button. Github will redirect you to a page where you'll edit a file called <code>rubyonrails.yml</code>. This workflow file tells GitHub Actions what the CI should do.
 >
-> Go to the top right corner where there is your name, and choose "accounts". Link the opened view and the continuous integration of your ratebeer reporitory.
+> However the file contents won't work as they are so to begin with, let's change the contents to following:
+> ```
+> # This workflow uses actions that are not certified by GitHub. They are
+> # provided by a third-party and are governed by separate terms of service,
+> # privacy policy, and support documentation.
+> #
+> # This workflow will install a prebuilt Ruby version, install dependencies, and
+> # run tests and linters.
+> name: "Ruby on Rails CI"
+> on:
+>   push:
+>     branches: [ "main" ] # Jos repositoriosi päähaara ei ole main, muuta nämä
+>   pull_request:
+>     branches: [ "main" ]
+> jobs:
+>   test:
+>     runs-on: ubuntu-22.04
+>     services:
+>       postgres:
+>         image: postgres:11-alpine
+>         ports:
+>           - "5432:5432"
+>         env:
+>           POSTGRES_DB: rails_test
+>           POSTGRES_USER: rails
+>           POSTGRES_PASSWORD: password
+>     env:
+>       RAILS_ENV: test
+>       DATABASE_URL: "postgres://rails:password@localhost:5432/rails_test"
+>     steps:
+>       - name: Checkout code
+>         uses: actions/checkout@v3
+>       # Add or replace dependency steps here
+>       - name: Install Ruby and gems
+>         uses: ruby/setup-ruby@v1
+>         with:
+>           bundler-cache: true
+>       - name: Run tests
+>         run: bundle exec rspec
+> ```
 >
-> When you push your code to Github next time, Travis will execute a build script automatically, defining that the tests should be executed. You'll receive an e-mail if the build status changes.
+> The diffrence to the default version is that we are using newer versions of actions that set-up both Ubuntu and Ruby to make the compatible with Ruby version 3.1.2.
 >
-> Add a link to TravisCI page of the application in your repository READDME.md file (**attention:** the file ending has to be md!):
+> After changing the contents, select _Start commit_ and add the file to your version control. GitHub Actions will start automatically and execute tests.
 >
->```ruby
->[![Build Status](https://travis-ci.org/mluukkai/ratebeer-public.png)](https://travis-ci.org/mluukkai/ratebeer-public)
->```
-> Notice that the last part of the link is the same as the one of your project GitHub repository, meaning that the one above refers to the Github repository https://github.com/mluukkai/ratebeer-public
+> If some tests fail in GitHub Actions, fix them!
+
+> ## Exercise 12 
 >
-> All the people who have to see the application status will be able to see it in this way, and the probability tests will not be broken will increase!
+> Let's also add Rubocop to GitHub Actions. Let's take advantage of an [action already found at the marketplace](https://github.com/marketplace/actions/rubocop-linter-action). We can add it to aour own actions.
+>
+> Add the following to <code>rubyonrails.yml</code>
 
 ## Continuous delivery
 
