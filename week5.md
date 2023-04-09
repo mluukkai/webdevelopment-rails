@@ -1,50 +1,38 @@
 
-You will continue to develop your application from the point you arrived at the end of week 4. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week [from the course repository](https://github.com/mluukkai/WebPalvelinohjelmointi2015/tree/master/malliv/viikko4). If you already got most of the previous week exercises done, it might be easier if you complement your own answer with the help of the material.
+You will continue to develop your application from the point you arrived at the end of week 4. The material that follows comes with the assumption that you have done all the exercises of the previous week. In case you have not done all of them, you can take the sample answer to the previous week he model answer found in the exercise submission system.
 
-If you start working this week on the base of last week sample answer, copy the folder from the course repository (assuming you have alrady cloned it) and make a new repository of the folder with the application.
-
-**Attention:** some Mac users have found problems with the pg-gem which Heroku needs. Gems are not needed locally and we defined to set them only in the production environment. If you have problems, you can set gems by adding the following expression to <code>bundle install</code>:
-
-    bundle install --without production
-
-This setting will be remembered later on, so a simple `bundle install` will be enough if you want to set up new dependences.
-
-
-## Mashup: bar search
+## Utilizing open interfaces: bar search
 
 A great part of modern Internet services makes use of open interfaces which provides useful data to enrich applications functionality.
 
 Interfaces for beers are also available, try to search for beer at http://www.programmableweb.com/ 
 
-The best interface among the ones available seems to be http://www.programmableweb.com/api/brewery-db but its use is limited to a 400-day trial, and you should not use this time. Try Beermapping API (http://www.programmableweb.com/api/beer-mapping ja http://beermapping.com/api/), instead, which makes it possible to search for beer restaurants.
+The best interface among the ones available seems to be  Beermapping API (see http://www.programmableweb.com/api/beer-mapping ja http://beermapping.com/api/), which makes it possible to search for beer restaurants.
 
-Applications which make use of beermaping API need a singular API key. You can retrieve a key at http://beermapping.com/api/request_key, a corresponding procedure is in use for the larger part of modern free interfaces.
+Applications which make use of beermaping API need a singular API key. You can retrieve a key at https://beermapping.com/api/, after logging in to the page (after logging in edit the url in your browser's address bar back to https://beermapping.com/api/). This is a common procedure in use for the larger part of modern free interfaces.
 
 The API's services are listed at the page http://beermapping.com/api/reference/
 
 For instance, you can find out the beer restaurants in a defined location by making an HTTP get request for the address <code>http://beermapping.com/webservice/loccity/[apikey]/[city]<location></code>
 
-The location is picked as a part of the URL.
+The location is passed as a part of the URL.
 
 You can make requests with the browser or from the command line with the curl program. You'll find out beer restaurants in Espoo in the following way:
 
 ```ruby
-mbp-18:ratebeer mluukkai$ curl http://beermapping.com/webservice/loccity/96ce1942872335547853a0bb3b0c24db/espoo
-<?xml version='1.0' encoding='utf-8' ?><bmp_locations><location><id>12411</id><name>Gallows Bird</name><status>Brewery</status><reviewlink>http://beermapping.com/maps/reviews/reviews.php?locid=12411</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=12411&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=12411&amp;d=1&amp;type=norm</blogmap><street>Merituulentie 30</street><city>Espoo</city><state></state><zip>02200</zip><country>Finland</country><phone>+358 9 412 3253</phone><overall>91.66665</overall><imagecount>0</imagecount></location></bmp_locations>mbp-18:ratebeer mluukkai$
+mluukkai@melkki$ curl https://beermapping.com/webservice/loccity/731955affc547174161dbd6f97b46538/espoo
+<?xml version='1.0' encoding='utf-8' ?><bmp_locations><location><id>12411</id><name>Gallows Bird</name><status>Brewery</status><reviewlink>https://beermapping.com/location/12411</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=12411&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=12411&amp;d=1&amp;type=norm</blogmap><street>Merituulentie 30</street><city>Espoo</city><state></state><zip>02200</zip><country>Finland</country><phone>+358 9 412 3253</phone><overall>91.66665</overall><imagecount>0</imagecount></location><location><id>21108</id><name>Captain Corvus</name><status>Beer Bar</status><reviewlink>https://beermapping.com/location/21108</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=21108&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=21108&amp;d=1&amp;type=norm</blogmap><street>Suomenlahdentie 1</street><city>Espoo</city><state>Etela-Suomen Laani</state><zip>02230</zip><country>Finland</country><phone>+358 50 4441272</phone><overall>0</overall><imagecount>0</imagecount></location><location><id>21496</id><name>Olarin panimo</name><status>Brewery</status><reviewlink>https://beermapping.com/location/21496</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=21496&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=21496&amp;d=1&amp;type=norm</blogmap><street>Pitkäniityntie 1</street><city>Espoo</city><state>Etela-Suomen Laani</state><zip>02810</zip><country>Finland</country><phone>045 6407920</phone><overall>0</overall><imagecount>0</imagecount></location><location><id>21516</id><name>Fat Lizard Brewing</name><status>Brewery</status><reviewlink>https://beermapping.com/location/21516</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=21516&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=21516&amp;d=1&amp;type=norm</blogmap><street>Lämpömiehenkuja 3</street><city>Espoo</city><state>Etela-Suomen Laani</state><zip>02150</zip><country>Finland</country><phone>09 23165432</phone><overall>0</overall><imagecount>0</imagecount></location><location><id>21545</id><name>Simapaja</name><status>Brewery</status><reviewlink>https://beermapping.com/location/21545</reviewlink><proxylink>http://beermapping.com/maps/proxymaps.php?locid=21545&amp;d=5</proxylink><blogmap>http://beermapping.com/maps/blogproxy.php?locid=21545&amp;d=1&amp;type=norm</blogmap><street>Kipparinkuja 2</street><city>Espoo</city><state>Etela-Suomen Laani</state><zip>02320</zip><country>Finland</country><phone></phone><overall>0</overall><imagecount>0</imagecount></location></bmp_locations>
 ```
 
 As you'll notice, the response is in XML. This is a bit outdated because the currently most popular format to exchange information among Web services is Json.
 
 If you use your browser, you'll see the returned XML in a form which can be read more easily for humans:
 
-![picture](https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-1.png)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w5-1.png)
 
 **ATTENTION: do not use the API key which is shown here but register one for your own.**
 
-**ATTENTION2:** the service is _extremely_ slow at times. Instead, you can use the 'cache memory service' at which provides the http://stark-oasis-9187.herokuapp.com/api/. This provides the same data and was made just for the course. For instance, you find the data about Helsinki from the cache service at the URL [http://stark-oasis-9187.herokuapp.com/api/helsinki]
-(http://stark-oasis-9187.herokuapp.com/api/helsinki).
-
-If you look for a town which was had been retrieven before, the cache memory server will return the result it had stored. Instead, if you look for a town which is unknown to the cache memory server, it will ask for information from the Beermapping service first. The operation will take much longer in such cases. The cache memory server has not been tested much, so you might find bugs. If so, report about it.
+**ATTENTION2:** In Fall 2022, the API doesn't find any bars in Espoo, try another city! The API's coverage for Finland is lacking.
 
 Make now the search funtionality for your application beer restaurants.
 
@@ -52,7 +40,7 @@ Create a page for this at the address places, so go to route.rb and define
 
     get 'places', to: 'places#index'
 
-and created the controller:
+and create the controller:
 
 ```ruby
 class PlacesController < ApplicationController
@@ -66,9 +54,9 @@ plus the view app/views/places/index.html.erb, which will only look like a searc
 ```erb
 <h1>Beer places search</h1>
 
-<%= form_tag places_path do %>
-  city <%= text_field_tag :city, params[:city] %>
-  <%= submit_tag "Search" %>
+<%= form_with url: places_path, method: :post do |form| %>
+  city <%= form.text_field :city %>
+  <%= form.submit "Search" %>
 <% end %>
 ```
 
@@ -89,7 +77,7 @@ class PlacesController < ApplicationController
 end
 ```
 
-THe idea is that the <code>search</code> method retrieves a brewery list from beermapping API. The breweries will then be added to index.html and that's why the method <code>search</code> renders the view template <code>index</code> at the end.
+The idea is that the <code>search</code> method retrieves a restaurant list from beermapping API. The restaurants will then be added to index.html and that's why the method <code>search</code> renders the view template <code>index</code> at the end.
 
 The <code>search</code> method has to make an HTTP request from the controller to the beermapping API page. The best way to make HTTP requests in Ruby is using the HTTParty gem, see https://github.com/jnunemaker/httparty. Add the following to your Gemfile:
 
@@ -100,87 +88,180 @@ Set up the gem by running the usual command from the command line, <code>bundle 
 Try to look for Helsinki restaurants by hand from the console now (remember to restart your console):
 
 ```ruby
-2.0.0-p451 :001 > api_key = "96ce1942872335547853a0bb3b0c24db"
-2.0.0-p451 :002 > url = "http://beermapping.com/webservice/loccity/#{api_key}/"
-2.0.0-p451 :003 > HTTParty.get url+"helsinki"
+> api_key = "731955affc547174161dbd6f97b46538"
+> url = "http://beermapping.com/webservice/loccity/#{api_key}/"
+> response = HTTParty.get "#{url}helsinki"
 ```
 
-**ATTENTION:** you will be able to use the cache memory server from now on, defining <code>url = http://stark-oasis-9187.herokuapp.com/api/</code>
-
-The call will return an object of the class <code>HTTParty::Response</code>. The object can be enquired about the headers concerning the answer:
+The call will return an object of the class <code>HTTParty::Response</code>.  [The documentation](https://www.rubydoc.info/github/jnunemaker/httparty/HTTParty/Response) shows that the object can be enquired about the headers concerning the answer:
 
 ```ruby
-2.0.0-p451 :004 > response = HTTParty.get url+"helsinki"
-2.0.0-p451 :005 > response.headers
- => {"date"=>["Sat, 07 Feb 2015 12:20:01 GMT"], "server"=>["Apache"], "expires"=>["Mon, 26 Jul 1997 05:00:00 GMT"], "last-modified"=>["Sat, 07 Feb 2015 12:20:01 GMT"], "cache-control"=>["no-store, no-cache, must-revalidate", "post-check=0, pre-check=0"], "pragma"=>["no-cache"], "vary"=>["Accept-Encoding"], "content-length"=>["4887"], "connection"=>["close"], "content-type"=>["text/xml"]}
-2.0.0-p451 :006 >
+> response = HTTParty.get "#{url}helsinki"
+> response.headers
+=> {"date"=>["Mon, 17 Sep 2018 20:43:11 GMT"],
+ "server"=>["Apache"],
+ "upgrade"=>["h2,h2c"],
+ "connection"=>["Upgrade, close"],
+ "set-cookie"=>["easylogin_session=eff28ad09a8f62046917a8c424e4b0b3; path=/"],
+ "expires"=>["Mon, 26 Jul 1997 05:00:00 GMT"],
+ "cache-control"=>
+  ["no-store, no-cache, must-revalidate", "post-check=0, pre-check=0"],
+ "pragma"=>["no-cache"],
+ "last-modified"=>["Mon, 17 Sep 2018 20:43:11 GMT"],
+ "vary"=>["Accept-Encoding"],
+ "content-length"=>["972"],
+ "content-type"=>["text/xml;charset=UTF-8"]}
+>
 ```
 
-and the HTTP call status code:
+The headers include metadata related to the answer of the HTTP request, eg. _content-type_ tells the type of the answer.
+
+```
+"content-type"=>["text/xml;charset=UTF-8"]
+```
+
+The HTTP call status code can be found with:
 
 ```ruby
-2.0.0-p451 :006 > response.code
+> response.code
  => 200
 ```
 
-See http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html, the status code is 200 now, which is fine, meaning that the call has succeeded.
+The status code (see https://www.rfc-editor.org/rfc/rfc9110.html#name-successful-2xx), is 200 now, which is fine, meaning that the request has succeeded.
 
 The answer object method <code>parsed_response</code> will return the data as Ruby's hash:
 
 ```ruby
-2.0.0-p451 :007 > response.parsed_response
- => {"bmp_locations"=>{"location"=>[{"id"=>"6742", "name"=>"Pullman Bar", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=6742", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6742&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6742&d=1&type=norm", "street"=>"Kaivokatu 1", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"+358 9 0307 22", "overall"=>"72.500025", "imagecount"=>"0"}, {"id"=>"6743", "name"=>"Belge", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=6743", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6743&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6743&d=1&type=norm", "street"=>"Kluuvikatu 5", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"+358 10 766 35", "overall"=>"67.499925", "imagecount"=>"1"}, {"id"=>"6919", "name"=>"Suomenlinnan Panimo", "status"=>"Brewpub", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=6919", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6919&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6919&d=1&type=norm", "street"=>"Rantakasarmi", "city"=>"Helsinki", "state"=>nil, "zip"=>"00190", "country"=>"Finland", "phone"=>"+358 9 228 5030", "overall"=>"69.166625", "imagecount"=>"0"}, {"id"=>"12408", "name"=>"St. Urho's Pub", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=12408", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=12408&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=12408&d=1&type=norm", "street"=>"Museokatu 10", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"+358 9 5807 7222", "overall"=>"95", "imagecount"=>"0"}, {"id"=>"12409", "name"=>"Kaisla", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=12409", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=12409&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=12409&d=1&type=norm", "street"=>"Vilhonkatu 4", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"+358 10 76 63850", "overall"=>"83.3334", "imagecount"=>"0"}, {"id"=>"12410", "name"=>"Pikkulintu", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=12410", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=12410&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=12410&d=1&type=norm", "street"=>"Klaavuntie 11", "city"=>"Helsinki", "state"=>nil, "zip"=>"00910", "country"=>"Finland", "phone"=>"+358 9 321 5040", "overall"=>"91.6667", "imagecount"=>"0"}, {"id"=>"18418", "name"=>"Bryggeri Helsinki", "status"=>"Brewpub", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=18418", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=18418&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=18418&d=1&type=norm", "street"=>"Sofiankatu 2", "city"=>"Helsinki", "state"=>nil, "zip"=>"FI-00170", "country"=>"Finland", "phone"=>"010 235 2500", "overall"=>"0", "imagecount"=>"0"}, {"id"=>"18844", "name"=>"Stadin Panimo", "status"=>"Brewery", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=18844", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=18844&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=18844&d=1&type=norm", "street"=>"Kaasutehtaankatu 1, rakennus 6", "city"=>"Helsinki", "state"=>nil, "zip"=>"00540", "country"=>"Finland", "phone"=>"09 170512", "overall"=>"0", "imagecount"=>"0"}, {"id"=>"18855", "name"=>"Panimoravintola Bruuveri", "status"=>"Brewpub", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=18855", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=18855&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=18855&d=1&type=norm", "street"=>"Fredrikinkatu 63AB", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"09 685 66 88", "overall"=>"0", "imagecount"=>"0"}]}}
-2.0.0-p451 :008 >
+> response.parsed_response
+=> {"bmp_locations"=>
+  {"location"=>
+    [{"id"=>"6742",
+      "name"=>"Pullman Bar",
+      "status"=>"Beer Bar",
+      "reviewlink"=>"https://beermapping.com/location/6742",
+      "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6742&d=5",
+      "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6742&d=1&type=norm",
+      "street"=>"Kaivokatu 1",
+      "city"=>"Helsinki",
+      "state"=>nil,
+      "zip"=>"00100",
+      "country"=>"Finland",
+      "phone"=>"+358 9 0307 22",
+      "overall"=>"72.500025",
+      "imagecount"=>"0"},
+     {"id"=>"6743",
+      "name"=>"Belge",
+      "status"=>"Beer Bar",
+      "reviewlink"=>"https://beermapping.com/location/6743",
+      "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6743&d=5",
+      "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6743&d=1&type=norm",
+      "street"=>"Kluuvikatu 5",
+      "city"=>"Helsinki",
+      "state"=>nil,
+      "zip"=>"00100",
+      "country"=>"Finland",
+      "phone"=>"+358 10 766 35",
+      "overall"=>"67.499925",
+      "imagecount"=>"1"},
+...
 ```
 
 Even though the server returns the answer in XML format, the gem HTTParty parses it, and and makes it possible that it is handled straight in the best form as Ruby hash.
 
-You can get the restaurant table returned by the call in the following way:
+You can get the restaurant table returned by the request in the following way:
 
 ```ruby
-2.0.0-p451 :013 > places = response.parsed_response['bmp_locations']['location']
-2.0.0-p451 :014 > places.size => 9
+> places = response.parsed_response['bmp_locations']['location']
+> places.size => 12
 ```
 
-So, it knows 9 places in Helsinki. Inspect the first one:
+So, it knows 12 places in Helsinki. Inspect the first one:
 
 ```ruby
-2.0.0-p451 :015 > places.first
- => {"id"=>"6742", "name"=>"Pullman Bar", "status"=>"Beer Bar", "reviewlink"=>"http://beermapping.com/maps/reviews/reviews.php?locid=6742", "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6742&d=5", "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6742&d=1&type=norm", "street"=>"Kaivokatu 1", "city"=>"Helsinki", "state"=>nil, "zip"=>"00100", "country"=>"Finland", "phone"=>"+358 9 0307 22", "overall"=>"72.500025", "imagecount"=>"0"}
- 2.0.0-p451 :016 > places.first.keys
- => ["id", "name", "status", "reviewlink", "proxylink", "blogmap", "street", "city", "state", "zip", "country", "phone", "overall", "imagecount"]
-2.0.0-p451 :017 >
+> places.first
+=> {"id"=>"6742",
+ "name"=>"Pullman Bar",
+ "status"=>"Beer Bar",
+ "reviewlink"=>"https://beermapping.com/location/6742",
+ "proxylink"=>"http://beermapping.com/maps/proxymaps.php?locid=6742&d=5",
+ "blogmap"=>"http://beermapping.com/maps/blogproxy.php?locid=6742&d=1&type=norm",
+ "street"=>"Kaivokatu 1",
+ "city"=>"Helsinki",
+ "state"=>nil,
+ "zip"=>"00100",
+ "country"=>"Finland",
+ "phone"=>"+358 9 0307 22",
+ "overall"=>"72.500025",
+ "imagecount"=>"0"}
 ```
 
-The last command <code>locations.first.keys</code> tells you the fields which belong to restaurants.
 
-Create an object only to present the breweries, and call it by the name <code>Place</code>. Put the class in the models folder.
+Create an object only to present the restaurants, and call it by the name <code>Place</code>. Put the class in the models folder.
 
 ```ruby
-class Place
-  include ActiveModel::Model
-
-  attr_accessor :id, :name, :status, :reviewlink, :proxylink, :blogmap, :street, :city, :state, :zip, :country, :phone, :overall, :imagecount
+class Place < OpenStruct
 end
 ```
 
-Because that is not a "normal" class which inherits <code>ActiveRecord::Base</code> you will have to define object and attributes with the help of the method <code>attr_accessor</code>. The method creates "a getter and and setter" for each symbol in parameter, which means the methods to read and update the attribute value.
+As we create the class from a hash representing a beer restaurant, we will make the class inherit Ruby's ready-made [OpenStruct](https://ruby-doc.org/stdlib-3.1.2/libdoc/ostruct/rdoc/OpenStruct.html) class' functionality.
 
-The object has been provided with an attribute for all the keys returned by beermapping for each restaurant.
+With OpenStruct it is easy to "wrap" a hash into an object which makes referencing fields of the hash possible with the dot-notation.
 
-The class contains the method <code>ActiveModel::Model</code> (see http://api.rubyonrails.org/classes/ActiveModel/Model.html), which makes it possible to initialize all the attributes in the constructor using the hash returned by the API. This means that the data returned by the API will help you to create Place objects in the following way:
+Eg. if we have a normal hash:
 
 ```ruby
-2.0.0-p451 :019 > baari = Place.new places.first
- => #<Place:0x000001035a2040 @id="6742", @name="Pullman Bar", @status="Beer Bar", @reviewlink="http://beermapping.com/maps/reviews/reviews.php?locid=6742", @proxylink="http://beermapping.com/maps/proxymaps.php?locid=6742&d=5", @blogmap="http://beermapping.com/maps/blogproxy.php?locid=6742&d=1&type=norm", @street="Kaivokatu 1", @city="Helsinki", @state=nil, @zip="00100", @country="Finland", @phone="+358 9 0307 22", @overall="72.500025", @imagecount="0">
-2.0.0-p451 :020 > baari.name
- => "Pullman Bar"
-2.0.0-p451 :021 > baari.street
- => "Kaivokatu 1"
-2.0.0-p451 :022 >
+bar_hash = {
+ "name"=>"Pullman Bar",
+ "status"=>"Beer Bar",
+  "city"=>"Helsinki"
+}
 ```
 
-So write the code to initialize the controller. Hard-code the search criteria so that it starts from Helsinki and create only one Place object for the first place which is retrieven:
+we have to use brackets to reference to its fields:
+```ruby
+> bar_hash['name']
+=> "Pullman Bar"
+> bar_hash['city']
+=> "Helsinki"
+```
+
+If we "wrap" a hash into an OpenStruct object:
+```ruby
+> bar = OpenStruct.new baari_hash
+```
+
+we can accesss all fields with dot-notation:
+```ruby
+bar.name
+=> "Pullman Bar"
+bar.city
+=> "Helsinki"
+```
+
+in this way we got an object which is used similarly to normal Rails models such as Beer, Brewery, etc.
+
+However we do not want to use OpenStructs directly in our code. That is way we create the class Places for beer restaurants and this class inherits OpenStruct:
+
+```ruby
+class Place < OpenStruct
+end
+```
+
+Defining a separate class makes the code clearer and makes it possible to add methods to class objects as necessary.
+
+Our class in used by passing it the hash defining a beer restaurant as a constructor parameter:
+
+```ruby
+irb(main):011:0> baari = Place.new places.first
+=> #<Place id="6742", name="Pullman Bar", status="Beer Bar", reviewlink="https://beermapping.com/location/6742", proxylink="http://beerma...
+irb(main):012:0> baari.name
+=> "Pullman Bar"
+irb(main):013:0> baari.zip
+=> "00100"
+irb(main):014:0>
+```
+
+So write the code to initialize the controller. Hard-code the search criteria so that it starts from Helsinki and create only one Place object for the first place which is retrieved:
 
 ```ruby
 class PlacesController < ApplicationController
@@ -188,28 +269,28 @@ class PlacesController < ApplicationController
   end
 
   def search
-    api_key = "96ce1942872335547853a0bb3b0c24db"
+    api_key = "731955affc547174161dbd6f97b46538"
     url = "http://beermapping.com/webservice/loccity/#{api_key}/"
-    # tai vaihtoehtoisesti
-    # url = 'http://stark-oasis-9187.herokuapp.com/api/'
 
     response = HTTParty.get "#{url}helsinki"
     places_from_api = response.parsed_response["bmp_locations"]["location"]
     @places = [ Place.new(places_from_api.first) ]
 
-    render :index
+    render :index, status: 418
   end
 end
 ```
+
+We also add the status code 418 to render. This is to let [Turbo](https://github.com/hotwired/turbo-rails) (which is used by Rails) know that it should rerender the same page after the POST request. With this, the tests will also work. If we were to set eg. status code 303 [the tests would break](https://stackoverflow.com/a/30555199). This hack is an example of bad code, but as we navigate between Turbo and the tests, it is necessary.
 
 Modify app/views/places/index.html.erb so that it shows the restaurants which have been found:
 
 ```erb
 <h1>Beer places search</h1>
 
-<%= form_tag places_path do %>
-  city <%= text_field_tag :city, params[:city] %>
-  <%= submit_tag "Search" %>
+<%= form_with url: places_path, method: :post do |form| %>
+  city <%= form.text_field :city %>
+  <%= form.submit "Search" %>
 <% end %>
 
 <% if @places %>
@@ -223,19 +304,19 @@ Modify app/views/places/index.html.erb so that it shows the restaurants which ha
 
 The code looks like working (notice that you will have to restart Rails server so that the gem HTTParty will be set up).
 
-Expand the code to show all breweries and to make use of a form parameter to search against the locality:
+Expand the code to show all restaurants and to make use of a form parameter to search against the locality:
 
 ```ruby
   def search
-    api_key = "96ce1942872335547853a0bb3b0c24db"
+    api_key = "731955affc547174161dbd6f97b46538"
     url = "http://beermapping.com/webservice/loccity/#{api_key}/"
     response = HTTParty.get "#{url}#{params[:city]}"
 
-    @places = response.parsed_response["bmp_locations"]["location"].inject([]) do | set, place |
-      set << Place.new(place)
+    @places = response.parsed_response["bmp_locations"]["location"].map do | place |
+      Place.new(place)
     end
 
-    render :index
+    render :index, status: 418
   end
 ```
 
@@ -247,7 +328,7 @@ If you use the debugger, you will see what the locality list returned by the API
 {"id"=>nil, "name"=>nil, "status"=>nil, "reviewlink"=>nil, "proxylink"=>nil, "blogmap"=>nil, "street"=>nil, "city"=>nil, "state"=>nil, "zip"=>nil, "country"=>nil, "phone"=>nil, "overall"=>nil, "imagecount"=>nil}
 ```
 
-So the return value is an hash. But if the search finds beers, the return value is a table which contains hashes. Fix the code taking this into consideration. The code will also take into consideration the case where the API returns a hash which does not correspond to an unexistent place anyway. This is the case when a town has only one restaurant.
+So the return value is an hash. But if the search finds restaurants, the return value is a table which contains hashes. Fix the code taking this into consideration. The code will also take into consideration the case where the API returns a hash which does not correspond to an unexistent place anyway. This is the case when a town has only one restaurant.
 
 ```ruby
 class PlacesController < ApplicationController
@@ -255,19 +336,19 @@ class PlacesController < ApplicationController
   end
 
   def search
-    api_key = "96ce1942872335547853a0bb3b0c24db"
+    api_key = "731955affc547174161dbd6f97b46538"
     url = "http://beermapping.com/webservice/loccity/#{api_key}/"
     response = HTTParty.get "#{url}#{params[:city]}"
     places_from_api = response.parsed_response["bmp_locations"]["location"]
 
-    if places_from_api.is_a?(Hash) and places_from_api['id'].nil?
-      redirect_to places_path, :notice => "No places in #{params[:city]}"
+    if places_from_api.is_a?(Hash) && places_from_api['id'].nil?
+      redirect_to places_path, notice: "No places in #{params[:city]}"
     else
       places_from_api = [places_from_api] if places_from_api.is_a?(Hash)
-      @places = places_from_api.inject([]) do | set, location|
-        set << Place.new(location)
+      @places = places_from_api.map do | location |
+        Place.new(location)
       end
-      render :index
+      render :index, status: 418
     end
   end
 
@@ -277,10 +358,7 @@ end
 The code looks quite bad so far, but we'll come back to this issue in a moment. Make sure the page shows more information about the bars. Define the keys which should be shown as static methods of the Place class:
 
 ```ruby
-class Place
-  include ActiveModel::Model
-  attr_accessor :id, :name, :status, :reviewlink, :proxylink, :blogmap, :street, :city, :state, :zip, :country, :phone, :overall, :imagecount
-
+class Place < OpenStruct
   def self.rendered_fields
     [:id, :name, :status, :street, :city, :zip, :country, :overall ]
   end
@@ -290,24 +368,26 @@ end
 below the improved code for index.html.erb:
 
 ```erb
+<h1>Beer places search</h1>
+
 <p id="notice"><%= notice %></p>
 
-<%= form_tag places_path do %>
-  city <%= text_field_tag :city, params[:city] %>
-  <%= submit_tag "Search" %>
+<%= form_with url: places_path, method: :post do |form| %>
+  city <%= form.text_field :city %>
+  <%= form.submit "Search" %>
 <% end %>
 
 <% if @places %>
   <table>
     <thead>
-      <% Place.rendered_fields.each do |f| %>
-        <td><%=f %></td>
+      <% Place.rendered_fields.each do |field| %>
+        <th><%= field %></th>
       <% end %>
     </thead>
     <% @places.each do |place| %>
       <tr>
-        <% Place.rendered_fields.each do |f| %>
-          <td><%= place.send(f) %></td>
+        <% Place.rendered_fields.each do |field| %>
+          <td><%= place.send(field) %></td>
         <% end %>
       </tr>
     <% end %>
@@ -315,18 +395,104 @@ below the improved code for index.html.erb:
 <% end %>
 ```
 
+The restaurants are now showns as a [HTML table](https://developer.mozilla.org/en-US/docs/Learn/HTML/Tables/Basics).
+
+## Calling object methods with the _send_ method
+
+The code generating the rows of the table is
+
+```erb
+<tr>
+  <% Place.rendered_fields.each do |field| %>
+    <td><%= place.send(field) %></td>
+  <% end %>
+</tr>
+```
+
+What is really happening here?
+
+Before changes the view was rendered as follows:
+```erb
+<% @places.each do |place| %>
+  <li><%= place.name %></li>
+<% end %>
+```
+
+so for each restaurant its name was displayed, <code>place.name</code>
+
+Our current code does the same as the one below which is in a more understandable format:
+```erb
+<tr>
+  <td><%= place.id %></td>
+  <td><%= place.name %></td>
+  <td><%= place.status %></td>
+  <td><%= place.street %></td>
+  <td><%= place.city %></td>
+  <td><%= place.zip %></td>
+  <td><%= place.country %></td>
+  <td><%= place.overall %></td>
+</tr>
+```
+
+In Ruby, an object method can be also "indirectly" called by using the method <code>send</code>. So instead of writing  <code>place.name</code>, we can create a method call with the <code>place.send(:name)</code> syntax. A beer restaurant's row generation can be changed into 
+
+```erb
+<tr>
+  <td><%= place.send(:id) %></td>
+  <td><%= place.send(:name) %></td>
+  <td><%= place.send(:status) %></td>
+  <td><%= place.send(:street) %></td>
+  <td><%= place.send(:city) %></td>
+  <td><%= place.send(:zip) %></td>
+  <td><%= place.send(:country) %></td>
+  <td><%= place.send(:overall) %></td>
+</tr>
+```
+
+As we also defined the method <code>Place.rendered_fields</code> to return the list <code>[ :id, :name, :status, :street, :city, :zip, :country, :overall ]</code>, we can generate the td-tags  with an <code>each</code> loop.
+
+```erb
+<tr>
+  <% Place.rendered_fields.each do |field| %>
+    <td><%= place.send(field) %></td>
+  <% end %>
+</tr>
+```
+
+Should you do this? It partly up to personal preferences. By defining the list of fields to render, we could also generate the table header row by looping:
+
+```erb
+<thead>
+  <% Place.rendered_fields.each do |field| %>
+    <td><%= field %></td>
+  <% end %>
+</thead>
+```
+
+If we now decided to add or remove some showable fields, it is enough to just edit the list defined in the class <code>Places</code>. No need to touch the template.
+
+```ruby
+class Place < OpenStruct
+  def self.rendered_fields
+    [ :id, :name, :status, :street, :city, :zip, :country, :overall ]
+  end
+end
+```
+
+## Names containing special characters
+
 Your application hides a small issue still. If you try to look for New York beer restaurants you will run into troubles. The space has to be replaced with the code %20 in the URL. The change should not be made 'by hand', because the space is not the only character which has to be coded into the URL. As you might have thought, Rails provides a ready-made solution for this, the method <code>ERB::Util.url_encode</code>. Try the method out from the console:
 
 ```ruby
-2.0.0-p451 :022 > ERB::Util.url_encode("St John's")
+> ERB::Util.url_encode("St John's")
  => "St%20John%27s"
-2.0.0-p451 :023 >
+>
 ```
 
 Implement the code change by replacing the HTTP GET request line with the following:
 
 ```ruby
-    response = HTTParty.get "#{url}#{ERB::Util.url_encode(params[:city])}"
+response = HTTParty.get "#{url}#{ERB::Util.url_encode(params[:city])}"
 ```
 
 > ## Exercise 1
