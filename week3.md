@@ -1556,4 +1556,4 @@ If you are using Visual Studio Code you can install the [ruby-rubocop](https://m
 
 Commit all your changes and push the code to Github. Deploy to the newest version to Heroku or Fly.io, too.
 
-Mark that the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
+Mark the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.

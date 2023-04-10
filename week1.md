@@ -1511,4 +1511,4 @@ _Deploying your application to Heroku/Fly.io is not obligatory. However it is hi
 
 If you use a private repository, add mluukkai as a collaborator.
 
-Report you done exercises at https://studies.cs.helsinki.fi/stats/courses/rails2022
+Mark the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022
