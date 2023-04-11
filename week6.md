@@ -420,7 +420,7 @@ The class can also be added to links which you want to look like buttons:
 ```
 
 > ## Exercise 2
-
+>
 > Add styles to your application for at least a couple of button and links. You may want to choose the style <code>btn btn-danger</code> for the delete operation.
 
 > ## Exercise 3
@@ -638,7 +638,7 @@ Brewery.active.where("year > 2000")
 
 
 > ## Exercises 6 – 7 (this equals two exercises)
-
+>
 > Your Ratings page is somehow boring now. Instead of the ratings, modify it to show:
 > - The three best beers and breweries based on the average rating scores
 > - The five last ratings which were made.
@@ -862,416 +862,362 @@ The administrator can reactivate frozen user names from the user's page
 
 ## Advanced authorization
 
-If your application needs a more diverse authorization, you may want to manage it with the help of the <em>cancan</em> gem, see <a href="https://github.com/CanCanCommunity/cancancan">https://github.com/CanCanCommunity/cancancan</a> and
-<a href="http://railscasts.com/episodes/192-authorization-with-cancan">http://railscasts.com/episodes/192-authorization-with-cancan</a>
+If your application needs a more diverse authorization, you may want to manage it with the help of the <em>cancan</em> gem, see https://github.com/CanCanCommunity/cancancan 
 
-The Rails cast page is old, and you had better take a look at the Github page of the project. Rails casts provide you with brilliant insights on various topics, so even though they may not be updated with all details any more, you may want to go through them in any case.
+## Rails application information security
 
+We haven't said anything about Rails applications' information security, so far. It's time to go into the topic now. Rails guides provide a brilliant overview on the most common data security threats for Web application and how you can prepare for them on Rails.
 
-<a id="user-content-rails-sovellusten-tietoturvasta" class="anchor" href="#rails-sovellusten-tietoturvasta" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rails applications information security
+> ## Exercises 14 – 16 (it is worth three points)
+>
+> Read https://guides.rubyonrails.org/security.html
+>
+> The text is long but the topic is important. If you want to optimize your time, skip sections 4, 5 and 7.4 – 7.8, 8, 9, and 10.
+>
+> You are done with the exercises once you understand the following topics
+>
+> - SQL injection
+> - CSRF
+> - XSS
+> - smart use of sessions
+>
+> It would be smart to read also the following links, as far as information security is concerned:
+>
+> - https://guides.rubyonrails.org/action_controller_overview.html#force-https-protocol
+> - https://guides.rubyonrails.org/action_controller_overview.html#log-filtering
 
-We haven't said anything about Rails applications information security, so far. It's time to go into the topic now. Rails guides provide a brilliant overview on the most common data security threats for Web application and how you can prepare for them on Rails.
+The documents above fail to stress that Rails <em>sanitates</em> (that is, escapes all the script and html tags) by default the input that is rendered on pages. So for instance if you try to input the javascript chunk <code> &lt;script&gt;alert(&#39;Evil XSS attack&#39;);&lt;/script&gt;</code> to describe the beer style, the code won't be executed, but it will be rendered on the page 'as text':
 
-<blockquote>
-
-<a id="user-content-tehtävät-12-14-kolmen-tehtävän-arvoinen" class="anchor" href="#teht%C3%A4v%C3%A4t-12-14-kolmen-teht%C3%A4v%C3%A4n-arvoinen" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercises 12 – 14 (it is worth three points)
-
-Read <a href="http://guides.rubyonrails.org/security.html">http://guides.rubyonrails.org/security.html</a>
-
-The text is long but the topic is relevant. If you want to optimize your time, leave behind sections 4, 5 and 7.4 – 7.8.
-
-You are done with the exercises once you know the following topics
-
-<ul>
-<li>SQL injection</li>
-<li>CSRF</li>
-<li>XSS</li>
-<li>smart use of sessions</li>
-</ul>
-
-You had better read also the following links, as far as information security is concerned:
-
-<ul>
-<li><a href="http://guides.rubyonrails.org/action_controller_overview.html#force-https-protocol">http://guides.rubyonrails.org/action_controller_overview.html#force-https-protocol</a></li>
-<li><a href="http://guides.rubyonrails.org/action_controller_overview.html#log-filtering">http://guides.rubyonrails.org/action_controller_overview.html#log-filtering</a></li>
-</ul>
-</blockquote>
-
-The documents above fail to stress that Rails <em>sanitates</em> (that is, escapes all the script and html tags) by default the input that is rendered on pages, so for instance if you try to input the javascript chunk <code> &lt;script&gt;alert('Evil XSS attack');&lt;/script&gt;</code> to describe the beer style, the code won't be executed, buy it will be rendered on the page 'as text':
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" alt="picture" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w5-7.png)
 
 If you take a look at the page source code, you'll notice that Rails has switched &lt; and &gt; signs of the HTML tags with the corresponding printing characters, where the input changes into normal text when it comes to the browser:
 
-<div class="highlight highlight-ruby"><pre> <span class="pl-k">&amp;</span>lt;script<span class="pl-k">&amp;</span>gt;alert(<span class="pl-k">&amp;</span><span class="pl-c">#39;Evil XSS attack&amp;#39;);&amp;lt;/script&amp;gt;</span></pre></div>
+```ruby
+ &lt;script&gt;alert(&#39;Evil XSS attack&#39;);&lt;/script&gt;
+```
 
-The default sanitation can be 'disconnected' by making an explicit request with the help of the method <code>raw</code>, so that the contents are rendered on the page as they are. If you changed in the following the way the style description is rendered
+The default sanitation can be 'turned off' by making an explicit request with the help of the method <code>raw</code>, so that the contents are rendered on the page as they are. If you changed in the following the way the style description is rendered
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">&lt;</span>p<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span><span class="pl-k">%=</span> raw(<span class="pl-smi">@style</span>.description) <span class="pl-s"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s">&lt;/p<span class="pl-pds">&gt;</span></span></pre></div>
+```ruby
+<p>
+  <%= raw(@style.description) %>
+</p>
+```
 
 the javascript code is executed while it is rendered:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" alt="picture" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w5-8.png)
 
-More info at <a href="http://www.railsdispatch.com/posts/security">http://www.railsdispatch.com/posts/security</a> and <a href="http://railscasts.com/episodes/204-xss-protection-in-rails-3">http://railscasts.com/episodes/204-xss-protection-in-rails-3</a>
-
-
-<a id="user-content-metaohjelmointia-mielipanimoiden-ja-tyylin-refaktorointi" class="anchor" href="#metaohjelmointia-mielipanimoiden-ja-tyylin-refaktorointi" aria-hidden="true"><span class="octicon octicon-link"></span></a>Metaohjelmointia: mielipanimoiden ja tyylin refaktorointi
-
-In the exercises 3 and 4 of week 4 (see <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#teht%C3%A4v%C3%A4-3">https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#teht%C3%A4v%C3%A4-3</a>) you implemented the methods to find out a person's favourite brewery and beer style. The following is a straight solution to implement the methods <code>favorite_style</code> and <code>favorite_brewery</code>:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">User</span>
-  <span class="pl-c"># ...</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">favorite_brewery</span>
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-    brewery_ratings <span class="pl-k">=</span> rated_breweries.inject([]) <span class="pl-k">do </span>|<span class="pl-smi">ratings</span>, <span class="pl-smi">brewery</span>|
-      ratings <span class="pl-k">&lt;&lt;</span> {
-        <span class="pl-c1">brewery:</span> brewery,
-        <span class="pl-c1">rating:</span> rating_of_brewery(brewery) }
-    <span class="pl-k">end</span>
-
-    brewery_ratings.sort_by { |<span class="pl-smi">brewery</span>| brewery[<span class="pl-c1">:rating</span>] }.last[<span class="pl-c1">:brewery</span>]
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">favorite_style</span>
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-    style_ratings <span class="pl-k">=</span> rated_styles.inject([]) <span class="pl-k">do </span>|<span class="pl-smi">ratings</span>, <span class="pl-smi">style</span>|
-      ratings <span class="pl-k">&lt;&lt;</span> {
-        <span class="pl-c1">style:</span> style,
-        <span class="pl-c1">rating:</span> rating_of_style(style) }
-    <span class="pl-k">end</span>
-
-    style_ratings.sort_by { |<span class="pl-smi">style</span>| style[<span class="pl-c1">:rating</span>] }.last[<span class="pl-c1">:style</span>]
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">rated_breweries</span>
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.brewery }.uniq
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">rated_styles</span>
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.style }.uniq
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">rating_of_brewery</span>(<span class="pl-smi">brewery</span>)
-    ratings_of_brewery <span class="pl-k">=</span> ratings.select <span class="pl-k">do </span>|<span class="pl-smi">r</span>|
-      r.beer.brewery <span class="pl-k">==</span> brewery
-    <span class="pl-k">end</span>
-    ratings_of_brewery.map(<span class="pl-k">&amp;</span><span class="pl-c1">:score</span>).sum <span class="pl-k">/</span> ratings_of_brewery.count
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">rating_of_style</span>(<span class="pl-smi">style</span>)
-    ratings_of_style <span class="pl-k">=</span> ratings.select <span class="pl-k">do </span>|<span class="pl-smi">r</span>|
-      r.beer.style <span class="pl-k">==</span> style
-    <span class="pl-k">end</span>
-    ratings_of_style.map(<span class="pl-k">&amp;</span><span class="pl-c1">:score</span>).sum <span class="pl-k">/</span> ratings_of_style.count
-  <span class="pl-k">end</span></pre></div>
-
-Take a look at the method you can use to find out the best breweries. You have two auxiliary methods. The user's rated breweries (that is, the breweries where a user has rated at least one beer) can be accessed in the following way (see <a href="http://www.google.com">http://www.google.com</a> if you don't know the idea behind the map command):
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">rated_breweries</span>
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.brewery }.uniq
-  <span class="pl-k">end</span></pre></div>
-
-Another auxiliary method finds out the average value of a particular brewery (see the methods select and map, and check <a href="http://www.google.com">http://www.google.com</a> if you need):
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">rating_of_brewery</span>(<span class="pl-smi">brewery</span>)
-    ratings_of_brewery <span class="pl-k">=</span> ratings.select <span class="pl-k">do </span>|<span class="pl-smi">r</span>|
-      r.beer.brewery <span class="pl-k">==</span> brewery
-    <span class="pl-k">end</span>
-    ratings_of_brewery.map(<span class="pl-k">&amp;</span><span class="pl-c1">:score</span>).sum <span class="pl-k">/</span> ratings_of_brewery.count
-  <span class="pl-k">end</span></pre></div>
-
-The method to find the best brewery goes through all breweries first and it finds out the average value of their ratings. The result is a table like <code> [ { brewery: 'Koff', rating:10}, {brewery: 'Stadinpanimo', 27 }, {brewery:'Schlenkerla', rating:35}, {brewery:Karjala, rating:18}]</code> (the table does not contain brewery names but brewery objects, actually). The table is sorted against the value of <code>rating</code>. The method returns the first brewery of the last item of the sorted table, in our example the Schlenkerla object.
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite_brewery</span>
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-
-    brewery_ratings <span class="pl-k">=</span> rated_breweries.inject([]) <span class="pl-k">do </span>|<span class="pl-smi">ratings</span>, <span class="pl-smi">brewery</span>|
-      ratings <span class="pl-k">&lt;&lt;</span> {
-        <span class="pl-c1">brewery:</span> brewery,
-        <span class="pl-c1">rating:</span> rating_of_brewery(brewery) }
-    <span class="pl-k">end</span>
-
-    brewery_ratings.sort_by { |<span class="pl-smi">brewery</span>| brewery[<span class="pl-c1">:rating</span>] }.last[<span class="pl-c1">:name</span>]
-  <span class="pl-k">end</span></pre></div>
-
-The inject command which creates the table <code>brewery_ratings</code> is nothing but a compact way to write this:
-
-<div class="highlight highlight-ruby"><pre>  brewery_ratings <span class="pl-k">=</span> []
-
-  rated_breweries.each <span class="pl-k">do </span>|<span class="pl-smi">brewery</span>|
-    object <span class="pl-k">=</span> {
-      <span class="pl-c1">brewery:</span> brewery,
-      <span class="pl-c1">rating:</span> rating_of_brewery(brewery)
-    }
-    brewery_ratings <span class="pl-k">&lt;&lt;</span> object
-  <span class="pl-k">end</span></pre></div>
-
-Notice that <code>favorite_style</code> works according the <em>exactly</em> same principle, and the method itself as well as the auxiliary methods it makes use of are actually only copy-paste of the code to find the best brewery.
-
-Because our software has a wide range of tests, it's easy to refactor the copy-paste. Have a look at the following auxiliary methods first:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">rated_breweries</span>
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.brewery }.uniq
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">rated_styles</span>
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.style }.uniq
-  <span class="pl-k">end</span></pre></div>
-
-The only difference in the methods is with the code chunk of the <code>map</code> method, where the method calls a beer object that belongs to the rating. The method to call can also be given as parameter. In such case, instead of writing an explicit call, the method is called with the help of the <code>send</code> method:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">rated</span>(<span class="pl-smi">category</span>)
-    ratings.map{ |<span class="pl-smi">r</span>| r.beer.send(category) }.uniq
-  <span class="pl-k">end</span></pre></div>
-
-The method can now be used in the following way:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">037</span> <span class="pl-k">&gt;</span> u <span class="pl-k">=</span> <span class="pl-c1">User</span>.first
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :038 <span class="pl-k">&gt;</span> u.rated <span class="pl-c1">:style</span>
-=&gt; [<span class="pl-c">#&lt;Style id: 1, name: "Lager", description: "Similar to the Munich Helles story, many European ...", created_at: "2015-02-07 18:12:03", updated_at: "2015-02-12 13:24:47"&gt; ...]</span>
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :039 <span class="pl-k">&gt;</span> u.rated <span class="pl-c1">:brewery</span>
- =&gt; [<span class="pl-c">#&lt;Brewery id: 1, name: "Koff", year: 1897, created_at: "2015-01-11 14:29:22", updated_at: "2015-02-12 14:02:01", active: true&gt;, #&lt;Brewery id: 4, name: "BrewDog", year: 2007, created_at: "2015-01-17 13:11:51", updated_at: "2015-02-12 14:02:01", active: true&gt;, #&lt;Brewery id: 3, name: "Weihenstephaner", year: 1042, created_at: "2015-01-11 14:29:22", updated_at: "2015-02-12 14:02:01", active: true&gt;, #&lt;Brewery id: 2, name: "Malmgard", year: 2001, created_at: "2015-01-11 14:29:22", updated_at: "2015-02-12 14:07:55", active: true&gt;]</span></pre></div>
-
-You can give a parameter to the method to compute the average value of style and brewery ratings according to category, as before:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">rating_of</span>(<span class="pl-smi">category</span>, <span class="pl-smi">item</span>)
-    ratings_of_item <span class="pl-k">=</span> ratings.select <span class="pl-k">do </span>|<span class="pl-smi">r</span>|
-      r.beer.send(category) <span class="pl-k">==</span> item
-    <span class="pl-k">end</span>
-    ratings_of_item.map(<span class="pl-k">&amp;</span><span class="pl-c1">:score</span>).sum <span class="pl-k">/</span> ratings_of_item.count
-  <span class="pl-k">end</span></pre></div>
-
-So, first of all it looks for the ratings for the brewery or beer style that was given as parameter. After that, it computes the average value in the normal way.
-
-The method works as espected:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">051</span> <span class="pl-k">&gt;</span> lager <span class="pl-k">=</span> <span class="pl-c1">Style</span>.first
- =&gt; <span class="pl-c">#&lt;Style id: 1, name: "Lager", description: "Similar to the Munich Helles story, many European ..." &gt;</span>
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">052</span> <span class="pl-k">&gt;</span> u.rating_of(<span class="pl-c1">:style</span>, lager)
- =&gt; <span class="pl-c1">18</span></pre></div>
-
-With the new auxiliary methods, you can easily create a method to find out users favourite brewery and favourite style, according to what parameter you give to the method:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite</span>(<span class="pl-smi">category</span>)
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-
-    category_ratings <span class="pl-k">=</span> rated(category).inject([]) <span class="pl-k">do </span>|<span class="pl-smi">set</span>, <span class="pl-smi">item</span>|
-      set <span class="pl-k">&lt;&lt;</span> {
-        <span class="pl-c1">item:</span> item,
-        <span class="pl-c1">rating:</span> rating_of(category, item) }
-    <span class="pl-k">end</span>
-
-    category_ratings.sort_by { |<span class="pl-smi">item</span>| item[<span class="pl-c1">:rating</span>] }.last[<span class="pl-c1">:item</span>]
-  <span class="pl-k">end</span></pre></div>
-
-Try out the console:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">063</span> <span class="pl-k">&gt;</span> u.favorite <span class="pl-c1">:brewery</span>
- =&gt; <span class="pl-c">#&lt;Brewery id: 2, name: "Malmgard", year: 2001, created_at: "2015-01-11 14:29:22", updated_at: "2015-02-12 14:07:55", active: true&gt;</span>
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">065</span> <span class="pl-k">&gt;</span> u.favorite <span class="pl-c1">:style</span>
- =&gt; <span class="pl-c">#&lt;Style id: 3, name: "Baltic porter", description: "Porters of the late 1700's were quite strong compa...", created_at: "2015-02-07 18:12:03", updated_at: "2015-02-07 18:24:28"&gt;</span></pre></div>
-
-The methods to find out favourite style and brewery can then be modified so that they will delegate their functionality to new methods:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite_brewery</span>
-    favorite <span class="pl-c1">:brewery</span>
-  <span class="pl-k">end</span>
-
-  <span class="pl-k">def</span> <span class="pl-en">favorite_style</span>
-    favorite <span class="pl-c1">:style</span>
-  <span class="pl-k">end</span></pre></div>
-
-In addition to getting rid of the copy-paste, the solution brings along also another benefit. If you define a new "attribute," like colour, you will simultaneously get a method to find the favourite colour:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite_color</span>
-    favorite <span class="pl-c1">:color</span>
-  <span class="pl-k">end</span></pre></div>
+More info at http://www.railsdispatch.com/posts/security and http://railscasts.com/episodes/204-xss-protection-in-rails-3
 
 
-<a id="user-content-method_missing" class="anchor" href="#method_missing" aria-hidden="true"><span class="octicon octicon-link"></span></a>method_missing
+## Epilogue; Refactoring favorite breweries and style
 
-In fact, it would aslo be possible to use methods like <code>favorite_style</code> and <code>favorite_brewery</code>  without defining them explicitly.
+There are no more exercises for this week. It is enough that you read the following material. Next week's material is in no way dependent on the refactoring ending this week.
 
-Comment away all the methods in your code for a second.
+In the exercises 3 and 4 of week 4 (see https://github.com/mluukkai/webdevelopment-rails/blob/main/week4.md#exercise-3) you implemented the methods to find out a person's favourite brewery and beer style. The following is a straightforward solution to implement the methods <code>favorite_style</code> and <code>favorite_brewery</code>:
+
+```ruby
+class User
+  # ...
+  def favorite_style
+    return nil if ratings.empty?
+
+    style_ratings = ratings.group_by{ |r| r.beer.style }
+    averages = style_ratings.map do |style, ratings|
+      { style: style, score: average_of(ratings) }
+    end
+
+    averages.max_by{ |r| r[:score] }[:style]
+  end
+
+  def favorite_brewery
+    return nil if ratings.empty?
+
+    brewery_ratings = ratings.group_by{ |r| r.beer.brewery }
+    averages = brewery_ratings.map do |brewery, ratings|
+      { brewery: brewery, score: average_of(ratings) }
+    end
+
+    averages.max_by{ |r| r[:score] }[:brewery]
+  end
+
+  def average_of(ratings)
+    ratings.sum(&:score).to_f / ratings.count
+  end
+end
+```
+
+Take a look at the method you can use to find out the favorite breweries. 
+
+```ruby
+def favorite_brewery
+  return nil if ratings.empty?
+
+  brewery_ratings = ratings.group_by{ |r| r.beer.brewery }
+  averages = brewery_ratings.map do |brewery, ratings|
+    { brewery: brewery, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:brewery]
+end
+```
+
+After checking for corner cases (no ratings at all), the method groups the ratings by their associated breweries (see [group_by](https://ruby-doc.org/core-2.5.1/Enumerable.html#method-i-group_by)):
+
+```ruby
+brewery_ratings = ratings.group_by{ |r| r.beer.brewery }
+```
+
+The operation produces a _hash_ whose keys are the breweries that the user has rated and the values are the ratings done by the user for each brewery.
+
+The hash looks something like this
+
+```
+{
+  { name: "koff" }: [
+    { score: 10, beer_id: 3, user_id: 1 }, { score: 17, beer_id: 4, user_id: 1 }
+  ],
+  { name: "karjala" }: [
+    { score: 20, beer_id: 7, user_id: 1 }, { score: 40, beer_id: 11, user_id: 1 }, { score: 9, beer_id: 8, user_id: 1 }
+  ],
+  { name: "weihenstephan" }: [
+    { score: 44, beer_id: 12, user_id: 1 }
+  ],
+}
+```
+
+The next command
+
+```ruby
+averages = brewery_ratings.map do |brewery, ratings|
+  { brewery: brewery, score: average_of(ratings) }
+end
+```
+
+forms a table. Its items are hashes that contain a brewery and the average of its ratings.
+
+
+```
+[
+  {
+    brewery: { name: "koff" },
+    score: 17
+  },
+  {
+    brewery: { name: "karjala" },
+    score: 21
+  },
+  {
+    brewery: { name: "weihenstephan" },
+    score: 40
+  }
+]
+```
+
+The last row of the method chooses the item with highest _score_ value and returns the brewery matching it.
+
+```ruby
+averages.max_by{ |r| r[:score] }[:brewery]
+```
+
+The method that finds out your favorite style is structured exactly the same and with some refactoring we can build some generalized code that can be used to find out both favorite brewery and style.
+
+First, make the helper methods and hash key values used by the method match each other
+
+
+```ruby
+def favorite_style
+  return nil if ratings.empty?
+
+  grouped_ratings = ratings.group_by{ |r| r.beer.style }
+  averages = grouped_ratings.map do |group, ratings|
+    { group: group, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:group]
+end
+
+def favorite_brewery
+  return nil if ratings.empty?
+
+  grouped_ratings = ratings.group_by{ |r| r.beer.brewery }
+  averages = grouped_ratings.map do |group, ratings|
+    { group: group, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:group]
+end
+```
+
+Tests still pass so no functionality has been changed. Both methods are now nearly identical, the only difference is in the _group_by_ method block
+
+```ruby
+grouped_ratings = ratings.group_by{ |r| r.beer.style }
+grouped_ratings = ratings.group_by{ |r| r.beer.brewery }
+```
+
+You can make these rows match by calling the method indirectly with the [send](https://github.com/mluukkai/webdevelopment-rails/blob/main/week5.md#calling-object-methods-with-the-send-method) method which is familiar from last week.
+
+```ruby
+def favorite_style
+  groupped_by = :style
+  return nil if ratings.empty?
+
+  grouped_ratings = ratings.group_by{ |r| r.beer.send(groupped_by) }
+  averages = grouped_ratings.map do |group, ratings|
+    { group: group, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:group]
+end
+
+def favorite_brewery
+  groupped_by = :brewery
+  return nil if ratings.empty?
+
+  grouped_ratings = ratings.group_by{ |r| r.beer.send(groupped_by) }
+  averages = grouped_ratings.map do |group, ratings|
+    { group: group, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:group]
+end
+```
+
+The tests once again confirm that the functionality stays unchanged.
+
+The methods are now completely identical apart from the value of the variable _groupped_by_. Move the common logic to its own method
+
+```ruby
+def favorite_style
+  favorite(:style)
+end
+
+def favorite_brewery
+  favorite(:brewery)
+end
+
+def favorite(groupped_by)
+  return nil if ratings.empty?
+
+  grouped_ratings = ratings.group_by{ |r| r.beer.send(groupped_by) }
+  averages = grouped_ratings.map do |group, ratings|
+    { group: group, score: average_of(ratings) }
+  end
+
+  averages.max_by{ |r| r[:score] }[:group]
+end
+```
+
+Tests still pass and the copy-paste is gone!
+
+On top of removing copy-paste, the new solution makes it very easy to handle any possible new "attributes", say color for beer. We can find your favorite color in the same way:
+
+```ruby
+  def favorite_color
+    favorite :color
+  end
+```
+
+
+## method_missing
+
+In fact, it would also be possible to use methods like <code>favorite_style</code> and <code>favorite_brewery</code>  without defining them explicitly.
+
+Comment out these methods in your code for a second.
 
 If you called an inexistent method of an object (not being defined in the class itself, in the parent classes or in any module contained in its class or parent classes), like
 
-<div class="highlight highlight-ruby"><pre>jD4h4lsgC1drWwIy2O...<span class="pl-s"><span class="pl-pds">"</span>, admin: true, is_frozen: nil&gt;</span>
-<span class="pl-s">2.0.0-p451 :069 &gt; u.paras_bisse</span>
-<span class="pl-s">NoMethodError: undefined method `paras_bisse' for #&lt;User:0x000001059cb0c0&gt;</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activemodel-4.1.5/lib/active_model/attribute_methods.rb:435:in `method_missing'</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activerecord-4.1.5/lib/active_record/attribute_methods.rb:208:in `method_missing'</span>
-<span class="pl-s">  from (irb):69</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/railties-4.1.5/lib/rails/commands/console.rb:90:in `start'</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/railties-4.1.5/lib/rails/commands/console.rb:9:in `start'</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/railties-4.1.5/lib/rails/commands/commands_tasks.rb:69:in `console'</span>
-<span class="pl-s">2.0.0-p451 :070 &gt;</span></pre></div>
+```ruby
+> u = User.first
+> u.best_beer
+NoMethodError: undefined method `best_beer' for #<User:0x00007f9b415269d8>
+from /Users/mluukkai/.rbenv/versions/2.5.1/lib/ruby/gems/2.5.0/gems/activemodel-5.2.1/lib/active_model/attribute_methods.rb:430:in `method_missing'b:69:in `console'
+>
+```
 
-the result is that the Ruby translator calls a method called <code>method_missing</code> of that class, which has an unknown method name as parameter. All Ruby's classes inherit the class <code>Object</code> which defines the method <code>method_missing</code>. Classes may need to overwrite this method and get "methods" which are not existent, but that work as normal methods as far as the caller knows.
+the result is that the Ruby translator calls the <code>method_missing</code> method of the object, which has an unknown method name as parameter. All Ruby's classes inherit the class <code>Object</code> which defines the method <code>method_missing</code>. 
+
+Classes may need to overwrite this method and get "methods" which are not existent, but that work as normal methods as far as the caller knows.
 
 Rails uses <code>method_missing</code> internally in many situations. You can not overwrite it straight, you will have to delegate the <code>method_missing</code> calls to the parent class unless you want to handle them yourself.
 
 Have a try and define the following <code>method_missing</code> for the class <code>User</code>:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">method_missing</span>(<span class="pl-smi">method_name</span>, <span class="pl-k">*</span><span class="pl-smi">args</span>, <span class="pl-k">&amp;</span><span class="pl-smi">block</span>)
-    puts <span class="pl-s"><span class="pl-pds">"</span>nonexisting method <span class="pl-pse">#{</span><span class="pl-s1">method_name</span><span class="pl-pse"><span class="pl-s1">}</span></span> was called with parameters: <span class="pl-pse">#{</span><span class="pl-s1">args</span><span class="pl-pse"><span class="pl-s1">}</span></span><span class="pl-pds">"</span></span>
-    <span class="pl-k">return</span> <span class="pl-k">super</span>
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def method_missing(method_name, *args, &block)
+  puts "nonexisting method #{method_name} was called with parameters: #{args}"
+  return super
+end
+```
 
 And see what happens:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">072</span> <span class="pl-k">&gt;</span> u.paras_bisse
-nonexisting method paras_bisse was called with <span class="pl-c1">parameters:</span> []
-<span class="pl-c1">NoMethodError:</span> undefined method <span class="pl-s"><span class="pl-pds">`</span>paras_bisse' for #&lt;User:0x000001016af8e0&gt;</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activemodel-4.1.5/lib/active_model/attribute_methods.rb:435:in <span class="pl-pds">`</span></span>method_missing<span class="pl-s"><span class="pl-pds">'</span></span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activerecord-4.1.5/lib/active_record/attribute_methods.rb:208:in `method_missing<span class="pl-pds">'</span></span>
-  from <span class="pl-k">/</span><span class="pl-c1">Users</span><span class="pl-k">/</span>mluukkai<span class="pl-k">/</span>kurssirepot<span class="pl-k">/</span>ratebeer<span class="pl-k">/</span>app<span class="pl-k">/</span>models<span class="pl-k">/</span>user.<span class="pl-c1">rb:</span><span class="pl-c1">30</span><span class="pl-c1">:in</span> <span class="pl-s"><span class="pl-pds">`</span>method_missing'</span>
-<span class="pl-s">2.0.0-p451 :073 &gt;</span></pre></div>
+```ruby
+> u.best_beer
+nonexisting method best_beer was called with parameters: []
+NoMethodError: undefined method `best_beer' for #<User:0x00007f9b41c02ef0>
+from /Users/mluukkai/.rbenv/versions/2.5.1/lib/ruby/gems/2.5.0/gems/activemodel-5.2.1/lib/active_model/attribute_methods.rb:430:in `method_missing'
+```
 
 As you see above, <code>method_missing</code> has been executed. You can overwrite it in the following way:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">method_missing</span>(<span class="pl-smi">method_name</span>, <span class="pl-k">*</span><span class="pl-smi">args</span>, <span class="pl-k">&amp;</span><span class="pl-smi">block</span>)
-    <span class="pl-k">if</span> method_name <span class="pl-k">=~</span> <span class="pl-sr"><span class="pl-pds">/</span>^favorite_<span class="pl-pds">/</span></span>
-      category <span class="pl-k">=</span> method_name[<span class="pl-c1">9</span>..<span class="pl-k">-</span><span class="pl-c1">1</span>].to_sym
-      <span class="pl-v">self</span>.favorite category
-    <span class="pl-k">else</span>
-      <span class="pl-k">return</span> <span class="pl-k">super</span>
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span></pre></div>
-
-All the method calls that start with <code>favorite_</code> and that are unknown will be handled in the following way: the part after the underscore will be separated and the obect will be called the method <code>favorite</code> so that the part after the underscore stands for the parameter defining the category.
+```ruby
+def method_missing(method_name, *args, &block)
+  if method_name =~ /^favorite_/
+    category = method_name[9..-1].to_sym
+    self.favorite category
+  else
+    return super
+  end
+end
+```
 
 Now the methods <code>favorite_brewery</code> and <code>favorite_style</code> "exist" and work properly:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">076</span> <span class="pl-k">&gt;</span> u <span class="pl-k">=</span> <span class="pl-c1">User</span>.first
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :<span class="pl-c1">077</span> <span class="pl-k">&gt;</span> u.favorite_brewery.name
- =&gt; <span class="pl-s"><span class="pl-pds">"</span>Malmgard<span class="pl-pds">"</span></span>
-<span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :078 <span class="pl-k">&gt;</span> u.favorite_style.name
-  =&gt; <span class="pl-s"><span class="pl-pds">"</span>Baltic porter<span class="pl-pds">"</span></span></pre></div>
+```ruby
+> u = User.first
+> u.favorite_brewery.name
+ => "Malmgard"
+> u.favorite_style.name
+  => "Baltic porter"
+```
 
-The problem now is that whatever method that starts with favorite_ "would work", but it would cause an error which is far from being optimal.
 
-<div class="highlight highlight-ruby"><pre><span class="pl-c1">2.0</span>.<span class="pl-c1">0</span><span class="pl-k">-</span>p451 :079 <span class="pl-k">&gt;</span> u.favorite_movie
-<span class="pl-c1">NoMethodError:</span> undefined method <span class="pl-s"><span class="pl-pds">`</span>movie' for #&lt;Beer:0x00000105a18690&gt;</span>
-<span class="pl-s">  from /Users/mluukkai/.rvm/gems/ruby-2.0.0-p451/gems/activemodel-4.1.5/lib/active_model/attribute_methods.rb:435:in <span class="pl-pds">`</span></span>method_missing<span class="pl-s"><span class="pl-pds">'</span></span></pre></div>
+The problem now is that whatever method that starts with favorite*_ "would work", but it would cause an error which might not be optimal.
+
+```ruby
+> u.favorite_movie
+NoMethodError: undefined method `movie' for #<Beer:0x00007f9b408599f8>
+from /Users/mluukkai/.rbenv/versions/2.5.1/lib/ruby/gems/2.5.0/gems/activemodel-5.2.1/lib/active_model/attribute_methods.rb:430:in `method_missing'
+```
 
 Ruby provides various opportunities to define what <code>favorite_</code> methods are accepted. You could implement for instance this very Ruby-like way to define it:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">User<span class="pl-e"> &lt; ActiveRecord::Base</span></span>
-  <span class="pl-k">include</span> <span class="pl-c1">RatingAverage</span>
+```ruby
+class User < ApplicationRecord
+  include RatingAverage
 
-  favorite_available_by <span class="pl-c1">:style</span>, <span class="pl-c1">:brewery</span>
+  favorite_available_by :style, :brewery
 
-  <span class="pl-c"># ...</span>
-<span class="pl-k">end</span></pre></div>
+  # ...
+end
+```
 
-This is not the time to go too much deeper into it. This would be useful only if favorite_ methods could be used in other calsses too.
+This is not the time to go too much deeper into it. This would be useful only if favorite_ methods could be used in other classes too.
 
 You can end here the implementation with method_missing and go back to the versions that had been commented away at the beginning of the chapter.
 
 If the things that have been explained in this chapter are interesting for you, you can continue with the following:
 
-<ul>
-<li><a href="http://rubymonk.com/learning/books/5-metaprogramming-ruby-ascent">http://rubymonk.com/learning/books/5-metaprogramming-ruby-ascent</a></li>
-<li><a href="http://rubymonk.com/learning/books/2-metaprogramming-ruby">http://rubymonk.com/learning/books/2-metaprogramming-ruby</a></li>
-<li><a href="https://github.com/sathish316/metaprogramming_koans">https://github.com/sathish316/metaprogramming_koans</a></li>
-<li>also the book <a href="http://www.amazon.com/Eloquent-Ruby-Addison-Wesley-Professional-Series/dp/0321584104">Eloquent Ruby</a> is a good reference on the topic</li>
-</ul>
+- https://github.com/sathish316/metaprogramming_koans
+- also the book [Eloquent Ruby](http://www.amazon.com/Eloquent-Ruby-Addison-Wesley-Professional-Series/dp/0321584104) covers the topic quite well
 
+## Submitting the exercises
 
-<a id="user-content-tehtävien-palautus" class="anchor" href="#teht%C3%A4vien-palautus" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävien palautus
+Commit all your changes and push the code to Github. Deploy to the newest version of Heroku or Fly.io, too. Remember to check with Rubocop that your code still adheres to style rules. 
 
-Commit all the changes that you have done and push the code in Github. Deploy also the newest version into Heroku.
+If you have problems with Heroku, remember to use <code>heroku logs</code> to view the logs. The same can be done for Fly.io with <code>fly logs</code>.
 
-You should mark that you have returned the exercises at <a href="http://wadrorstats2015.herokuapp.com/">http://wadrorstats2015.herokuapp.com/</a>
-</article>
-  </div>
-
-</div>
-
-<a href="#jump-to-line" rel="facebox[.linejump]" data-hotkey="l" style="display:none">Jump to Line</a>
-<div id="jump-to-line" style="display:none">
-  <form accept-charset="UTF-8" action="" class="js-jump-to-line-form" method="get"><div style="margin:0;padding:0;display:inline"><input name="utf8" type="hidden" value="&#x2713;" /></div>
-    <input class="linejump-input js-jump-to-line-field" type="text" placeholder="Jump to line&hellip;" autofocus>
-    <button type="submit" class="btn">Go</button>
-</form></div>
-
-        </div>
-
-      </div><!-- /.repo-container -->
-      <div class="modal-backdrop"></div>
-    </div><!-- /.container -->
-  </div><!-- /.site -->
-
-
-    </div><!-- /.wrapper -->
-
-      <div class="container">
-  <div class="site-footer" role="contentinfo">
-    <ul class="site-footer-links right">
-        <li><a href="https://status.github.com/" data-ga-click="Footer, go to status, text:status">Status</a></li>
-      <li><a href="https://developer.github.com" data-ga-click="Footer, go to api, text:api">API</a></li>
-      <li><a href="https://training.github.com" data-ga-click="Footer, go to training, text:training">Training</a></li>
-      <li><a href="https://shop.github.com" data-ga-click="Footer, go to shop, text:shop">Shop</a></li>
-        <li><a href="https://github.com/blog" data-ga-click="Footer, go to blog, text:blog">Blog</a></li>
-        <li><a href="https://github.com/about" data-ga-click="Footer, go to about, text:about">About</a></li>
-
-    </ul>
-
-    <a href="https://github.com" aria-label="Homepage">
-      <span class="mega-octicon octicon-mark-github" title="GitHub"></span>
-</a>
-    <ul class="site-footer-links">
-      <li>&copy; 2015 <span title="0.03953s from github-fe129-cp1-prd.iad.github.net">GitHub</span>, Inc.</li>
-        <li><a href="https://github.com/site/terms" data-ga-click="Footer, go to terms, text:terms">Terms</a></li>
-        <li><a href="https://github.com/site/privacy" data-ga-click="Footer, go to privacy, text:privacy">Privacy</a></li>
-        <li><a href="https://github.com/security" data-ga-click="Footer, go to security, text:security">Security</a></li>
-        <li><a href="https://github.com/contact" data-ga-click="Footer, go to contact, text:contact">Contact</a></li>
-    </ul>
-  </div>
-</div>
-
-
-    <div class="fullscreen-overlay js-fullscreen-overlay" id="fullscreen_overlay">
-  <div class="fullscreen-container js-suggester-container">
-    <div class="textarea-wrap">
-      <textarea name="fullscreen-contents" id="fullscreen-contents" class="fullscreen-contents js-fullscreen-contents" placeholder=""></textarea>
-      <div class="suggester-container">
-        <div class="suggester fullscreen-suggester js-suggester js-navigation-container"></div>
-      </div>
-    </div>
-  </div>
-  <div class="fullscreen-sidebar">
-    <a href="#" class="exit-fullscreen js-exit-fullscreen tooltipped tooltipped-w" aria-label="Exit Zen Mode">
-      <span class="mega-octicon octicon-screen-normal"></span>
-    </a>
-    <a href="#" class="theme-switcher js-theme-switcher tooltipped tooltipped-w"
-      aria-label="Switch themes">
-      <span class="octicon octicon-color-mode"></span>
-    </a>
-  </div>
-</div>
-
-
-
-    
-
-    <div id="ajax-error-message" class="flash flash-error">
-      <span class="octicon octicon-alert"></span>
-      <a href="#" class="octicon octicon-x flash-close js-ajax-error-dismiss" aria-label="Dismiss error"></a>
-      Something went wrong with that request. Please try again.
-    </div>
-
-
-      <script crossorigin="anonymous" src="https://assets-cdn.github.com/assets/frameworks-5c08de317e4054ec200d36d3b1361ddd3cb30c05c9070a9d72862ee28ab1d7f9.js"></script>
-      <script async="async" crossorigin="anonymous" src="https://assets-cdn.github.com/assets/github/index-bfb27c17548d6c05bbe36a476673446098f04766b4a2ce445e2ae9d5374622ff.js"></script>
-      
-      
-
-  </body>
-</html>
-
+Mark the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
