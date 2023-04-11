@@ -748,7 +748,7 @@ The view template really looks much better now.
 
 It would also be possible to separate the buttons code in their own partial, and it is a matter of taste which is the best solution here, whether a helper method or a partial.
 
-> ## Tehtävä 9
+> ## Exercice 9
 >
 > Most of the pages show the average rating value. Average values are Decimal types, so sometimes they are printed with too much precision even. Define an auxiliary method <code>round(param)</code> to render the average value of ratings. The medhod should always print its parameter with only <code>one</code> decimal digit precision. Make use of this helper method in the view templates (or at least in some of them).
 >
