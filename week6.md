@@ -332,523 +332,535 @@ The page background is good now, and you can use Bootstrap styles and components
 
 ### Notification
 
+Several application views contain the ĺine
 
+```erb
+<p id="notice"><%= notice %></p>
+```
+With which the user is shown different notoifications such as _Beer was successfully created._
 
+Notifications can be styled with Bootstrap's [alert](https://getbootstrap.com/docs/5.2/components/alerts/) component:
 
+```erb
+<% if notice %>
+  <div class="alert alert-primary" role="alert">
+    <%= notice %>
+  </div>
+<% end %>
+```
 
-The navigation was already defined with the help of the <em>navbar</em> component, see <a href="http://getbootstrap.com/components/#navbar">http://getbootstrap.com/components/#navbar</a>.
+Instead of editing every page containing the notification code, it is better to move the notification logic to a file _app/views/layout/application.html.erb_
 
-Next, you should modify the tables used on the page. You see from Bootstrap's page <a href="http://getbootstrap.com/css/#tables">http://getbootstrap.com/css/#tables</a> that you can use Bootstrap's default layout by adding the class <code>table</code> to the table HTML code, as it follows below:
+```erb
+<div class="container">
+  <% if notice %>
+    <div class="alert alert-primary" role="alert">
+      <%= notice %>
+    </div>
+  <% end %>
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>table<span class="pl-pds">"</span></span>&gt;
+  <div class="row">
+    ...
+  </div>
+</div>
+```
+
+and remove it from other view files like _app/views/beers/index.html.erb_
+
+If you use Visual Studio Code you can use the _replace in files_ functions to remove now redundant `<p id="notice"><%= notice %></p>` commands.
+
+### More components
+
+Bootstrap offers many different components. For example you can create stylish tables by using bootstrap's component https://getbootstrap.com/docs/5.2/content/tables/. You can use Bootstrap's default layout by adding the class <code>table</code> to the table HTML code, as it follows below:
+
+```erb
+<table class="table">
   ...
-&lt;/<span class="pl-ent">table</span>&gt;</pre></div>
+</table>
+```
 
-Try to add the class definition on the beers page and see what it looks like. It will already look much more professional. You want to add the class <code>table-hover</code> too. Thanks to this, if you move the mouse pointer on a line, this will become bold. The table class definition will be
+You want to add the class <code>table-hover</code> too. Thanks to this, if you move the mouse pointer on a line, this will become bold. The table class definition will be
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
+```erb
+<table class="table table-hover">
   ...
-&lt;/<span class="pl-ent">table</span>&gt;</pre></div>
+</table>
+```
 
-<blockquote>
+> ## Exercise 1
+>
+> The page listing all the beers becomes quite cumbersome when the number of beers grows. Make the beer page use a bootstrap styled [table](https://www.w3schools.com/html/html_tables.asp), see https://getbootstrap.com/docs/5.2/content/tables/
+>
+> If you edit a beer row using _partials_ file, remember to take this into consideration in other files. In this exercise it is recommendable to stop using the <code>_beer.html.erb</code> partial in rendering the beer table. Instead form the entire table in file <code>views/beers/index.html.erb</code>
 
-<a id="user-content-tehtävä-1" class="anchor" href="#teht%C3%A4v%C3%A4-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävä 1
+After the exercise your application can look something like this
 
-Change at least some of the application tables to use the Bootstrap styles.
-</blockquote>
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/beers-bootstrapped.png)
 
-Bootstrap also provides you with button styles <a href="http://getbootstrap.com/css/#buttons">http://getbootstrap.com/css/#buttons</a>
+
+
+Bootstrap also provides you with button styles https://getbootstrap.com/docs/5.2/components/buttons/
 
 Use the blue button which is defined by the class pair <code>btn btn-primary</code>. Below an example where the class has been added a button for beer rating:
 
-<div class="highlight highlight-erb"><pre>  &lt;<span class="pl-ent">h4</span>&gt;give a rating:&lt;/<span class="pl-ent">h4</span>&gt;
+```erb
+<h4>give a rating:<h4>
 
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> form_for(<span class="pl-smi">@rating</span>) <span class="pl-k">do </span>|<span class="pl-smi">f</span>| </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    <span class="pl-pse">&lt;%=</span><span class="pl-s1"> f.hidden_field <span class="pl-c1">:beer_id</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    score: <span class="pl-pse">&lt;%=</span><span class="pl-s1"> f.number_field <span class="pl-c1">:score</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    <span class="pl-pse">&lt;%=</span><span class="pl-s1"> f.submit <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
+<%= form_with(model: @rating) do |form| %>
+  <%= form.hidden_field :beer_id %>
+  score: <%= form.number_field :score %>
+  <%= form.submit "Create rating", class:"btn btn-primary" %>
+<% end %>
+```
 
-The class can also be added to links which should look like buttons:
+The class can also be added to links which you want to look like buttons:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>New Beer<span class="pl-pds">'</span></span>, new_beer_path, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">'</span>btn btn-primary<span class="pl-pds">'</span></span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
+```erb
+<%= link_to('New Beer', new_beer_path, class:'btn btn-primary') if current_user %>
+```
 
-<blockquote>
+> ## Exercise 2
 
-<a id="user-content-tehtävä-2" class="anchor" href="#teht%C3%A4v%C3%A4-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävä 2
+> Add styles to your application for at least a couple of button and links. You may want to choose the style <code>btn btn-danger</code> for the delete operation.
 
-Add styles to your application for at least a couple of button and links. You may want to choose the style <code>btn btn-danger</code> for the delete operation.
+> ## Exercise 3
+>
+> The application forms are still pretty ugly. Make at least the form for creating new beer clubs more stylish with Bootsrap [form](https://getbootstrap.com/docs/5.2/forms/overview/) styling components
+>
+> Note: If you use form helper methods like `select`, you might have to give the class in `html_options` hash. See [documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormBuilder.html#method-i-select). For example, for select the class would be given like this: `<%= f.select :field, choices, {}, { :class => "class-here" } %>`
+>
+> You can decide the style yourself. One way to style the form is:
 
-
-<a id="user-content-tehtävä-3" class="anchor" href="#teht%C3%A4v%C3%A4-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 3
-
-Change the navigation bar so that when users signs in, their signed-in user actions are listed in the menu bar. They should be contained in a drop down menu like the picture below.
-
-You find guidelines from the document <a href="http://getbootstrap.com/components/#nav-dropdowns">http://getbootstrap.com/components/#nav-dropdowns</a>
-</blockquote>
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-3.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-3.png" alt="kuva" style="max-width:100%;"></a>
-
-<blockquote>
-
-<a id="user-content-tehtävä-4" class="anchor" href="#teht%C3%A4v%C3%A4-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 4
-
-Make your Web site fashonable using some Bootstrap component. You can cross the exercise if you spend at least 15 minutes to improve the outlook of your pages. You also pass it if you use Bootstrap's styles to change the left-over application tables and buttons.
-</blockquote>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-3a.png)
 
 
-<a id="user-content-scopet" class="anchor" href="#scopet" aria-hidden="true"><span class="octicon octicon-link"></span></a>Scopet
+> ## Excercise 4
+> Change the navigation bar so that when users sign in, their signed-in user actions are contained in a drop down menu like in the picture below.
+>
+>You find guidelines from the [navbar documentation](https://getbootstrap.com/docs/5.2/components/navbar/) from examples containing _dropdown_ elements.
 
-Some of the breweries have expired and you want to distinguish them from the active breweries in the list. Add a boolean column to the brewery database that tells whether they are active. Create a migration:
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-3c.png)
 
-<pre><code>rails g migration AddActivityToBrewery active:boolean
-</code></pre>
+> If your dropdowns don't seem to work, make sure the requires and imports are in the right order in the file <code>application.js</code>, requires before imports.
 
-Attention: because the migration name starts with the word Add and ends in the object name, that is Brewery, and because it contains the information about the column to be added, the migration code is generated automatically.
+> ## Exercise 5
+>
+> Make part of your Web site fashionable using some Bootstrap component. You can mark this exercise if you spend at least 15 minutes to improve the outlook of your pages. 
 
-Execute the migration; then go to your console to mark by hand all the breweries in the database and make them active:
+## Brewery activity
 
-<div class="highlight highlight-ruby"><pre>irb(main):<span class="pl-c1">020</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> <span class="pl-c1">Brewery</span>.all.each{ |<span class="pl-smi">b</span>| b.active<span class="pl-k">=</span><span class="pl-c1">true</span>; b.save }</pre></div>
+Some of the breweries have gone out of bussiness and you want to distinguish them from the active breweries in the list. Add a boolean column to the brewery database that tells whether they are active. Create a migration:
+
+    rails g migration AddActivityToBrewery active:boolean
+
+
+Attention: because the migration name starts with the word Add and ends in the object name, that is Brewery, and because it contains the information about the column to be added, the right migration code is generated automatically. It is however smart to always check the generated code.
+
+```ruby
+class AddActivityToBrewery < ActiveRecord::Migration[7.0]
+  def change
+    add_column :breweries, :active, :boolean
+  end
+end
+```
+
+
+Execute the migration; then go to your console to mark by hand all the breweries in the database as active:
+
+```ruby
+> Brewery.all.each{ |b| b.active=true; b.save }
+```
 
 Go and create a new brewery so that your database will contain an inactive brewery too.
 
 Then change the brewery page so that next to the brewery name, it tells if the brewery is inactive:
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">h2</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@brewery</span>.name </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">if</span> <span class="pl-k">not</span> <span class="pl-smi">@brewery</span>.active  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-      &lt;<span class="pl-ent">span</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>label label-info<span class="pl-pds">"</span></span>&gt;retired&lt;/<span class="pl-ent">span</span>&gt;
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-&lt;/<span class="pl-ent">h2</span>&gt;
+```erb
+ <h2>
+  <%= brewery.name %>
+  <% if not brewery.active  %>
+    <span class="badge bg-secondary">retired</span>
+  <% end %>
+</h2>
+```
 
-&lt;<span class="pl-ent">p</span>&gt;
-  &lt;<span class="pl-ent">em</span>&gt;Established year:&lt;/<span class="pl-ent">em</span>&gt;
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@brewery</span>.year </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-&lt;/<span class="pl-ent">p</span>&gt;
 
-&lt;<span class="pl-ent">p</span>&gt;Number of beers <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@brewery</span>.beers.count</span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
+It makes sense to allow setting up the brewery activity from the forms to create and edit them. Add an activity setting checkbox to views/breweries/_form-html.erb:
 
-&lt;<span class="pl-ent">ul</span>&gt;
- <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-smi">@brewery</span>.beers.each <span class="pl-k">do </span>|<span class="pl-smi">beer</span>| </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-   &lt;<span class="pl-ent">li</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to beer.name, beer </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">li</span>&gt;
- <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-&lt;/<span class="pl-ent">ul</span>&gt;
-
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">if</span> <span class="pl-smi">@brewery</span>.ratings.empty? </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    &lt;<span class="pl-ent">p</span>&gt;beers of the brewery have not yet been rated! &lt;/<span class="pl-ent">p</span>&gt;
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">else</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    &lt;<span class="pl-ent">p</span>&gt;Has <span class="pl-pse">&lt;%=</span><span class="pl-s1"> pluralize(<span class="pl-smi">@brewery</span>.ratings.count,<span class="pl-s"><span class="pl-pds">'</span>rating<span class="pl-pds">'</span></span>) </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>, average <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@brewery</span>.average_rating </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">if</span> current_user </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>Edit<span class="pl-pds">'</span></span>, edit_brewery_path(<span class="pl-smi">@brewery</span>), <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span>  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>Destroy<span class="pl-pds">'</span></span>, <span class="pl-smi">@brewery</span>, <span class="pl-c1">method:</span> <span class="pl-c1">:delete</span>, <span class="pl-c1">data:</span> { <span class="pl-c1">confirm:</span> <span class="pl-s"><span class="pl-pds">'</span>Are you sure?<span class="pl-pds">'</span></span> }, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-danger<span class="pl-pds">"</span></span>  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
-
-It makes sense to allow setting up the brewery activity from the form to create and edit them. Add an activity setting checkbox to views/breweries/_form-html.erb:
-
-<div class="highlight highlight-erb"><pre>  &lt;<span class="pl-ent">div</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>field<span class="pl-pds">"</span></span>&gt;
-    <span class="pl-pse">&lt;%=</span><span class="pl-s1"> f.label <span class="pl-c1">:active</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-    <span class="pl-pse">&lt;%=</span><span class="pl-s1"> f.check_box <span class="pl-c1">:active</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  &lt;/<span class="pl-ent">div</span>&gt;</pre></div>
+```erb
+<div>
+  <%= form.label :active, style: "display: block" %>
+  <%= form.check_box :active %>
+</div>
+```
 
 Try this out. You will see that changing the activity does not work, however.
 
-The problem is that the attribute <code>active</code> is not among the attributes which allow for mass assignment.
+The problem is that the attribute <code>active</code> is not among the attributes which are allowed for mass assignment.
 
-Inspect the brewery controller a bit. Creating breweries and editing their information both require the information is retrived through the method <code>brewery_params</code>:
+Inspect the brewery controller a bit. Creating breweries and editing their information both retrieve the brewery information with the <code>brewery_params</code> method.
 
-<div class="highlight highlight-ruby"><pre>
-  <span class="pl-k">def</span> <span class="pl-en">create</span>
-    <span class="pl-smi">@brewery</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.<span class="pl-k">new</span>(brewery_params)
+```ruby
+def create
+  @brewery = Brewery.new(brewery_params)
 
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span>
+  # ...
+end
 
-  <span class="pl-k">def</span> <span class="pl-en">update</span>
-    <span class="pl-c"># ...</span>
-    <span class="pl-k">if</span> <span class="pl-smi">@brewery</span>.update(brewery_params)
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span>
+def update
+  # ...
+  if @brewery.update(brewery_params)
+  # ...
+end
 
-  <span class="pl-k">def</span> <span class="pl-en">brewery_params</span>
-    params.<span class="pl-k">require</span>(<span class="pl-c1">:brewery</span>).permit(<span class="pl-c1">:name</span>, <span class="pl-c1">:year</span>)
-  <span class="pl-k">end</span></pre></div>
+def brewery_params
+  params.require(:brewery).permit(:name, :year)
+end
+```
 
-As you've seen in <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko2.md#reittauksen-talletus">week 2</a> every attribute intended for mass assignment has to be explicitely allowed through the method <code>permit</code>. Change the method <code>brewery_params</code> as it follows:
+As you've seen in [week 2](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#saving-a-rating) every attribute intended for mass assignment has to be explicitely allowed through the method <code>permit</code>. Change the method <code>brewery_params</code> as it follows:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">brewery_params</span>
-    params.<span class="pl-k">require</span>(<span class="pl-c1">:brewery</span>).permit(<span class="pl-c1">:name</span>, <span class="pl-c1">:year</span>, <span class="pl-c1">:active</span>)
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def brewery_params
+  params.require(:brewery).permit(:name, :year, :active)
+end
+```
 
-You want to show the active and inactive breweries separately in the breweries list. A straight-forward solution is saving the active and inactive ones with the controller using own values:
+You want to show the active and inactive breweries separately in the breweries list. A straight-forward solution is saving the active and inactive ones with the controller using separate variables:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-smi">@active_breweries</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.where(<span class="pl-c1">active:</span><span class="pl-c1">true</span>)
-    <span class="pl-smi">@retired_breweries</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.where(<span class="pl-c1">active:</span>[<span class="pl-c1">nil</span>, <span class="pl-c1">false</span>])
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def index
+  @active_breweries = Brewery.where(active: true)
+  @retired_breweries = Brewery.where(active: [nil, false])
+end
+```
 
 The value <code>active</code> of the field can either be explicitally set as <code>false</code> or <code>nil</code>; we had to add both options to the last <code>where</code> sentence so that they both refer to inactive breweries.
 
 Copy paste the table in the view twice, for the active and inactive ones:
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">h1</span>&gt;Breweries&lt;/<span class="pl-ent">h1</span>&gt;
+```erb
 
-&lt;<span class="pl-ent">h2</span>&gt;Active&lt;/<span class="pl-ent">h2</span>&gt;
+<h1>Breweries</h1>
 
-&lt;<span class="pl-ent">p</span>&gt; Number of active breweries: <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@active_breweries</span>.count </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
+<h2>Active</h2>
 
-&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-  &lt;<span class="pl-ent">thead</span>&gt;
-    &lt;<span class="pl-ent">tr</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Name&lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Year&lt;/<span class="pl-ent">th</span>&gt;
-    &lt;/<span class="pl-ent">tr</span>&gt;
-  &lt;/<span class="pl-ent">thead</span>&gt;
+<p> Number of active breweries: <%= @active_breweries.count %> </p>
 
-  &lt;<span class="pl-ent">tbody</span>&gt;
-    <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-smi">@active_breweries</span>.each <span class="pl-k">do </span>|<span class="pl-smi">brewery</span>| </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-      &lt;<span class="pl-ent">tr</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to brewery.name, brewery </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> brewery.year </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;/<span class="pl-ent">tr</span>&gt;
-    <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  &lt;/<span class="pl-ent">tbody</span>&gt;
-&lt;/<span class="pl-ent">table</span>&gt;
+<div id="breweries">
+  <% @active_breweries.each do |brewery| %>
+    <%= render brewery %>
+  <% end %>
+</div>
 
-&lt;<span class="pl-ent">h2</span>&gt;Retired&lt;/<span class="pl-ent">h2</span>&gt;
+<h2>Retired</h2>
 
-&lt;<span class="pl-ent">p</span>&gt; Number of retired breweries: <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@retired_breweries</span>.count </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
+<p> Number of retired breweries: <%= @retired_breweries.count %> </p>
 
-&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-  &lt;<span class="pl-ent">thead</span>&gt;
-  &lt;<span class="pl-ent">tr</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Name&lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Year&lt;/<span class="pl-ent">th</span>&gt;
-  &lt;/<span class="pl-ent">tr</span>&gt;
-  &lt;/<span class="pl-ent">thead</span>&gt;
+<div id="retired_breweries">
+  <% @retired_breweries.each do |brewery| %>
+    <%= render brewery %>
+  <% end %>
+</div>
 
-  &lt;<span class="pl-ent">tbody</span>&gt;
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-smi">@retired_breweries</span>.each <span class="pl-k">do </span>|<span class="pl-smi">brewery</span>| </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-      &lt;<span class="pl-ent">tr</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to brewery.name, brewery </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> brewery.year </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;/<span class="pl-ent">tr</span>&gt;
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  &lt;/<span class="pl-ent">tbody</span>&gt;
-&lt;/<span class="pl-ent">table</span>&gt;
-
-&lt;<span class="pl-ent">br</span>&gt;
-
-<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>New Brewery<span class="pl-pds">'</span></span>, new_brewery_path, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span>  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
+<p>
+<%= link_to "List of beers", beers_path%>
+</p>
+<%= link_to("New brewery", new_brewery_path, class:"btn btn-primary") if current_user %>
+```
 
 The solution works, but there are a couple of options which are even better. Start with the controller first.
 
 The controllers requires a list of both active and inactive breweries. The controller also tells how the two lists are retrived from the database.
 
-You could polish the controller by making so that the class <code>Brewery</code> provides a better interface to find the breweries list. ActiveRecord provides a nice solution for this, scope, see <a href="http://guides.rubyonrails.org/active_record_querying.html#scopes">http://guides.rubyonrails.org/active_record_querying.html#scopes</a>
+You could polish the controller by making so that the class <code>Brewery</code> provides a better interface to find the breweries list. ActiveRecord provides a nice solution for this, scope, see http://guides.rubyonrails.org/active_record_querying.html#scopes
 
 Define two scopes for the breweries, active and inactive:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">Brewery<span class="pl-e"> &lt; ActiveRecord::Base</span></span>
-  <span class="pl-k">include</span> <span class="pl-c1">RatingAverage</span>
+```ruby
+class Brewery < ApplicationRecord
+  has_many :beers, dependent: :destroy
+  has_many :ratings, through: :beers
 
-  validates <span class="pl-c1">:name</span>, <span class="pl-c1">presence:</span> <span class="pl-c1">true</span>
-  validates <span class="pl-c1">:year</span>, <span class="pl-c1">numericality:</span> { <span class="pl-c1">less_than_or_equal_to:</span> <span class="pl-k">-</span><span class="pl-k">&gt;</span>(_) { <span class="pl-c1">Time</span>.now.year} }
+  validates :name, presence: true
+  validates :year, numericality: { only_integer: true,
+                                   greater_than: 1039,
+                                   less_than_or_equal_to: ->(_) { Time.now.year } }
 
-  scope <span class="pl-c1">:active</span>, <span class="pl-k">-</span><span class="pl-k">&gt;</span> { where <span class="pl-c1">active:</span><span class="pl-c1">true</span> }
-  scope <span class="pl-c1">:retired</span>, <span class="pl-k">-</span><span class="pl-k">&gt;</span> { where <span class="pl-c1">active:</span>[<span class="pl-c1">nil</span>,<span class="pl-c1">false</span>] }
+  scope :active, -> { where active: true }
+  scope :retired, -> { where active: [nil,false] }
 
-  has_many <span class="pl-c1">:beers</span>, <span class="pl-c1">:dependent</span> =&gt; <span class="pl-c1">:destroy</span>
-  has_many <span class="pl-c1">:ratings</span>, <span class="pl-c1">:through</span> =&gt; <span class="pl-c1">:beers</span>
-<span class="pl-k">end</span></pre></div>
+  include RatingAverage
+end
+
+```
 
 The scope defines a class method which returns all the beers returned according to the search against the scope.
 
 Now the class <code>Brewery</code> provides you not only with all the breweries but also a nice interface with the active the inactive ones:
 
-<pre><code>Brewery.all      # all breweries
-Brewery.active   # the active ones
-Brewery.retired  # the inactive ones
-</code></pre>
+    Brewery.all      # all breweries
+    Brewery.active   # the active ones
+    Brewery.retired  # the inactive ones
+
 
 The controller will be more elegant at this point:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-smi">@active_breweries</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.active
-    <span class="pl-smi">@retired_breweries</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.retired
-  <span class="pl-k">end</span></pre></div>
-
-The solution is better not only for the clarity but also in terms of responsibility assignment of the objects. It is not too good to let me controller tell <em>how</em> active and retired breweries have to be retrived from the database. Instead, it is natural to make a model responsible for it, because models role is to act as an abstract level between the rest of the application and the database.
-
-
-<a id="user-content-partiaalit" class="anchor" href="#partiaalit" aria-hidden="true"><span class="octicon octicon-link"></span></a>Partiaalit
-
-Polish the brewery list view template next. The template uses now the same table which is copied twice in a row. Divide the table into <strong>partials</strong>, eli näyttötemplateen upotettavaksi tarkoitetuksi näyttötemplaten palaksi, ks. <a href="http://guides.rubyonrails.org/layouts_and_rendering.html#using-partials">http://guides.rubyonrails.org/layouts_and_rendering.html#using-partials</a>.
-
-Give a name to a partial and call it views/breweries/_list.html.erb (notice that partials names always start with underscore!). The contents are like it follows below:
-
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-  &lt;<span class="pl-ent">thead</span>&gt;
-  &lt;<span class="pl-ent">tr</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Name&lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt;Year&lt;/<span class="pl-ent">th</span>&gt;
-  &lt;/<span class="pl-ent">tr</span>&gt;
-  &lt;/<span class="pl-ent">thead</span>&gt;
-
-  &lt;<span class="pl-ent">tbody</span>&gt;
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> breweries.each <span class="pl-k">do </span>|<span class="pl-smi">brewery</span>| </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-      &lt;<span class="pl-ent">tr</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to brewery.name, brewery </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> brewery.year </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;/<span class="pl-ent">tr</span>&gt;
-  <span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  &lt;/<span class="pl-ent">tbody</span>&gt;
-&lt;/<span class="pl-ent">table</span>&gt;</pre></div>
-
-A partial called <code>breweries</code> refers now to the list of the breweries which have to be placed into a table.
-
-The template which renders the breweries only <em>renders the partial</em> and sends as parameter the brewery list to render:
-
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">p</span> <span class="pl-e">id</span>=<span class="pl-s"><span class="pl-pds">"</span>notice<span class="pl-pds">"</span></span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s1"> notice </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>&lt;/<span class="pl-ent">p</span>&gt;
-
-&lt;<span class="pl-ent">h1</span>&gt;Breweries&lt;/<span class="pl-ent">h1</span>&gt;
-
-&lt;<span class="pl-ent">h2</span>&gt;Active&lt;/<span class="pl-ent">h2</span>&gt;
-
-&lt;<span class="pl-ent">p</span>&gt; Number of active breweries: <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@active_breweries</span>.count </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
-
-<span class="pl-pse">&lt;%=</span><span class="pl-s1"> render <span class="pl-s"><span class="pl-pds">'</span>list<span class="pl-pds">'</span></span>, <span class="pl-c1">breweries:</span> <span class="pl-smi">@active_breweries</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-
-&lt;<span class="pl-ent">h2</span>&gt;Retired&lt;/<span class="pl-ent">h2</span>&gt;
-
-&lt;<span class="pl-ent">p</span>&gt; Number of retired breweries: <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@retired_breweries</span>.count </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span> &lt;/<span class="pl-ent">p</span>&gt;
-
-<span class="pl-pse">&lt;%=</span><span class="pl-s1"> render <span class="pl-s"><span class="pl-pds">'</span>list<span class="pl-pds">'</span></span>, <span class="pl-c1">breweries:</span> <span class="pl-smi">@retired_breweries</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-
-&lt;<span class="pl-ent">br</span>&gt;
-
-<span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>New Brewery<span class="pl-pds">'</span></span>, new_brewery_path, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span>  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-</pre></div>
-
-The page template for breweries is fancy now!
-
-<blockquote>
-
-<a id="user-content-tehtävä-5-6-kahden-tehtävän-arvoinen" class="anchor" href="#teht%C3%A4v%C3%A4-5-6-kahden-teht%C3%A4v%C3%A4n-arvoinen" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercises 5 – 6 (this equals two exercises)
-
-Your Ratings page is somehow boring now. Instead of the ratings, modify it to show:
-
-<ul>
-<li>The three best beers and breweries based on the average rating scores</li>
-<li>The three users who have made most ratings</li>
-<li>The five last ratings which were made.</li>
-</ul>
-
-<strong>Hints:</strong>
-Implement a scope <code>:recent</code> to the class <code>Rating</code>, returning the last five ratings. You find more information on the database request required by scope at <a href="http://guides.rubyonrails.org/active_record_querying.html">http://guides.rubyonrails.org/active_record_querying.html</a>, see order and limit. Try to make the request from the console first!
-
-The scope for the best beer and brewery, and the one for the most enthusiastic raters won't be so simple to make, because they have to find the objects that to return at database level, and they would require complex SQL.
-
-Instead of the scopes, you can make class-level methods (or static method, to tell it in Java's words) for the classes <code>Brewery</code>, <code>Beer</code>, and <code>User</code>, so that the controller will have access to them. For instance, the brewery method could be something like this:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">Brewery</span>
- <span class="pl-c"># ...</span>
-
- <span class="pl-k">def</span> <span class="pl-en">self.top</span>(<span class="pl-smi">n</span>)
-   sorted_by_rating_in_desc_order <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.all.sort_by{ |<span class="pl-smi">b</span>| <span class="pl-k">-</span>(b.average_rating<span class="pl-k">||</span><span class="pl-c1">0</span>) }
-   <span class="pl-c"># palauta listalta parhaat n kappaletta</span>
-   <span class="pl-c"># miten? ks. http://www.ruby-doc.org/core-2.1.0/Array.html</span>
- <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
-
-The method is used from the controller as shown below:
-
-<div class="highlight highlight-ruby"><pre> <span class="pl-smi">@top_breweries</span> <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.top <span class="pl-c1">3</span></pre></div>
-
-Attention: beers, styles and breweries <code>top</code> methods are actually made of copy-paste, and using the modules would allow to define a code only in one place. Once you have done all the week exercises, you can try to clean your code!
-
-<strong>Do not copy-paste the views code, but use partials when needed instead.</strong>
+```ruby
+def index
+  @active_breweries = Brewery.active
+  @retired_breweries = Brewery.retired
+end
+```
 
 
-<a id="user-content-tehtävä-7" class="anchor" href="#teht%C3%A4v%C3%A4-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävä 7
+The solution is better not only for the clarity but also in terms of responsibility assignment of the objects. It is not too good to make the controller tell <em>how</em> active and retired breweries have to be retrived from the database. Instead, it is natural to make a model responsible for it, because models role is to act as an abstract level between the rest of the application and the database.
 
-Also add the three best beer styles to the page
-</blockquote>
+Note that ActiveRecord allows operation chaining. You could write:
 
-After the exercises, the exercises page may look like it follows:
+```ruby
+  Brewery.where(active: true).where("year > 2000")
+```
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-4.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-4.png" alt="kuva" style="max-width:100%;"></a>
+and the result would be a SQL query:
 
-This can be useful to design your page: <a href="http://getbootstrap.com/css/#grid-nesting">http://getbootstrap.com/css/#grid-nesting</a>
+```sql
+SELECT "breweries".* FROM "breweries" WHERE "breweries"."active" = ? AND (year>2000)
+```
+
+ActiveRecord knows to optimize chained method call as one SQL operation. The scope also works as a part of a chain. Eg. You can find all still active breweries that were founded after 2000 with the following one-liner:
+
+```ruby
+Brewery.active.where("year > 2000")
+```
 
 
-<a id="user-content-näyttöjen-koodin-siistiminen-helpereillä" class="anchor" href="#n%C3%A4ytt%C3%B6jen-koodin-siistiminen-helpereill%C3%A4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Polishing your code with helpers
+
+
+> ## Exercises 6 – 7 (this equals two exercises)
+
+> Your Ratings page is somehow boring now. Instead of the ratings, modify it to show:
+> - The three best beers and breweries based on the average rating scores
+> - The five last ratings which were made.
+>
+> **Hints:**
+>
+> If a beer/brewery has no ratings, counting the average with method <code>average_rating</code> will most likely cause on error (when ordering by rating). Fix the method so that it can count an average also for beers/breweries with no ratings.
+>
+>Implement a scope <code>:recent</code> to the class <code>Rating</code>, returning the last five ratings. You find more information on the database request required by scope at http://guides.rubyonrails.org/active_record_querying.html, see order and limit. Try to make the request from the console first!
+>
+>The scope for the best beer and brewery  won't be so simple to make, because they have to find the objects returned by the scope at database level, and that would require complex SQL.
+>
+>Instead of the scopes, you can make class-level methods (or static method, to tell it in Java's words) for the classes <code>Brewery</code>, <code>Beer</code>, and <code>User</code>, so that the controller will have access to them. For instance, the brewery method could be something like this:
+>
+> ```ruby
+> class Brewery
+>  # ...
+>
+>  def self.top(n)
+>    sorted_by_rating_in_desc_order = Brewery.all.sort_by{ |b| ... }
+>    # return n best from the list
+>    # how? see http://www.ruby-doc.org/core-2.5.1/Array.html
+>  end
+> end
+> ```
+>
+> The method is used from the controller as shown below:
+>
+> ```ruby
+>  @top_breweries = Brewery.top 3
+> ```
+> Attention: beers, styles and breweries <code>top</code> methods are actually made of copy-paste, and using the modules would allow to define a code only in one place. Once you have done all the week exercises, you can try to clean your code!
+>
+>Do not copy-paste the views code, but use partials when needed instead.
+
+> ## Exercise 8
+>
+> Now add the three best rated beer styles and the three most active raters (most ratings) to ratings page.
+
+After the exercises, the ratings page could look like:
+
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-4.png)
+
+This might help with page styling: https://getbootstrap.com/docs/5.2/layout/grid/#nesting
+
+## Cleaning the view code with helpers
+
 
 In week 3 we added the <code>current_user</code> method to the class <code>ApplicationController</code> and we said it was a so called helper method
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">ApplicationController<span class="pl-e"> &lt; ActionController::Base</span></span>
-  <span class="pl-c"># ...</span>
-  helper_method <span class="pl-c1">:current_user</span>
+```ruby
+class ApplicationController < ActionController::Base
+  # ...
+  helper_method :current_user
 
- <span class="pl-k">end</span></pre></div>
+ end
+```
 
 Both controllers and views can use the method to check the identity of users who have signed in. Because the method is defined in the class <code>ApplicationController</code> it is available for all controllers. Being definied as helper method, it is available for views too.
 
-Applications often need auxiliary methods (which are called helper methods in Rails) only for view templates. In such cases, they shouldn't be place in the class <code>ApplicationController</code> but in the modules in <em>app/helpers/</em>. If auxiliary methods are supposed to be used in more than one view, the correct place for them is <code>application_helper</code>. Instead, if the auxiliary methods are for the pages which depend on only one controller, they should be defined into the helper module corresponding to the controller.
+Applications often need auxiliary methods (which are called helper methods in Rails) only for view templates. In such cases, they shouldn't be placed in the class <code>ApplicationController</code> but in the modules in <em>app/helpers/</em>. If an auxiliary method is supposed to be used in more than one view, the correct place for them is <code>application_helper</code>. Instead, if the auxiliary methods are for the pages which depend on only one controller, they should be defined into the helper module corresponding to the controller.
 
 You'll notice that your views have some redundant parts of code. For instance, the show.html.erb templates for beer, style, and brewery all contain very similar code, which creates the links for editing and deleting:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-k">if</span> current_user </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>Edit<span class="pl-pds">'</span></span>, edit_beer_path(<span class="pl-smi">@beer</span>), <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">'</span>Delete<span class="pl-pds">'</span></span>, <span class="pl-smi">@beer</span>, <span class="pl-c1">method:</span> <span class="pl-c1">:delete</span>, <span class="pl-c1">data:</span> { <span class="pl-c1">confirm:</span> <span class="pl-s"><span class="pl-pds">'</span>Are you sure?<span class="pl-pds">'</span></span> }, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-danger<span class="pl-pds">"</span></span>  </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-<span class="pl-pse">&lt;%</span><span class="pl-s1"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
+```erb
+<% if current_user %>
+  <%= link_to 'Edit', edit_brewery_path(@brewery), class:"btn btn-primary"  %>
+  <%= link_to 'Destroy', @brewery, method: :delete, data: { confirm: 'Are you sure?' }, class:"btn btn-danger"  %>
+<% end %>
+```
 
 Separate them in their own helpers, into the module application_helper.rb
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">module</span> <span class="pl-en">ApplicationHelper</span>
-  <span class="pl-k">def</span> <span class="pl-en">edit_and_destroy_buttons</span>(<span class="pl-smi">item</span>)
-    <span class="pl-k">unless</span> current_user.nil?
-      edit <span class="pl-k">=</span> link_to(<span class="pl-s"><span class="pl-pds">'</span>Edit<span class="pl-pds">'</span></span>, url_for([<span class="pl-c1">:edit</span>, item]), <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span>)
-      del <span class="pl-k">=</span> link_to(<span class="pl-s"><span class="pl-pds">'</span>Destroy<span class="pl-pds">'</span></span>, item, <span class="pl-c1">method:</span> <span class="pl-c1">:delete</span>,
-                    <span class="pl-c1">data:</span> {<span class="pl-c1">confirm:</span> <span class="pl-s"><span class="pl-pds">'</span>Are you sure?<span class="pl-pds">'</span></span> }, <span class="pl-c1">class:</span><span class="pl-s"><span class="pl-pds">"</span>btn btn-danger<span class="pl-pds">"</span></span>)
-      raw(<span class="pl-s"><span class="pl-pds">"</span><span class="pl-pse">#{</span><span class="pl-s1">edit</span><span class="pl-pse"><span class="pl-s1">}</span></span> <span class="pl-pse">#{</span><span class="pl-s1">del</span><span class="pl-pse"><span class="pl-s1">}</span></span><span class="pl-pds">"</span></span>)
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span>
+```ruby
+module ApplicationHelper
+  def edit_and_destroy_buttons(item)
+    unless current_user.nil?
+      edit = link_to('Edit', url_for([:edit, item]), class: "btn btn-primary")
+      del = link_to('Destroy', item, method: :delete,
+                                     form: { data: { turbo_confirm: "Are you sure ?" } },
+                                     class: "btn btn-danger")
+      raw("#{edit} #{del}")
+    end
+  end
+end
+```
 
-<span class="pl-k">end</span></pre></div>
-
-The method creates two HTML link elements thanks to link_to and returns both the links "raw" ( <a href="http://apidock.com/rails/ActionView/Helpers/RawOutputHelper/raw">http://apidock.com/rails/ActionView/Helpers/RawOutputHelper/raw</a>), which basically means HTML code, which can embed in the page.
+The method creates two HTML link elements with _link_to_ and returns both the links "raw" (see http://apidock.com/rails/ActionView/Helpers/RawOutputHelper/raw), which basically means HTML code, which can embed in the page.
 
 The buttons are added to the beer style pages as below:
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">h2</span>&gt;
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@style</span>.name </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-&lt;/<span class="pl-ent">h2</span>&gt;
+```erb
+<h2>
+  <%= @style.name %>
+</h2>
 
-&lt;<span class="pl-ent">quote</span>&gt;
-  <span class="pl-pse">&lt;%=</span><span class="pl-s1"> <span class="pl-smi">@style</span>.description </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span>
-&lt;/<span class="pl-ent">quote</span>&gt;
+<quote>
+  <%= @style.description %>
+</quote>
 
 ...
 
-<span class="pl-pse">&lt;%=</span><span class="pl-s1"> edit_and_destroy_buttons(<span class="pl-smi">@style</span>) </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
+<%= edit_and_destroy_buttons(@style) %>
+```
 
 The view template really looks much better now.
 
 It would also be possible to separate the buttons code in their own partial, and it is a matter of taste which is the best solution here, whether a helper method or a partial.
 
-<blockquote>
+> ## Tehtävä 9
+>
+> Most of the pages show the average rating value. Average values are Decimal types, so sometimes they are printed with too much precision even. Define an auxiliary method <code>round(param)</code> to render the average value of ratings. The medhod should always print its parameter with only <code>one</code> decimal digit precision. Make use of this helper method in the view templates (or at least in some of them).
+>
+> You can use the Rails method <code>number_with_precision</code> in your helper, see http://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision
 
-<a id="user-content-tehtävä-8" class="anchor" href="#teht%C3%A4v%C3%A4-8" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävä 8
+## Route for changing the brewery status
 
-Most of the pages show the average rating value. Average values are Decimal types, so sometimes they may print with too much precition even. Define an auxiliary method <code>round(param)</code> to render the average value of ratings. The medhod should always print its parameter with only <code>one</code> decimal digit precition, and make use of this halper method in the view templates (or at least in some of them).
+A moment ago, breweries were added the information about their activity and they were given the possibility to change their activity status from the brewery information editing form. It is quite unrealistic, but think that breweries could stop for some time and start again their activity. In such case, editing the activity status from the brewery information editing form would be a bit cumbersome. In such cases, it would be easier if the list with all breweries had a button to change their status with a click. You could implement this kind of button by embedding a suitable form for each breweries in the list. You want to choose another solution this time, though. In addition to Rails' six default routes, add the new route <code>toggle_activity</code> to the breweries, so that you will be able edit the brewery status with the help of the HTTP POST calls made to this route.
 
-You can also use the Rails method <code>number_with_precision</code> in your helper, see <a href="http://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision">http://api.rubyonrails.org/classes/ActionView/Helpers/NumberHelper.html#method-i-number_with_precision</a>
-</blockquote>
+Make the following change to breweries in the file routes.rb as:
 
+```ruby
+resources :breweries do
+  post 'toggle_activity', on: :member
+end
+```
 
-<a id="user-content-reitti-panimon-statuksen-muuttamiselle" class="anchor" href="#reitti-panimon-statuksen-muuttamiselle" aria-hidden="true"><span class="octicon octicon-link"></span></a>Route to change a brewery status
+If you now run <code>rails routes</code>, you'll see the new route which appeared for brewery:
 
-A second back, breweries were added the information about their activity and they were given the possibility to change their activity status from the brewery information editing form. It is quite unrealistic, but think that breweries could stop for some time and start again their activity. In such case, editing the activity status from the brewry information editing form would be a bit cumbersome. In such cases, it would be easier if the list with all breweries had a button to change their status with a click. You could implement this kind of button by embedding a suitable form for each breweries in the list. You want to choose another solution this time, though. In addition to Rails six default routes, add the new route <code>toggle_activity</code> to the breweries, so that you will be able edit the brewery status with the help of the HTTP POST calls made to this route.
+```ruby
+  toggle_activity_brewery POST   /breweries/:id/toggle_activity(.:format)                                                 breweries#toggle_activity
+                breweries GET    /breweries(.:format)                                                                     breweries#index
+                          POST   /breweries(.:format)                                                                     breweries#create
+              new_brewery GET    /breweries/new(.:format)                                                                 breweries#new
+             edit_brewery GET    /breweries/:id/edit(.:format)                                                            breweries#edit
+                  brewery GET    /breweries/:id(.:format)                                                                 breweries#show
+                          PATCH  /breweries/:id(.:format)                                                                 breweries#update
+                          PUT    /breweries/:id(.:format)                                                                 breweries#update
+                          DELETE /breweries/:id(.:format)                                                                 breweries#destroy
+```
 
-Make the following fix to the file routes.rb as Tehdään tiedostoon routes.rb seuraava muutos panimon osalta:
+You want to add the activity status change functionality to each brewery page. So add the following to the brewery page app/views/breweries/show.html.erb:
 
-<div class="highlight highlight-ruby"><pre>  resources <span class="pl-c1">:breweries</span> <span class="pl-k">do</span>
-    post <span class="pl-s"><span class="pl-pds">'</span>toggle_activity<span class="pl-pds">'</span></span>, <span class="pl-c1">on:</span> <span class="pl-c1">:member</span>
-  <span class="pl-k">end</span></pre></div>
-
-If you now run <code>rake routes</code>, you'll see the new route which appeared for brewery:
-
-<div class="highlight highlight-ruby"><pre>toggle_activity_brewery <span class="pl-c1">POST</span>   <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-c1">:id</span><span class="pl-k">/</span>toggle_activity(.<span class="pl-c1">:format</span>) breweries<span class="pl-c">#toggle_activity</span>
-              breweries <span class="pl-c1">GET</span>    <span class="pl-k">/</span>breweries(.<span class="pl-c1">:format</span>)                     breweries<span class="pl-c">#index</span>
-                        <span class="pl-c1">POST</span>   <span class="pl-k">/</span>breweries(.<span class="pl-c1">:format</span>)                     breweries<span class="pl-c">#create</span>
-            new_brewery <span class="pl-c1">GET</span>    <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-k">new</span>(.<span class="pl-c1">:format</span>)                 breweries<span class="pl-c">#new</span>
-           edit_brewery <span class="pl-c1">GET</span>    <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-c1">:id</span><span class="pl-k">/</span>edit(.<span class="pl-c1">:format</span>)            breweries<span class="pl-c">#edit</span>
-                brewery <span class="pl-c1">GET</span>    <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-c1">:id</span>(.<span class="pl-c1">:format</span>)                 breweries<span class="pl-c">#show</span>
-                        <span class="pl-c1">PUT</span>    <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-c1">:id</span>(.<span class="pl-c1">:format</span>)                 breweries<span class="pl-c">#update</span>
-                        <span class="pl-c1">DELETE</span> <span class="pl-k">/</span>breweries<span class="pl-k">/</span><span class="pl-c1">:id</span>(.<span class="pl-c1">:format</span>)                 breweries<span class="pl-c">#destroy</span></pre></div>
-
-You want to add the activity status change functionality to each brewery page. So the following to the brewery page app/views/breweries/show.html.erb:
-
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%=</span><span class="pl-s1"> link_to <span class="pl-s"><span class="pl-pds">"</span>change activity<span class="pl-pds">"</span></span>, toggle_activity_brewery_path(<span class="pl-smi">@brewery</span>.id), <span class="pl-c1">method:</span> <span class="pl-c1">:post</span>, <span class="pl-c1">class:</span> <span class="pl-s"><span class="pl-pds">"</span>btn btn-primary<span class="pl-pds">"</span></span> </span><span class="pl-pse"><span class="pl-s1">%</span>&gt;</span></pre></div>
-
-When you click on the button now, the browser will make an HTTP POST request for the address /breweries/:id/toggle_activity, where ID field is the ID of the brewery you clicked on. Rails routing mechnism tries to call a breweries controller <code>toggle_activity</code> method which does not exist, so this results in an error message. The method can be implement like this:
-
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">toggle_activity</span>
-    brewery <span class="pl-k">=</span> <span class="pl-c1">Brewery</span>.find(params[<span class="pl-c1">:id</span>])
-    brewery.update_attribute <span class="pl-c1">:active</span>, (<span class="pl-k">not</span> brewery.active)
-
-    new_status <span class="pl-k">=</span> brewery.active? <span class="pl-k">?</span> <span class="pl-s"><span class="pl-pds">"</span>active<span class="pl-pds">"</span></span> : <span class="pl-s"><span class="pl-pds">"</span>retired<span class="pl-pds">"</span></span>
-
-    redirect_to <span class="pl-c1">:back</span>, <span class="pl-c1">notice:</span><span class="pl-s"><span class="pl-pds">"</span>brewery activity status changed to <span class="pl-pse">#{</span><span class="pl-s1">new_status</span><span class="pl-pse"><span class="pl-s1">}</span></span><span class="pl-pds">"</span></span>
-  <span class="pl-k">end</span></pre></div>
-
-Implementing this functionality was easy, but does it make sence to add <code>toggle_activity</code> in first place? According the RESTful ideology, it would be more orthodox to use a form to do this, through a PUT request for the path breweries/:id. In any case, you sohuld avoid situations, where a resource status is change through GET requests, and therefore you only defined the path toggle_activity for POST requests.
-
-More about custom routes at
-<a href="http://guides.rubyonrails.org/routing.html#adding-more-restful-actions">http://guides.rubyonrails.org/routing.html#adding-more-restful-actions</a>
+```erb
+<%= link_to "change activity", toggle_activity_brewery_path(@brewery.id), data: {turbo_method: "post"}, class: "btn btn-primary" %>
+```
 
 
-<a id="user-content-admin-käyttäjä-ja-pääsynhallintaa" class="anchor" href="#admin-k%C3%A4ytt%C3%A4j%C3%A4-ja-p%C3%A4%C3%A4synhallintaa" aria-hidden="true"><span class="octicon octicon-link"></span></a>Admin user and access management
+When you click on the button now, the browser will make an HTTP POST request for the address /breweries/:id/toggle_activity, where ID field is the ID of the brewery you clicked on. Rails routing mechanism tries to call a breweries controller <code>toggle_activity</code> method which does not exist, so this results in an error message. The method can be implement like this:
 
-<blockquote>
+```ruby
+def toggle_activity
+  brewery = Brewery.find(params[:id])
+  brewery.update_attribute :active, (not brewery.active)
 
-<a id="user-content-tehtävä-9" class="anchor" href="#teht%C3%A4v%C3%A4-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävä 9
+  new_status = brewery.active? ? "active" : "retired"
 
-Anyone who is signed-in can delete breweries, beers, and beer clubs, so far. Exent the system so that a part of the users are administrators, and delete operations are restricted to them alone.
+  redirect_to brewery, notice:"brewery activity status changed to #{new_status}"
+end
+```
 
-<ul>
-<li>Create a new boolean field <code>admin</code> for the USer module. The field helps to indicate the users who have admin rights to the system.</li>
-<li>It's enough that admins can be defined only from console.</li>
-<li>Make breweries, beers, beer clubs, and styles deletion possible only for aministrators.</li>
-</ul>
+Implementing this functionality was easy, but does it make sence to add  the route <code>toggle_activity</code> in first place? According to the RESTful ideology, it would be more orthodox to use a form to do this, through a PUT request for the path breweries/:id. In any case, you should avoid situations, where a resource status is changed through GET requests. For this reason you defined the path toggle_activity for POST requests.
 
-<strong>Attention:</strong> because of password validation reasons, turning a user into admin will not be possible from console if the password field has no value:
+More about custom routes at http://guides.rubyonrails.org/routing.html#adding-more-restful-actions
 
-<div class="highlight highlight-ruby"><pre>irb(main):<span class="pl-c1">001</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> u <span class="pl-k">=</span> <span class="pl-c1">User</span>.first
-irb(main):<span class="pl-c1">002</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> u.admin <span class="pl-k">=</span> <span class="pl-c1">true</span>
-irb(main):<span class="pl-c1">003</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> u.save
-  (<span class="pl-c1">0</span>.1ms)  rollback transaction
-=&gt; <span class="pl-c1">false</span></pre></div>
+>
+## Admin user and access management
 
-Editing the value of singular attributes is still possible byepassing the validation with the method <code>update_attr</code>:
+> ## Exercise 10
+>
+>Anyone who is signed-in can delete breweries, beers, and beer clubs, so far. Extend the system so that a part of the users are administrators, and delete operations are restricted to them alone.
+>
+> - Create a new boolean field <code>admin</code> for the User model. The field helps to indicate the users who have admin rights to the system.
+> - It's enough that admins can be defined only from console.
+> - Make breweries, beers, beer clubs, and styles deletion possible only for aministrators.
+>
+> **Attention:** because of password validation reasons, turning a user into admin will not be possible from console if the password field has no value:
+>
+> ```ruby
+> > u = User.first
+> > u.admin = true
+> > u.save
+>   (0.1ms)  rollback transaction
+> => false
+> ```
+>
+> Editing the value of singular attributes is still possible by bypassing the validation with the method <code>update_attr</code>:
+>
+> ```ruby
+> > u.update_attribute(:admin, true)
+> ```
+>
+>**ATTENTION:** you'd better use a [before filter](https://github.com/mluukkai/webdevelopment-rails/blob/main/week4.md#functions-for-signed-in-users) when you do this
 
-<div class="highlight highlight-ruby"><pre>irb(main):<span class="pl-c1">005</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> u.update_attribute(<span class="pl-c1">:admin</span>, <span class="pl-c1">true</span>)</pre></div>
 
-<strong>ATTENTION:</strong> you'd better use a <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#kirjautuneiden-toiminnot">before filter</a> when you do this
+> ## Exercises 11 – 12 (it's worth of two points)
+>
+> Implement such functionality to let administrators freeze user accounts. Freezing can happen with a button that only administrators see on a user's page. Frozen users can not sign in the system. When they try to sign in, the application should tell that their user name has been frozen, and they should get in touch with admins. Administrators should be able to reactivate frozen user accounts.
+>
+> You may implement this functionality following the pictures below
 
+The administrator can freeze a user account from the user's page
 
-<a id="user-content-tehtävä-10-11-kahden-tehtävän-arvoinen" class="anchor" href="#teht%C3%A4v%C3%A4-10-11-kahden-teht%C3%A4v%C3%A4n-arvoinen" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercises 10 – 11 (it's worth of two points)
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-1c.png)
 
-Implement such functionality to let administrators freeze user names. Freezing can happen with a button that only administrators see on a user's page. Frozen users can not sign in the system. When they try to sign in, the application should tell that their user name has been frozen, and they should get in touch with admins. Administrators should be able to reactivate frozen user names.
+The administrator can see the frozen user accounts from the users view
 
-<strong>ATTENTION:</strong> do not try to define an attribute called <code>frozen</code>, which is a forbidden attribute name!
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-1b.png)
 
-You may implement this functionality following the pictures below
-</blockquote>
+If an user's account is frozen, they won't be able to sign in
 
-The administrator can freeze a user name from the user's page
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1c.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1c.png" alt="kuva" style="max-width:100%;"></a>
-
-The administrator can see the frozen user names from the users view
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1b.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1b.png" alt="kuva" style="max-width:100%;"></a>
-
-If a user name is frozen, they won't be able to sign in
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1a.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1a.png" alt="kuva" style="max-width:100%;"></a>
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-1x.png)
 
 The administrator can reactivate frozen user names from the user's page
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1d.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-1d.png" alt="kuva" style="max-width:100%;"></a>
+![picture](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-1d.png)
 
+> ## Exercise 13
+>
+> Most likely some of your tests have broken due to this week's changes. Fix the tests.
 
-<a id="user-content-monimutkaisempi-pääsynhallinta" class="anchor" href="#monimutkaisempi-p%C3%A4%C3%A4synhallinta" aria-hidden="true"><span class="octicon octicon-link"></span></a>Advanced authorization
+## Advanced authorization
 
 If your application needs a more diverse authorization, you may want to manage it with the help of the <em>cancan</em> gem, see <a href="https://github.com/CanCanCommunity/cancancan">https://github.com/CanCanCommunity/cancancan</a> and
 <a href="http://railscasts.com/episodes/192-authorization-with-cancan">http://railscasts.com/episodes/192-authorization-with-cancan</a>
@@ -887,7 +899,7 @@ You had better read also the following links, as far as information security is 
 
 The documents above fail to stress that Rails <em>sanitates</em> (that is, escapes all the script and html tags) by default the input that is rendered on pages, so for instance if you try to input the javascript chunk <code> &lt;script&gt;alert('Evil XSS attack');&lt;/script&gt;</code> to describe the beer style, the code won't be executed, buy it will be rendered on the page 'as text':
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" alt="kuva" style="max-width:100%;"></a>
+<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-7.png" alt="picture" style="max-width:100%;"></a>
 
 If you take a look at the page source code, you'll notice that Rails has switched &lt; and &gt; signs of the HTML tags with the corresponding printing characters, where the input changes into normal text when it comes to the browser:
 
@@ -901,7 +913,7 @@ The default sanitation can be 'disconnected' by making an explicit request with 
 
 the javascript code is executed while it is rendered:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" alt="kuva" style="max-width:100%;"></a>
+<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w5-8.png" alt="picture" style="max-width:100%;"></a>
 
 More info at <a href="http://www.railsdispatch.com/posts/security">http://www.railsdispatch.com/posts/security</a> and <a href="http://railscasts.com/episodes/204-xss-protection-in-rails-3">http://railscasts.com/episodes/204-xss-protection-in-rails-3</a>
 
