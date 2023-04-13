@@ -298,897 +298,800 @@ The beers function uses the [fetch](https://developer.mozilla.org/en-US/docs/Web
 
 Behind the slightly odd looking syntax _[then](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then)_ is the fact that the function _fetch_ returns a so called [promise](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) and the actual returned data must be taken from the promise with the _then_ function.
 
-
-
-
-
- and defines a return call function, which is called by the browser when the GET request receives an answer from the server. The <code>beers</code> parameter of the return call function contains the data from the server, that is, the beers list in json form. The contents of the variable is placed in the global variable <code>oluet</code> and the beer list length is shown is shown on the Web page in the element with the ID beers.
-
-Because you placed a reference to a global variable of the list, you can check it manually from the browser console (remember that the console can be opened in Chrome from the tools tab, or pressing c ctrl, shift, j (in Linux) or alt, cmd, i (in Mac) ja jos olit jo sulkenut konsolin teit pahan virheen. <strong>Konsoli tulee pitää aina auki javascriptillä ohjelmoitaessa!</strong>):
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-2.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-2.png" alt="kuva" style="max-width:100%;"></a>
-
-Once it has fetched the beers from the browser, the return call function should form the HTML code that lists them and add it to the page.
+So after getting the beers from the server, the function should generate the HTML code for listing them and add it to the page.
 
 Change the javascript code now to list only the beer names at first:
 
-<div class="highlight highlight-javascript"><pre>    $.getJSON(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">beers</span>) {
-        <span class="pl-s">var</span> beer_list <span class="pl-k">=</span> [];
+```javascript
+const handleResponse = (beers) => {
+  const beerList = beers.map((beer) => `<li>${beer.name}</li>`);
 
-        $.each(beers, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-            beer_list.<span class="pl-s3">push</span>(<span class="pl-s1"><span class="pl-pds">'</span>&lt;li&gt;<span class="pl-pds">'</span></span> <span class="pl-k">+</span> beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>] <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/li&gt;<span class="pl-pds">'</span></span>)
-        });
+  document.getElementById("beers").innerHTML = `<ul> ${beerList.join("")} </ul>`;
+};
+```
 
-        $(<span class="pl-s1"><span class="pl-pds">"</span>#beers<span class="pl-pds">"</span></span>).html(<span class="pl-s1"><span class="pl-pds">'</span>&lt;ul&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span> beer_list.<span class="pl-s3">join</span>(<span class="pl-s1"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>) <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/ul&gt;<span class="pl-pds">'</span></span>);
-     });</pre></div>
+The code defines the local table variable <code>beerList</code> and goes through the list <code>beers</code> that it received as parameter. By using the _map_ function, you can create a new table directly from the return value of the function.  For each beer a HTML element is returned into `beerList`. The element is like this:
 
-The code defines the local table variable <code>beer_list</code> and goes through the list <code>beers</code> that it received as parameter (and it does this using the jquery <code>each</code> method which is quite particular, see<a href="http://api.jquery.com/jQuery.each/">http://api.jquery.com/jQuery.each/</a>). Then it adds an HTML element to <code>beer_list</code> for each beer. The HTML element looks like
+```erb
+<li>Extra Light Triple Brewed</li>
+```
 
-<div class="highlight highlight-erb"><pre>    &lt;<span class="pl-ent">li</span>&gt;Karhu tuplahumala&lt;/<span class="pl-ent">li</span>&gt;</pre></div>
-
-At the end, ul tags are added to the beginning and the end of the list, and the list elements are joined with the join method. The HTML code which originates is joined to the element with the <code>beers</code> ID.
+At the end, ul tags are added to the beginning and the end of the list, and the list elements are joined with the join method. The HTML code generated from this is added to the element with the <code>beers</code> ID.
 
 In this way you have got a simple list of the names of the beers on the page.
 
 What if you wanted to sort the beers? To make this happen, refactor first the code as follows:
 
-<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> BEERS <span class="pl-k">=</span> {};
+```javascript
+const BEERS = {};
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">show</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    <span class="pl-s">var</span> beer_list <span class="pl-k">=</span> [];
-
-    $.each(BEERS.list, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-        beer_list.<span class="pl-s3">push</span>(<span class="pl-s1"><span class="pl-pds">'</span>&lt;li&gt;<span class="pl-pds">'</span></span> <span class="pl-k">+</span> beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>] <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/li&gt;<span class="pl-pds">'</span></span>)
-    });
-
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#beers<span class="pl-pds">"</span></span>).html(<span class="pl-s1"><span class="pl-pds">'</span>&lt;ul&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span> beer_list.<span class="pl-s3">join</span>(<span class="pl-s1"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>) <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/ul&gt;<span class="pl-pds">'</span></span>);
+const handleResponse = (beers) => {
+  BEERS.list = beers;
+  BEERS.show();
 };
 
-$(<span class="pl-s3">document</span>).ready(<span class="pl-st">function</span> () {
+BEERS.show = () => {
+  const beerList = BEERS.list.map((beer) => `<li>${beer.name}</li>`);
 
-    $.getJSON(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">beers</span>) {
-        BEERS.list <span class="pl-k">=</span> beers;
-        BEERS.show();
-     });
-});</pre></div>
+  document.getElementById("beers").innerHTML = `<ul> ${beerList.join("")} </ul>`;
+};
 
-You defined now the object <code>BEERS</code>, that receives the beer list from the server in the attribute <code>BEERS.list</code>. The method <code>BEERS.show</code> creates an HTML table of <code>BEERS.list</code> objects and places them in the view.
+```
 
-In this way, the beer list from the server remains "in memory" in the browser variable <code>BEERS.list</code> and the list can be resorted when needed, and it can be shown to users in new orders without that the Web page needed to communicate with the server.
+You defined now the object <code>BEERS</code>, that receives the beer list from the server in the attribute <code>BEERS.list</code>. The method <code>BEERS.show</code> creates an HTML list of <code>BEERS.list</code> objects and places them in the view.
 
-Add a button (or a link) to the page, allowing to make the beers on the page in discending order:
+In this way, the beer list from the server remains "in memory" in the browser variable <code>BEERS.list</code> and the list can be resorted when needed, and it can be shown to users in new orders without that Web page needing to communicate with the server.
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">a</span> <span class="pl-e">href</span>=<span class="pl-s1"><span class="pl-pds">"</span>#<span class="pl-pds">"</span></span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>reverse<span class="pl-pds">"</span></span>&gt;reverse!&lt;/<span class="pl-ent">a</span>&gt;
-&lt;<span class="pl-ent">div</span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>beers<span class="pl-pds">"</span></span>&gt;&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
+Add a clickable text to the page, allowing to sort the beers on the page in reversed order:
+
+```erb
+<p id="reverse">reverse!</p>
+<div id="beers"></div>
+```
 
 Then add a click handler to the link in javascript, to sort the beers in descending order when the link is clicked and to show them in the beers elements in the page:
 
-<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> BEERS <span class="pl-k">=</span> {};
-
-<span class="pl-s3">BEERS</span>.<span class="pl-en">show</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    <span class="pl-s">var</span> beer_list <span class="pl-k">=</span> [];
-
-    $.each(BEERS.list, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-        beer_list.<span class="pl-s3">push</span>(<span class="pl-s1"><span class="pl-pds">'</span>&lt;li&gt;<span class="pl-pds">'</span></span> <span class="pl-k">+</span> beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>] <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/li&gt;<span class="pl-pds">'</span></span>)
-    });
-
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#beers<span class="pl-pds">"</span></span>).html(<span class="pl-s1"><span class="pl-pds">'</span>&lt;ul&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span> beer_list.<span class="pl-s3">join</span>(<span class="pl-s1"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>) <span class="pl-k">+</span> <span class="pl-s1"><span class="pl-pds">'</span>&lt;/ul&gt;<span class="pl-pds">'</span></span>);
+```javascript
+BEERS.reverse = () => {
+  BEERS.list.reverse();
 };
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">reverse</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    BEERS.list.<span class="pl-s3">reverse</span>();
+const beers = () => {
+  document.getElementById("reverse").addEventListener("click", (e) => {
+    e.preventDefault();
+    BEERS.reverse();
+    BEERS.show();
+  });
+
+  fetch("beers.json")
+    .then((response) => response.json())
+    .then(handleResponse);
 };
 
-$(<span class="pl-s3">document</span>).ready(<span class="pl-st">function</span> () {
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#reverse<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span> (<span class="pl-vpf">e</span>) {
-        BEERS.<span class="pl-s3">reverse</span>();
-        BEERS.show();
-        e.preventDefault();
-    });
+export { beers };
+```
+The click handler of the text is defined in the page's _beers_ function. So when the document has been loaded, the click handler is _registered_ to the element with the id "reverse".
 
-    $.getJSON(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">beers</span>) {
-        BEERS.list <span class="pl-k">=</span> beers;
-        BEERS.show();
-    });
-});</pre></div>
-
-The link click handler is defined within the <code>document ready</code> event, so when the document has been loaded, the click handler function is registered for the link element which has "reverse" as ID. The browser calls the function defined when the link is clicked. At last, the command <code>preventDefault</code> prevents the "normal" functionality – that is, accessing a (now inexistent) link.
+When the link is clicked the event handler first calls the method <code>e.preventDefault</code>. This method prevents the "normal" function, that is, accessing a (now inexistent) link.
+After that, methods _reverse_ and _show_ are called to render the beers on the screen in reverse order.
 
 You'll now understand the basics well enough to implement the real functionality.
 
 Change the view as follows:
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">h2</span>&gt;Beers&lt;/<span class="pl-ent">h2</span>&gt;
+```erb
+<h2>Beers</h2>
 
-&lt;<span class="pl-ent">table</span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>beertable<span class="pl-pds">"</span></span> <span class="pl-e">class</span>=<span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-  &lt;<span class="pl-ent">tr</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span> <span class="pl-e">href</span>=<span class="pl-s1"><span class="pl-pds">"</span>#<span class="pl-pds">"</span></span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>&gt;Name&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span> <span class="pl-e">href</span>=<span class="pl-s1"><span class="pl-pds">"</span>#<span class="pl-pds">"</span></span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>style<span class="pl-pds">"</span></span>&gt;Style&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span> <span class="pl-e">href</span>=<span class="pl-s1"><span class="pl-pds">"</span>#<span class="pl-pds">"</span></span> <span class="pl-e">id</span>=<span class="pl-s1"><span class="pl-pds">"</span>brewery<span class="pl-pds">"</span></span>&gt;Brewery&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-  &lt;/<span class="pl-ent">tr</span>&gt;
+<table id="beertable" class="table table-hover">
+  <thead>
+    <tr>
+      <th> <span id="name">Name</span> </th>
+      <th> <span id="style">Style</span> </th>
+      <th> <span id="brewery">Brewery</span> </th>
+    </tr>
+  <thead>
+  <tbody>
+    <div id="beerlist"></div>
+  </tbody>
+</table>
+```
 
-&lt;/<span class="pl-ent">table</span>&gt;</pre></div>
-
-So the three column names have become a link to register the click listeners. The table was given the ID <code>beertable</code>.
+So the three column names have been made into elements that click listeners will be registered to. The table was given the ID <code>beertable</code>.
 
 Change the <code>show</code> method defined in the javascript so that it adds the beer names to the table:
 
-<div class="highlight highlight-javascript"><pre><span class="pl-s3">BEERS</span>.<span class="pl-en">show</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    <span class="pl-s">var</span> table <span class="pl-k">=</span> $(<span class="pl-s1"><span class="pl-pds">"</span>#beertable<span class="pl-pds">"</span></span>);
+```javascript
+const createTableRow = (beer) => {
+  const tr = document.createElement("tr");
+  const beername = tr.appendChild(document.createElement("td"));
+  beername.innerHTML = beer.name;
 
-    $.each(BEERS.list, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-        table.append(<span class="pl-s1"><span class="pl-pds">'</span>&lt;tr&gt;&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;&lt;/tr&gt;<span class="pl-pds">'</span></span>);
-    });
-};</pre></div>
+  return tr;
+};
 
-Eli ensin koodi tallettaa viitteen taulukkoon muuttujana <code>table</code> ja lisää sinne <code>append</code>-komennolla uuden rivin kutakin olutta varten.
+BEERS.show = () => {
+  const table = document.getElementById("beertable");
 
-Laajennetaan sitten metodia näyttämään kaikki tiedot oluista. Huomaamme kuitenkin, että oluiden json-muotoisessa listassa ei ole panimosta muuta tietoa kuin olioiden id:t, haluaisimme kuitenkin näyttää panimon nimen. Oluttyylin tiedot löytyvät kokonaisuudessaan jsonista jo nyt.
+  BEERS.list.forEach((beer) => {
+    const tr = createTableRow(beer);
+    table.appendChild(tr);
+  });
+};
+```
 
-Ongelma on onneksi helppo ratkaista muokkaamalla oluiden listan tuottavaa json-jbuildertemplatea. Template näyttää nyt seuraavalta:
+So first the code sets a reference to the table in the variable <code>table</code>. After this, with the help of the createTableRow helper function, some <code>tr</code> elements are created. The cells of the table, <code>td</code>, are placed inside these elements. The row is returned to the forEach loop where it is set as the table's "child" by using the appendChild method.
 
-<div class="highlight highlight-ruby"><pre>json.array!(<span class="pl-vo">@beers</span>) <span class="pl-k">do </span>|<span class="pl-vo">beer</span>|
-  json.extract! beer, <span class="pl-c1">:id</span>, <span class="pl-c1">:name</span>, <span class="pl-c1">:style</span>, <span class="pl-c1">:brewery_id</span>
-  json.url beer_url(beer, <span class="pl-c1">format:</span> <span class="pl-c1">:json</span>)
-<span class="pl-k">end</span></pre></div>
+Expand the method to show all information of the beer. You'll notice however that in the json-format beers list at <http://localhost:3000/beers.json> the only information about a beer's brewery is the brewery object's id. You would like to see the brewery's name. The beer style's information is already completely available in the json.
 
-The template defines that the fields <em>id</em>, <em>name</em> and <em>brewery_id</em> as well as <em>style</em> should be contained in the json form for each beer; also, style refers to the <code>Style</code> object of the beer. The style object has to be rendered completely in the json form of the beer. You will also get the brewery json form in the same of the beer json form if you replace <em>brewery_id</em> with <em>brewery</em>, in the template. So change the template form:
+This is luckily easy to fix by editing the json-jbuildertemplate that generates the beer list.
+The template now looks like this:
 
-<div class="highlight highlight-ruby"><pre>json.array!(<span class="pl-vo">@beers</span>) <span class="pl-k">do </span>|<span class="pl-vo">beer</span>|
-  json.extract! beer, <span class="pl-c1">:id</span>, <span class="pl-c1">:name</span>, <span class="pl-c1">:style</span>, <span class="pl-c1">:brewery</span>
-<span class="pl-k">end</span></pre></div>
+```ruby
+json.array! @beers, partial: 'beers/beer', as: :beer
+```
 
-the last line was deleted, which would have added an URL to the beer own json form – in the same way as for each beer json form.
+The template defines that for each beer a json-format depiction is created with the help of _\_beer.json.jbuilder_. The file contents are:
 
-Now the table can be generated in the following way in Javascript:
+```ruby
+json.extract! beer, :id, :name, :style, :brewery_id, :created_at, :updated_at
+json.url beer_url(beer, format: :json)
+```
 
-<div class="highlight highlight-javascript"><pre><span class="pl-s3">BEERS</span>.<span class="pl-en">show</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    <span class="pl-s">var</span> table <span class="pl-k">=</span> $(<span class="pl-s1"><span class="pl-pds">"</span>#beertable<span class="pl-pds">"</span></span>);
+The file defines that the fields <em>id</em>, <em>name</em> and <em>brewery_id</em> as well as <em>style</em> should be contained in the json form for each beer; also, style refers to the <code>Style</code> object of the beer. The style object has to be rendered completely in the json form of the beer. You will also get the brewery json form in the same beer json listing if you replace <em>brewery_id</em> with <em>brewery</em>, in the template. So change the template taking care of rendering a single beer json:
 
-    $.each(BEERS.list, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-        table.append(<span class="pl-s1"><span class="pl-pds">'</span>&lt;tr&gt;<span class="pl-pds">'</span></span>
-                        <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-                        <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>style<span class="pl-pds">'</span></span>][<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-                        <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>brewery<span class="pl-pds">'</span></span>][<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-                    <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/tr&gt;<span class="pl-pds">'</span></span>);
-    });
-};</pre></div>
+```ruby
+json.extract! beer, :id, :name, :style, :brewery
+```
 
-The beers list in json form will contain a lot useless information, because at the same time, the brewery json forms of each beer brewery and style are rendered completely. You could optimize the template so that the beer brewery and style would follow the json form only as far as their name is concerned:
+the last line was deleted, which would have added an URL to the beer's own json form. The timestamp fields were also removed.
 
-<div class="highlight highlight-ruby"><pre>json.array!(<span class="pl-vo">@beers</span>) <span class="pl-k">do </span>|<span class="pl-vo">beer</span>|
-  json.extract! beer, <span class="pl-c1">:id</span>, <span class="pl-c1">:name</span>
-  json.style <span class="pl-k">do</span>
-    json.name beer.style.name
-  <span class="pl-k">end</span>
-  json.brewery <span class="pl-k">do</span>
-    json.name beer.brewery.name
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
+Now the table can be generated after adding the next lines into the createTableRow function:
+
+```javascript
+const createTableRow = (beer) => {
+  const tr = document.createElement("tr");
+  tr.classList.add("tablerow");
+  const beername = tr.appendChild(document.createElement("td"));
+  beername.innerHTML = beer.name;
+  const style = tr.appendChild(document.createElement("td"));
+  style.innerHTML = beer.style.name;
+  const brewery = tr.appendChild(document.createElement("td"));
+  brewery.innerHTML = beer.brewery.name;
+
+  return tr;
+};
+```
+
+The beers list in json form will contain also a lot of useless information, because at the same time, the brewery json forms of each beer brewery and style are rendered completely. You could optimize the the single beer json template so that the beer brewery and style would follow the json form only as far as their name is concerned:
+
+```ruby
+json.extract! beer, :id, :name
+json.style do
+  json.name beer.style.name
+end
+json.brewery do
+  json.name beer.brewery.name
+end
+```
 
 Now the json-form list sent by the server is much more compact:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-5.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-5.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w7-5.png)
 
 The links have to be set up now with the event listeners that execute the sorting (you find the final javascript code below):
 
-<div class="highlight highlight-javascript"><pre><span class="pl-s">var</span> BEERS <span class="pl-k">=</span> {};
+```javascript
+const BEERS = {};
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">show</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#beertable tr:gt(0)<span class="pl-pds">"</span></span>).<span class="pl-s3">remove</span>();
-
-    <span class="pl-s">var</span> table <span class="pl-k">=</span> $(<span class="pl-s1"><span class="pl-pds">"</span>#beertable<span class="pl-pds">"</span></span>);
-
-    $.each(BEERS.list, <span class="pl-st">function</span> (<span class="pl-vpf">index</span>, <span class="pl-vpf">beer</span>) {
-        table.append(<span class="pl-s1"><span class="pl-pds">'</span>&lt;tr&gt;<span class="pl-pds">'</span></span>
-            <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-            <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>style<span class="pl-pds">'</span></span>][<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-            <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;td&gt;<span class="pl-pds">'</span></span><span class="pl-k">+</span>beer[<span class="pl-s1"><span class="pl-pds">'</span>brewery<span class="pl-pds">'</span></span>][<span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>]<span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/td&gt;<span class="pl-pds">'</span></span>
-            <span class="pl-k">+</span><span class="pl-s1"><span class="pl-pds">'</span>&lt;/tr&gt;<span class="pl-pds">'</span></span>);
-    });
+const handleResponse = (beers) => {
+  BEERS.list = beers;
+  BEERS.show();
 };
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">sort_by_name</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    BEERS.list.<span class="pl-s3">sort</span>( <span class="pl-st">function</span>(<span class="pl-vpf">a</span>,<span class="pl-vpf">b</span>){
-        <span class="pl-k">return</span> a.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>().localeCompare(b.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>());
-    });
+const createTableRow = (beer) => {
+  const tr = document.createElement("tr");
+  tr.classList.add("tablerow");
+  const beername = tr.appendChild(document.createElement("td"));
+  beername.innerHTML = beer.name;
+  const style = tr.appendChild(document.createElement("td"));
+  style.innerHTML = beer.style.name;
+  const brewery = tr.appendChild(document.createElement("td"));
+  brewery.innerHTML = beer.brewery.name;
+
+  return tr;
 };
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">sort_by_style</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    BEERS.list.<span class="pl-s3">sort</span>( <span class="pl-st">function</span>(<span class="pl-vpf">a</span>,<span class="pl-vpf">b</span>){
-        <span class="pl-k">return</span> a.<span class="pl-sc">style</span>.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>().localeCompare(b.<span class="pl-sc">style</span>.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>());
-    });
-};
+BEERS.show = () => {
+  document.querySelectorAll(".tablerow").forEach((el) => el.remove());
+  const table = document.getElementById("beertable");
 
-<span class="pl-s3">BEERS</span>.<span class="pl-en">sort_by_brewery</span> <span class="pl-k">=</span> <span class="pl-st">function</span>(){
-    BEERS.list.<span class="pl-s3">sort</span>( <span class="pl-st">function</span>(<span class="pl-vpf">a</span>,<span class="pl-vpf">b</span>){
-        <span class="pl-k">return</span> a.brewery.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>().localeCompare(b.brewery.<span class="pl-sc">name</span>.<span class="pl-s3">toUpperCase</span>());
-    });
-};
-
-$(<span class="pl-s3">document</span>).ready(<span class="pl-st">function</span> () {
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#name<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span> (<span class="pl-vpf">e</span>) {
-        BEERS.sort_by_name();
-        BEERS.show();
-        e.preventDefault();
-    });
-
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#style<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span> (<span class="pl-vpf">e</span>) {
-        BEERS.sort_by_style();
-        BEERS.show();
-        e.preventDefault();
-    });
-
-    $(<span class="pl-s1"><span class="pl-pds">"</span>#brewery<span class="pl-pds">"</span></span>).<span class="pl-s3">click</span>(<span class="pl-st">function</span> (<span class="pl-vpf">e</span>) {
-        BEERS.sort_by_brewery();
-        BEERS.show();
-        e.preventDefault();
-    });
-
-    $.getJSON(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">beers</span>) {
-        BEERS.list <span class="pl-k">=</span> beers;
-        BEERS.sort_by_name();
-        BEERS.show();
-    });
-
-});</pre></div>
-
-Your Javascript code is linked to each application page. The unfortunate result is that wherever you may be on your site, the Javascript will load the beers list due to the command <code>getJSON('beers.json', ...) </code>. Refine your Javascript code so that the beers list is loaded only if you are on a page with the table <code>beertable</code>:
-
-<div class="highlight highlight-javascript"><pre>    <span class="pl-k">if</span> ( $(<span class="pl-s1"><span class="pl-pds">"</span>#beertable<span class="pl-pds">"</span></span>).<span class="pl-sc">length</span><span class="pl-k">&gt;</span><span class="pl-c1">0</span> ) {
-      $.getJSON(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">beers</span>) {
-        BEERS.list <span class="pl-k">=</span> beers;
-        BEERS.sort_by_name;
-        BEERS.show();
-      });
-    }</pre></div>
-
-The current trend tells us we should move and more Web pages functionality to the browser. The advantage is that you'll make your Web applications remind more and more of desktop applications.
-
-
-<a id="user-content-angularjs" class="anchor" href="#angularjs" aria-hidden="true"><span class="octicon octicon-link"></span></a>AngularJS
-
-The code of the page you implemented with Javascript to list the beers was not wide. However, if compared to Rails fluency and effortless coding style, what you wrote was quite heavy and full of annoying and rutine-like details, at times.
-
-Have a look next at how you could implement the same functionality making use of <a href="http://angularjs.org/">AngularJS</a> an MVC application (or MVW, that is, Model View Whatever... as Angular's developer has stated himself) that has gained quite much support lately. Angular is fluent and magical just like Rails, and in fact, many members of Rails communities have been moving to write applications more and more on browser side with Angular.
-
-Make a new route to the file routes.rb for your functionality:
-
-<pre><code>get 'ngbeerlist', to:'beers#nglist'
-</code></pre>
-
-and an empty controller method:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">BeersController<span class="pl-e"> &lt; ApplicationController</span></span>
-  <span class="pl-c"># muut before_actionit säilyvät ennallaan</span>
-  before_action <span class="pl-c1">:ensure_that_signed_in</span>, <span class="pl-c1">except:</span> [<span class="pl-c1">:index</span>, <span class="pl-c1">:show</span>, <span class="pl-c1">:list</span>, <span class="pl-c1">:nglist</span>]
-
-  <span class="pl-k">def</span> <span class="pl-en">nglist</span>
-  <span class="pl-k">end</span></pre></div>
-
-Make a Javascript code this time, and instead of placing it in a view template, put it in a script tag (this is in no way a best practice!) The code can be moved to its own file if you want.
-
-The first version of the view app/views/beers/nglist.html.erb is below:
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>script src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span>
-<span class="pl-k">&lt;</span>script<span class="pl-k">&gt;</span>
-  <span class="pl-s">var</span> myApp <span class="pl-k">=</span> angular.module(<span class="pl-s1"><span class="pl-pds">'</span>myApp<span class="pl-pds">'</span></span>, []);
-
-  myApp.controller(<span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">$scope</span>, <span class="pl-vpf">$http</span>) {
-    $scope.teksti <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">"</span>Hello Angular!<span class="pl-pds">"</span></span>
+  BEERS.list.forEach((beer) => {
+    const tr = createTableRow(beer);
+    table.appendChild(tr);
   });
-<span class="pl-k">&lt;</span>/script<span class="pl-k">&gt;</span>
+};
 
-<span class="pl-k">&lt;</span>h2<span class="pl-k">&gt;</span>Beers<span class="pl-k">&lt;</span>/h2<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>div ng<span class="pl-k">-</span>app<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>myApp<span class="pl-pds">"</span></span> ng<span class="pl-k">-</span>controller<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-
-  {{teksti}}
-
-<span class="pl-k">&lt;</span>/div<span class="pl-k">&gt;</span></pre></div>
-
-The Javascript tag in the script code creates first the Angular module <em>myApp</em> and then defines the module controller function <em>BeersController</em>.
-
-The div tag on the page defines that it is an <code>ng-app</code>, that is, an Angular application, which is defined by the Angular module <em>"myApp</em>. The HTML code inside div tag is defined to manage the controller method <code>BeersController</code>.
-
-You will see that the controller method sets the string "Hellow Angular!" as value of the field <code>teksti</code> of the variable <code>$scope</code>. All fields of the variable <code>$scope</code> can be used from the view which is managed by the controller. The view contains the peculiar descriptor <code>{{teksti}}</code>. When the browser renders the page for users, the Angular code between the double curly brakets is executed, and the result is rendered on the screen. So the screen renders the string contained in the controller variable.
-
-Change your code as below:
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>script src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span>
-<span class="pl-k">&lt;</span>script<span class="pl-k">&gt;</span>
-  <span class="pl-s">var</span> myApp <span class="pl-k">=</span> angular.module(<span class="pl-s1"><span class="pl-pds">'</span>myApp<span class="pl-pds">'</span></span>, []);
-
-  myApp.controller(<span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">$scope</span>, <span class="pl-vpf">$http</span>) {
-    $scope.beers <span class="pl-k">=</span> [{<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-c1">6</span>,<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Hefeweizen<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>style<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Weizen<span class="pl-pds">"</span></span>},<span class="pl-s1"><span class="pl-pds">"</span>brewery<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Weihenstephaner<span class="pl-pds">"</span></span>}},{<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-c1">7</span>,<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Helles<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>style<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>European pale lager<span class="pl-pds">"</span></span>},<span class="pl-s1"><span class="pl-pds">"</span>brewery<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Weihenstephaner<span class="pl-pds">"</span></span>}},{<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-c1">4</span>,<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Huvila Pale Ale<span class="pl-pds">"</span></span>,<span class="pl-s1"><span class="pl-pds">"</span>style<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>American pale ale<span class="pl-pds">"</span></span>},<span class="pl-s1"><span class="pl-pds">"</span>brewery<span class="pl-pds">"</span></span><span class="pl-k">:</span>{<span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span><span class="pl-k">:</span><span class="pl-s1"><span class="pl-pds">"</span>Malmgard<span class="pl-pds">"</span></span>}}];
+BEERS.sortByName = () => {
+  BEERS.list.sort((a, b) => {
+    return a.name.toUpperCase().localeCompare(b.name.toUpperCase());
   });
-<span class="pl-k">&lt;</span>/script<span class="pl-k">&gt;</span>
+};
 
-<span class="pl-k">&lt;</span>h2<span class="pl-k">&gt;</span>Beers<span class="pl-k">&lt;</span>/h2<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>div ng<span class="pl-k">-</span>app<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>myApp<span class="pl-pds">"</span></span> ng<span class="pl-k">-</span>controller<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-
-  <span class="pl-k">&lt;</span>ul<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>li ng<span class="pl-k">-</span>repeat<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>beer in beers<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-      {{beer.<span class="pl-sc">name</span>}} brewed by {{beer.brewery.<span class="pl-sc">name</span>}}
-    <span class="pl-k">&lt;</span>/li<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span>/ul<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>/div<span class="pl-k">&gt;</span></pre></div>
-
-Now the list of beers and their breweries will render in the browser. The core of the code is like below
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>li ng<span class="pl-k">-</span>repeat<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>beer in beers<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-   {{beer.<span class="pl-sc">name</span>}} brewed by {{beer.brewery.<span class="pl-sc">name</span>}}
-<span class="pl-k">&lt;</span>/li<span class="pl-k">&gt;</span></pre></div>
-
-Angular's <em>ng-repeat</em> command (or directive) creates their own li tag for each item of the <code>beers</code> table which was set up by the controller to scope. As you'll see the difference from Rails view templates is not much. The biggest difference is of course that everything happens in the browser.
-
-With the help of Angular, is very easy to retrive json data from the server. You only have to change the controller function in this way:
-
-<div class="highlight highlight-javascript"><pre>  myApp.controller(<span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">$scope</span>, <span class="pl-vpf">$http</span>) {
-    $http.get(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>).success( <span class="pl-st">function</span>(<span class="pl-vpf">data</span>, <span class="pl-vpf">status</span>, <span class="pl-vpf">headers</span>, <span class="pl-vpf">config</span>) {
-      $scope.beers <span class="pl-k">=</span> data;
-    });
-  });</pre></div>
-
-<code>$http.get</code> obviously makes a GET call to the address in parameter. The rendered return call function sets up the server data to the scope variable <code>beers</code>.
-
-Change now the view template so that beers are not shown in a list but in a table:
-
-<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">ng-app</span>=<span class="pl-s1"><span class="pl-pds">"</span>myApp<span class="pl-pds">"</span></span> <span class="pl-e">ng-controller</span>=<span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span>&gt;
-
-  &lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-    &lt;<span class="pl-ent">thead</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span>&gt;name&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span>&gt;style&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;<span class="pl-ent">th</span>&gt; &lt;<span class="pl-ent">a</span>&gt;brewery&lt;/<span class="pl-ent">a</span>&gt; &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;/<span class="pl-ent">thead</span>&gt;
-    &lt;<span class="pl-ent">tr</span> <span class="pl-e">ng-repeat</span>=<span class="pl-s1"><span class="pl-pds">"</span>beer in beers<span class="pl-pds">"</span></span>&gt;
-      &lt;<span class="pl-ent">td</span>&gt;{{beer.name}}&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;<span class="pl-ent">td</span>&gt;{{beer.style.name}}&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;<span class="pl-ent">td</span>&gt;{{beer.brewery.name}}&lt;/<span class="pl-ent">td</span>&gt;
-    &lt;/<span class="pl-ent">tr</span>&gt;
-  &lt;/<span class="pl-ent">table</span>&gt;
-
-&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
-
-Also add titles for sorting the table which should be within a tags, not as links. Add finally the magic which will take care of the sorting operation:
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>script src<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.13/angular.min.js<span class="pl-pds">"</span></span><span class="pl-k">&gt;&lt;</span>/script<span class="pl-k">&gt;</span>
-<span class="pl-k">&lt;</span>script<span class="pl-k">&gt;</span>
-    <span class="pl-st">function</span> <span class="pl-en">BeersController</span>(<span class="pl-vpf">$scope</span>, <span class="pl-vpf">$http</span>) {
-        $http.get(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>).success( <span class="pl-st">function</span>(<span class="pl-vpf">data</span>, <span class="pl-vpf">status</span>, <span class="pl-vpf">headers</span>, <span class="pl-vpf">config</span>) {
-            $scope.beers <span class="pl-k">=</span> data;
-        });
-
-        $scope.order <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>;
-
-        <span class="pl-s3">$scope</span>.<span class="pl-en">sort_by</span> <span class="pl-k">=</span> <span class="pl-st">function</span> (<span class="pl-vpf">order</span>){
-            $scope.order <span class="pl-k">=</span> order;
-            <span class="pl-en">console</span><span class="pl-s3">.log</span>(order);
-        }
-    }
-<span class="pl-k">&lt;</span>/script<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>h2<span class="pl-k">&gt;</span>Beers<span class="pl-k">&lt;</span>/h2<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>div ng<span class="pl-k">-</span>app<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>myApp<span class="pl-pds">"</span></span> ng<span class="pl-k">-</span>controller<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-
-  <span class="pl-k">&lt;</span>table <span class="pl-st">class</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>thead<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>name<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('style.name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>style<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('brewery.name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>brewery<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>/thead<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>tr ng<span class="pl-k">-</span>repeat<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>beer in beers| orderBy:order<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.<span class="pl-sc">style</span>.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.brewery.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>/tr<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span>/table<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span>/div<span class="pl-k">&gt;</span></pre></div>
-
-This added a couple of things to your code. You defined the method <code>sort_by</code> to scope; clicking it helps defining the value of the variable <code>order</code> which was added to scope. The default value is 'name,' but if you click on the brewery title, the value becomes 'brewery.name,' and so if you click on the title of the style column, 'style.name' will be picked as value. The following line was added to ng repeat:
-
-<div class="highlight highlight-javascript"><pre>ng<span class="pl-k">-</span>repeat<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>beer in beers| orderBy:order<span class="pl-pds">"</span></span></pre></div>
-
-The collection <code>beers</code> is contained in the variable, and it is sorted through the <code>orderBy</code> filter against the <code>order</code> value of the variable.
-
-In addition, implement now the functionality to filters the beers shown in the list:
-
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>script<span class="pl-k">&gt;</span>
-  <span class="pl-s">var</span> myApp <span class="pl-k">=</span> angular.module(<span class="pl-s1"><span class="pl-pds">'</span>myApp<span class="pl-pds">'</span></span>, []);
-
-  myApp.controller(<span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span>, <span class="pl-st">function</span> (<span class="pl-vpf">$scope</span>, <span class="pl-vpf">$http</span>) {
-    $http.get(<span class="pl-s1"><span class="pl-pds">'</span>beers.json<span class="pl-pds">'</span></span>).success( <span class="pl-st">function</span>(<span class="pl-vpf">data</span>, <span class="pl-vpf">status</span>, <span class="pl-vpf">headers</span>, <span class="pl-vpf">config</span>) {
-      $scope.beers <span class="pl-k">=</span> data;
-    });
-
-    $scope.order <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>;
-
-    <span class="pl-s3">$scope</span>.<span class="pl-en">sort_by</span> <span class="pl-k">=</span> <span class="pl-st">function</span> (<span class="pl-vpf">order</span>){
-      $scope.order <span class="pl-k">=</span> order;
-      <span class="pl-en">console</span><span class="pl-s3">.log</span>(order);
-    }
-
-    $scope.searchText <span class="pl-k">=</span> <span class="pl-s1"><span class="pl-pds">'</span><span class="pl-pds">'</span></span>;
+BEERS.sortByStyle = () => {
+  BEERS.list.sort((a, b) => {
+    return a.style.name.toUpperCase().localeCompare(b.style.name.toUpperCase());
   });
-<span class="pl-k">&lt;</span>/script<span class="pl-k">&gt;</span>
+};
 
-<span class="pl-k">&lt;</span>h2<span class="pl-k">&gt;</span>Beers<span class="pl-k">&lt;</span>/h2<span class="pl-k">&gt;</span>
+BEERS.sortByBrewery = () => {
+  BEERS.list.sort((a, b) => {
+    return a.brewery.name
+      .toUpperCase()
+      .localeCompare(b.brewery.name.toUpperCase());
+  });
+};
 
-<span class="pl-k">&lt;</span>div ng<span class="pl-k">-</span>app<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>myApp<span class="pl-pds">"</span></span> ng<span class="pl-k">-</span>controller<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>BeersController<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
+const beers = () => {
+  document.getElementById("name").addEventListener("click", (e) => {
+    e.preventDefault;
+    BEERS.sortByName();
+    BEERS.show();
+  });
 
-  search<span class="pl-k">:</span>  <span class="pl-k">&lt;</span>input ng<span class="pl-k">-</span>model<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>searchText<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
+  document.getElementById("style").addEventListener("click", (e) => {
+    e.preventDefault;
+    BEERS.sortByStyle();
+    BEERS.show();
+  });
 
-  <span class="pl-k">&lt;</span>table <span class="pl-st">class</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>thead<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>name<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('style.name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>style<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>a ng<span class="pl-k">-</span>click<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>sort_by('brewery.name')<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>brewery<span class="pl-k">&lt;</span>/a<span class="pl-k">&gt;</span> <span class="pl-k">&lt;</span>/th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>/thead<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>tr ng<span class="pl-k">-</span>repeat<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>beer in beers| orderBy:order | filter:searchText<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.<span class="pl-sc">style</span>.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>{{beer.brewery.<span class="pl-sc">name</span>}}<span class="pl-k">&lt;</span>/td<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>/tr<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span>/table<span class="pl-k">&gt;</span>
+  document.getElementById("brewery").addEventListener("click", (e) => {
+    e.preventDefault;
+    BEERS.sortByBrewery();
+    BEERS.show();
+  });
 
-<span class="pl-k">&lt;</span>/div<span class="pl-k">&gt;</span></pre></div>
+  fetch("beers.json")
+    .then((response) => response.json())
+    .then(handleResponse);
+};
 
-A new filter was added to ng repeat, the so-called <code>filter</code>, which filters the collection beers and showing only the ones that comply with the string in the scope variable <code>searchText</code> in the filter parameter.
+export { beers };
+```
 
-The string restricting the search is input with an input tag:
+While calling the event listeners, the newly sorted elements of the BEERS.list will be appended to the table after the already existing ones. This was fixed by adding a line to the start of the BEERS.show function. In this line the pre-existing rows of the class <code>tablerow</code> are retrieved and deleted.
 
-<div class="highlight highlight-javascript"><pre><span class="pl-k">&lt;</span>input ng<span class="pl-k">-</span>model<span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>searchText<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span></pre></div>
+Your Javascript code is linked to each application page. The unfortunate result is that on any site you visit, the Javascript will execute the `beers` function. The application also tries to register the event listeners to every page even though it makes sense to do so only on the page with the beer list.
 
-As you'll see, Angular magic updates the value of the <code>searchText</code> variable in scope while you write the text in the search box.
+ Refine your Javascript code so that the `beers` function code is executed only if you are on a page with the table <code>beertable</code>:
 
-If you happened to be interested in the topic, you may read more here:
-<a href="http://docs.angularjs.org/tutorial">http://docs.angularjs.org/tutorial</a>
+```javascript
+const beers = () => {
+  if (document.querySelectorAll("#beertable").length < 1) return;
 
-<a href="https://github.com/tuhoojabotti/AngularJS-ohjelmointiprojekti-k2014/blob/master/material/aloitusluento.md">A tutorial has been written for Angular hash</a>, which you may find useful too. The tutorial makes you use Angular to build a page that uses Rails in its backend.
+  //...
 
-It looks like Angular is taking over the scene extremely quickly. Angular is like ice hockey: easy to learn, but there is wide scope for development and masterng it requires hard work. Luckily, using Angular is not like an either-everything-or-nothing solution. There is nothing that prevents you from  using Angular carefully, for instance, refining a Web site with Angular partially, and using Rails templates to produce the rest of the contents on the server side. This is what has been done on the course page with the homework statistics <a href="http://wadrorstats2015.herokuapp.com/">http://wadrorstats2015.herokuapp.com/</a>, where the charts are designed with Angular and GoogleCharts.
+  var request = new XMLHttpRequest();
 
-There is no standardized way that defines how a Rails-AngularJS project should be organised. Good insights on the issue are provided at
-<a href="http://rockyj.in/2013/10/24/angular_rails.html">http://rockyj.in/2013/10/24/angular_rails.html</a>
+  request.onload = handleResponse;
 
-<blockquote>
+  request.open("get", "beers.json", true);
+  request.send();
+};
+```
 
-<a id="user-content-tehtävä-3" class="anchor" href="#teht%C3%A4v%C3%A4-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 3
+If the page doesn't contain a element with the id _beertable_, the function execution won't continue. While developing, remember that the id should be unique, no application should contain two identical ids!
 
-Follow the examples above, and use Javascript (JQuery or AngularJS) to implement the page listing all breweries http:localhost:3000/brewerylist so that they can be sorted either in alphabetic order or against their founding year, as well as against the number of beers they produced. The page <strong>does not</strong> need to separate the expired breweries in their own table.
-
-Remember to keep the Javascript console open the whole time while you proceed with the exercise! You can the debug by printing the Javascript in the console with the command <code>console.log()</code>
-
-<strong>ATTENTION:</strong> due to the changes you did last week, the breweries json list http://localhost:3000/breweries.json does not work, because the breweries#index controller is not given the list of all breweries in the variable <code>@breweries</code> any more. Fix the situation.
-</blockquote>
+The current trend tells us we should move more and more of a Web pages functionality to the browser. The advantage is that you'll make your Web applications remind more and more of desktop applications.
 
 
-<a id="user-content-selainpuolella-toteutetun-toiminnallisuuden-testaaminen" class="anchor" href="#selainpuolella-toteutetun-toiminnallisuuden-testaaminen" aria-hidden="true"><span class="octicon octicon-link"></span></a>Selainpuolella toteutetun toiminnallisuuden testaaminen
+## React
 
-Make some tests with rspec/capybara for the Javascript beers list. Your starting point is the following file, spec/features/beerlist_spec.rb:
+The code of the page you implemented with Javascript to list the beers was decent structure-wise. However, if compared to Rails fluency and effortless coding style, what you wrote was quite heavy and full of annoying and rutine-like details, at times. If the amount of browser executable code keeps growing, it is easy to end up with a messy code base which is hard to read and even harder to expand.
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">require</span> <span class="pl-s1"><span class="pl-pds">'</span>rails_helper<span class="pl-pds">'</span></span>
+Javascript frontend development frameworks come to the rescue. For a long while, the most popular solution for frontend development has been [React](https://facebook.github.io/react/) which is developed by Facebook. React is a vast subject, in which you can immerse yourself on the Full Stack Web Development course offered by the the department. It is ongoing as a [open university course](https://fullstackopen.github.io/).
 
-describe <span class="pl-s1"><span class="pl-pds">"</span>Beerlist page<span class="pl-pds">"</span></span> <span class="pl-k">do</span>
-  before <span class="pl-c1">:each</span> <span class="pl-k">do</span>
-    <span class="pl-vo">@brewery1</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Koff<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@brewery2</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Schlenkerla<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@brewery3</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Ayinger<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@style1</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Lager<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@style2</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Rauchbier<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@style3</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Weizen<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@beer1</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span> <span class="pl-vo">@brewery1</span>, <span class="pl-c1">style:</span><span class="pl-vo">@style1</span>)
-    <span class="pl-vo">@beer2</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Fastenbier<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span><span class="pl-vo">@brewery2</span>, <span class="pl-c1">style:</span><span class="pl-vo">@style2</span>)
-    <span class="pl-vo">@beer3</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Lechte Weisse<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span><span class="pl-vo">@brewery3</span>, <span class="pl-c1">style:</span><span class="pl-vo">@style3</span>)
-  <span class="pl-k">end</span>
+>## Exercise 2
+>
+>Follow the examples above, and use Javascript to implement the page listing all breweries http:localhost:3000/brewerylist
+> 
+> The page displays the name and founding year of the brewery, number of beers made by the brewery and whether the brewery is active or not. The page <strong>does not</strong> need to separate the expired breweries in their own table.
+>
+> Sorting of the breweries will be done in the next exercise.
+>
+>Remember to keep the Javascript console open the whole time while you proceed with the exercise! You can debug by printing to the Javascript console with the command <code>console.log()</code>
+>
+><strong>ATTENTION:</strong> due to the changes you did last week, the breweries json list http://localhost:3000/breweries.json does not work, because the breweries#index controller is not given the list of all breweries in the variable <code>@breweries</code> any more. Fix the situation.
+>
+> **ATTENTION2:** Do this exercise little by little, as was done with the beers list in the previous example. Debugging Javascript might be challenging and the **surest way to get overwhelmingly frustrated is to try to do this exercise quickly by copy-pasting the beer list code.**
 
-  it <span class="pl-s1"><span class="pl-pds">"</span>shows one known beer<span class="pl-pds">"</span></span> <span class="pl-k">do</span>
+> ## Exercise 3
+>
+> Expand the brewery list so that they can be ordered alphabetically by name, by founding year, or by the amount beers made by the brewery.
+
+## Testing browser-side functionality
+
+Make some tests with rspec/capybara for the Javascript beers list. Your starting point is the following file, spec/features/beerlist_page_spec.rb:
+
+```ruby
+require 'rails_helper'
+
+describe "Beerlist page" do
+  before :all do
+    Capybara.register_driver :selenium do |app|
+      Capybara::Selenium::Driver.new(app, :browser => :chrome)
+    end
+  end
+
+  before :each do
+    @brewery1 = FactoryBot.create(:brewery, name: "Koff")
+    @brewery2 = FactoryBot.create(:brewery, name: "Schlenkerla")
+    @brewery3 = FactoryBot.create(:brewery, name: "Ayinger")
+    @style1 = Style.create name: "Lager"
+    @style2 = Style.create name: "Rauchbier"
+    @style3 = Style.create name: "Weizen"
+    @beer1 = FactoryBot.create(:beer, name: "Nikolai", brewery: @brewery1, style:@style1)
+    @beer2 = FactoryBot.create(:beer, name: "Fastenbier", brewery:@brewery2, style:@style2)
+    @beer3 = FactoryBot.create(:beer, name: "Lechte Weisse", brewery:@brewery3, style:@style3)
+  end
+
+  it "shows one known beer" do
     visit beerlist_path
-    expect(page).to have_content <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
+    expect(page).to have_content "Nikolai"
+  end
+end
+```
 
-Execute the test with the command <code>rspec spec/features/beerlist_spec.rb</code>. You will receive an error message anyway:
+Execute the test with the command <code>rspec spec/features/beerlist_page_spec.rb</code>. You will receive an error message:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-c1">1</span>) beerlist page <span class="pl-vo">Beerlist</span> page shows one known beer
-     <span class="pl-vo">Failure</span><span class="pl-k">/</span><span class="pl-c1">Error:</span> expect(page).to have_content <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>
-       expected to find text <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span> <span class="pl-k">in</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries beers styles ratings users clubs places | signin signup Beers Name Style Brewery<span class="pl-pds">"</span></span></pre></div>
+```ruby
+  1) Beerlist page shows one known beer
+     Failure/Error: expect(page).to have_content "Nikolai"
+       expected to find text "Nikolai" in "breweries beers styles ratings users clubs places signin signup\nyou should be signed in\nSign in\nusername password"
+     # ./spec/features/beerlist_page_spec.rb:18:in `block (2 levels) in <top (required)>'
 
-It looks like that the page does not contain any beers list at all. Check this out with the command <code>save_and_open_page</code> that you should put right before the test, which will open the browser page where capybara has navigated to
-(see <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#capybarav4#capybara">https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko4.md#capybarav4#capybara</a>).
+Finished in 21.17 seconds (files took 5.33 seconds to load)
+1 example, 1 failure
+```
+
+It looks like that the page does not contain any beers list at all. Check this out with the command <code>save_and_open_page</code> that you should put right before the  <code>expect</code> command. This will open the browser page where capybara has navigated to
+(see https://github.com/mluukkai/webdevelopment-rails/blob/main/week4.md#capybara).
 
 And the beer table to show on the page is empty as expected:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-2.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-2.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-2.png)
 
-You find the reason for this from Capybara documentation <a href="https://github.com/jnicklas/capybara#drivers">https://github.com/jnicklas/capybara#drivers</a>
+You find the reason for this from Capybara documentation https://github.com/jnicklas/capybara#drivers.
 
-<blockquote>
-By default, Capybara uses the :rack_test driver, which is fast but limited: it does not support JavaScript, nor is it able to access HTTP resources outside of your Rack application, such as remote APIs and OAuth services. To get around these limitations, you can set up a different default driver for your features.
-</blockquote>
+> By default, Capybara uses the :rack_test driver, which is fast but limited: it does not support JavaScript, nor is it able to access HTTP resources outside of your Rack application, such as remote APIs and OAuth services. To get around these limitations, you can set up a different default driver for your features.
 
-Fixing this is simple, too. The Javascript tests only need to be added a parameter and they will be executed with the help of Selenium, a test machine which knows Javascript:
+Fixing this is simple, too. The Javascript tests only need to be added a parameter and they will be executed with the help of Selenium, a test driver which knows Javascript:
 
-<div class="highlight highlight-ruby"><pre>    it <span class="pl-s1"><span class="pl-pds">"</span>shows the known beers<span class="pl-pds">"</span></span>, <span class="pl-c1">js:</span><span class="pl-c1">true</span> <span class="pl-k">do</span></pre></div>
+```ruby
+it "shows the known beers", js:true do
+```
 
-In order to start using Selenium, the Gemfile test scope has to be added the following gem:
+Run the tests. You'll run in an error message again:
 
-<pre><code>gem 'selenium-webdriver'
-</code></pre>
+```ruby
+1) Beerlist page shows one known beer
+    Failure/Error: visit beerlist_path
 
-Execute <code>bundle install</code>, and run the tests. You'll run in an error message again:
+    WebMock::NetConnectNotAllowedError:
+      Real HTTP connections are disabled. Unregistered request: GET http://127.0.0.1:52187/__identify__ with headers {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}
 
-<div class="highlight highlight-ruby"><pre>     <span class="pl-vo">Failure</span><span class="pl-k">/</span><span class="pl-c1">Error:</span> visit beerlist_path
-     <span class="pl-s3">WebMock</span>::<span class="pl-c1">NetConnectNotAllowedError:</span>
-       <span class="pl-vo">Real</span> <span class="pl-vo">HTTP</span> connections are disabled. <span class="pl-vo">Unregistered</span> <span class="pl-c1">request:</span> <span class="pl-vo">GET</span> <span class="pl-c1">http:</span><span class="pl-sr"><span class="pl-pds">//</span></span><span class="pl-c1">127.0</span>.<span class="pl-c1">0.1</span>:<span class="pl-c1">60873</span><span class="pl-k">/</span>__identify__ with headers {<span class="pl-s1"><span class="pl-pds">'</span>Accept<span class="pl-pds">'</span></span>=&gt;<span class="pl-s1"><span class="pl-pds">'</span>*/*<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>Accept-Encoding<span class="pl-pds">'</span></span>=&gt;<span class="pl-s1"><span class="pl-pds">'</span>gzip;q=1.0,deflate;q=0.6,identity;q=0.3<span class="pl-pds">'</span></span>, <span class="pl-s1"><span class="pl-pds">'</span>User-Agent<span class="pl-pds">'</span></span>=&gt;<span class="pl-s1"><span class="pl-pds">'</span>Ruby<span class="pl-pds">'</span></span>}</pre></div>
+      You can stub this request with the following snippet:
 
-The reason is that you started to use the WebMock gem in week 5, blocking the test code HTTP connections by default. The Javascript beer list tries to fetch the beers list in json form from the server, in fact. You get over this if you allow the connections to the local server, for instance adding the following command to the beginning of the <code>before</code> code chunk:
+      stub_request(:get, "http://127.0.0.1:52187/__identify__").
+        with(
+          headers: {
+        'Accept'=>'*/*',
+        'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+        'User-Agent'=>'Ruby'
+          }).
+        to_return(status: 200, body: "", headers: {})
 
-<pre><code>WebMock.disable_net_connect!(allow_localhost:true)
-</code></pre>
-
-The test works finally, but it does not go through. You'll see that the original issue hasn't been fixed: even though you added the beers to the database in the <code>before :each</code> chunk, the database looks empty.
-
-The reason is that when you run tests with Selenium, the Respec's normal way to execute the test in one single database transection (which automatically executes a rollback operation at the end of the test, resetting all the database changes) is not supported (see <a href="https://github.com/jnicklas/capybara#transactions-and-database-setup">https://github.com/jnicklas/capybara#transactions-and-database-setup</a>). You will have to disable this property with the command <code>self.use_transactional_fixtures = false</code>, at the beginning of the tests to run through Selenium.</code>
-
-The bad news is that the test data saved in the database will not be revomed after each test. The DatabaseCleaner gem <a href="https://github.com/bmabey/database_cleaner">https://github.com/bmabey/database_cleaner</a> will help you here anyway. Get started with it, by adding the following line to the Gemfile test scope
-
-<pre><code>gem 'database_cleaner'
-</code></pre>
-
-And execute <code>bundle install</code>.
-
-Now configure your tests so that <em>before all tests</em> (<code>before :all</code>) you set off the transactionality, allow the HTTP connections to the local server, and define the strategy to use for DatabaseCleaner (see <a href="http://stackoverflow.com/questions/10904996/difference-between-truncation-transaction-and-deletion-database-strategies">http://stackoverflow.com/questions/10904996/difference-between-truncation-transaction-and-deletion-database-strategies</a>). <em>Before each test</em> (<code>before :each</code>) DatabaseCleaner is started and after each test (<code>after :each</code>) DatabaseCleaner is requested to reset the database. When all tests are executed (<code>after :all</code>) the normal transactionality is returned:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">require</span> <span class="pl-s1"><span class="pl-pds">'</span>rails_helper<span class="pl-pds">'</span></span>
-
-describe <span class="pl-s1"><span class="pl-pds">"</span>beerlist page<span class="pl-pds">"</span></span> <span class="pl-k">do</span>
-
-  before <span class="pl-c1">:all</span> <span class="pl-k">do</span>
-    <span class="pl-v">self</span>.use_transactional_fixtures <span class="pl-k">=</span> <span class="pl-c1">false</span>
-    <span class="pl-s3">WebMock</span>.disable_net_connect!(<span class="pl-c1">allow_localhost:</span><span class="pl-c1">true</span>)
-  <span class="pl-k">end</span>
-
-  before <span class="pl-c1">:each</span> <span class="pl-k">do</span>
-    <span class="pl-s3">DatabaseCleaner</span>.strategy <span class="pl-k">=</span> <span class="pl-c1">:truncation</span>
-    <span class="pl-s3">DatabaseCleaner</span>.start
-
-    <span class="pl-vo">@brewery1</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Koff<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@brewery2</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Schlenkerla<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@brewery3</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:brewery</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Ayinger<span class="pl-pds">"</span></span>)
-    <span class="pl-vo">@style1</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Lager<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@style2</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Rauchbier<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@style3</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Weizen<span class="pl-pds">"</span></span>
-    <span class="pl-vo">@beer1</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span> <span class="pl-vo">@brewery1</span>, <span class="pl-c1">style:</span> <span class="pl-vo">@style1</span>)
-    <span class="pl-vo">@beer2</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Fastenbier<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span> <span class="pl-vo">@brewery2</span>, <span class="pl-c1">style:</span> <span class="pl-vo">@style2</span>)
-    <span class="pl-vo">@beer3</span> <span class="pl-k">=</span> <span class="pl-s3">FactoryGirl</span>.create(<span class="pl-c1">:beer</span>, <span class="pl-c1">name:</span> <span class="pl-s1"><span class="pl-pds">"</span>Lechte Weisse<span class="pl-pds">"</span></span>, <span class="pl-c1">brewery:</span> <span class="pl-vo">@brewery3</span>, <span class="pl-c1">style:</span> <span class="pl-vo">@style3</span>)
-  <span class="pl-k">end</span>
-
-  after <span class="pl-c1">:each</span> <span class="pl-k">do</span>
-    <span class="pl-s3">DatabaseCleaner</span>.clean
-  <span class="pl-k">end</span>
-
-  after <span class="pl-c1">:all</span> <span class="pl-k">do</span>
-    <span class="pl-v">self</span>.use_transactional_fixtures <span class="pl-k">=</span> <span class="pl-c1">true</span>
-  <span class="pl-k">end</span>
-
-  it <span class="pl-s1"><span class="pl-pds">"</span>shows one known beer<span class="pl-pds">"</span></span>, <span class="pl-c1">js:</span> <span class="pl-c1">true</span> <span class="pl-k">do</span>
-    visit beerlist_path
-    save_and_open_page
-    expect(page).to have_content <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
-
-The process was not the easiest, but now tests finally work!
-
-When you create page contents with Javascript, these contents do not appear on the page together with the HTML base, but only later on, when the Javascript is loaded after executing the return call function. So if you look at the page contents right after navigating to the page, the Javascript won't have managed to form the final page outlook. For instance, the following <code>save_and_open_page</code> may open a page, that does not contain beer yet:
-
-<div class="highlight highlight-ruby"><pre>  it <span class="pl-s1"><span class="pl-pds">"</span>shows a known beer<span class="pl-pds">"</span></span>, <span class="pl-c1">js:</span><span class="pl-c1">true</span> <span class="pl-k">do</span>
-    visit beerlist_path
-    save_and_open_page
-    expect(page).to have_content <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>
-  <span class="pl-k">end</span></pre></div>
-
-As the page <a href="https://github.com/jnicklas/capybara#asynchronous-javascript-ajax-and-friends">https://github.com/jnicklas/capybara#asynchronous-javascript-ajax-and-friends</a> says, Capybara is able to wait for asycronic Javascript calls till the page elements required for the tests have loaded.
-
-It's known that the Javascript should add lines to the page table. You will get the page to look correct by adding the command <code>find('table').find('tr:nth-child(2)')</code> at its beginning, which looks for a table in the page and for the secondline inside the table (the table first line is already the table title in the page background):
-
-<div class="highlight highlight-ruby"><pre>  it <span class="pl-s1"><span class="pl-pds">"</span>shows a known beer<span class="pl-pds">"</span></span>, <span class="pl-c1">:js</span> =&gt; <span class="pl-c1">true</span> <span class="pl-k">do</span>
-    visit beerlist_path
-    find(<span class="pl-s1"><span class="pl-pds">'</span>table<span class="pl-pds">'</span></span>).find(<span class="pl-s1"><span class="pl-pds">'</span>tr:nth-child(2)<span class="pl-pds">'</span></span>)
-    save_and_open_page
-    expect(page).to have_content <span class="pl-s1"><span class="pl-pds">"</span>Nikolai<span class="pl-pds">"</span></span>
-  <span class="pl-k">end</span></pre></div>
-
-Capybara will now wait, moving to the command to open the page only when the table is loaded (in fact, only two lines of the table will be ready for sure).
-
-<blockquote>
-
-<a id="user-content-tehtävä-4" class="anchor" href="#teht%C3%A4v%C3%A4-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 4
-
-Implement a test to check that the beers are sorted in ascending order against their name in the beerlist page by default.
-
-The test can be implemented now so using the <code>find</code> selector and making sure that each line has the right contents. Because the table has one line for the header, the first actual line can be found like this:
-
-find('table').find('tr:nth-child(2)')
-
-The line contents can be tested as usually with the expect and have_content methods.
+      ============================================================
+```
 
 
-<a id="user-content-tehtävä-5" class="anchor" href="#teht%C3%A4v%C3%A4-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 5
+The reason is that you started to use the WebMock gem in [week 5](https://github.com/mluukkai/webdevelopment-rails/blob/main/week5.md#testing-beer-restaurant-search), blocking the test code HTTP connections by default. The Javascript beer list tries to fetch the beers list in json form from the server, in fact. You get over this if you allow the connections, for instance by editing the <code>before :all</code> code chunk (which initializes the tests):
 
-Test the following pieces of functionality
+```ruby
+before :all do
+  Capybara.register_driver :selenium do |app|
+    Capybara::Selenium::Driver.new(app, :browser => :chrome)
+  end
+  WebMock.allow_net_connect!
+end
+```
 
-<ul class="task-list">
-<li>clicking on the column 'style,' the beers are sorted in ascending order against their style name</li>
-<li>clicking on the column 'brewery,' the beers are sorted in ascending order against their brewery name</li>
-</ul>
-</blockquote>
+The tests works finally.
 
-<strong>Attention.</strong> Travis is not able to run Selenium tests directly. A solution to the probelm can be found here  <a href="http://about.travis-ci.org/docs/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-GUI-(e.g.-a-Web-browser)">http://about.travis-ci.org/docs/user/gui-and-headless-browsers/#Using-xvfb-to-Run-Tests-That-Require-GUI-(e.g.-a-Web-browser)</a>
-Making Travis work after the changes is optional.
+When you create page contents with Javascript, these contents do not appear on the page together with the HTML base, but only later on, when the execution of the Javascript return call function. So if you look at the page contents right after navigating to the page, the Javascript won't have managed to form the final page outlook yet. For instance, the following <code>save_and_open_page</code> may open a page, that does not contain any beers yet:
+
+```ruby
+it "shows a known beer", js:true do
+  visit beerlist_path
+  save_and_open_page
+  expect(page).to have_content "Nikolai"
+end
+```
+
+As the page https://github.com/jnicklas/capybara#asynchronous-javascript-ajax-and-friends says, Capybara is able to wait for asycronic Javascript calls till the page elements required for the tests have loaded.
+
+It's known that the Javascript should add rows to the page table. You will get the page to look correct by adding the command <code>find('table').find('tr:nth-child(2)')</code> at its beginning. This looks for a table in the page and for the second line inside the table (the table first line is already the table title in the page template):
+
+```ruby
+it "shows a known beer", :js => true do
+  visit beerlist_path
+  find('table').find('tr:nth-child(2)')
+  save_and_open_page
+  expect(page).to have_content "Nikolai"
+end
+```
 
 
-<a id="user-content-asset-pipeline" class="anchor" href="#asset-pipeline" aria-hidden="true"><span class="octicon octicon-link"></span></a>Asset pipeline
+Capybara will now wait, moving to the command to open the page only when the table is loaded (to be more precise, only two lines of the table will be ready for sure).
 
-The Javascript and style files (and pictures) of Rails applications are managed with the so-called Asset pipeline, see <a href="http://guides.rubyonrails.org/asset_pipeline.html">http://guides.rubyonrails.org/asset_pipeline.html</a>
+Executing the test in a real browser is quite slow. You can make them faster by using Chrome's _Headless_ mode, the "UIless version". You can implement the Headless browser by changing the <code>before :all</code> into: 
+
+```ruby
+before :all do
+  Capybara.register_driver :chrome do |app|
+    Capybara::Selenium::Driver.new app, browser: :chrome,
+      options: Selenium::WebDriver::Chrome::Options.new(args: %w[headless disable-gpu])
+  end
+
+  Capybara.javascript_driver = :chrome
+  WebMock.disable_net_connect!(allow_localhost: true)
+end
+```
+
+After these configuration changes, executing on a normal browser is possible by clearing the contents of <code>Options.new()</code>.
+
+> ## Exercise 4
+>
+>Implement a test to check that the beers are sorted alphabetically by their name in the beerlist page by default.
+>
+>The test can be implemented by using the <code>find</code> selector to find the table rows and making sure that each line has the right contents. Because the table has one row for the header, the first actual row can be found like this:
+>
+> ```ruby
+> find('#beertable').first('.tablerow')
+> ```
+>
+>The row contents can be tested as usually with the expect and have_content methods. Capybara command _find_ returns a [Node](https://rubydoc.info/github/jnicklas/capybara/master/Capybara/Node/Finders) type object. See the link for instructions on how to handle Node.
+
+
+
+> ## Exercise 5
+>
+>Test the following pieces of functionality
+>
+> - clicking on the column 'style', the beers are sorted alphabetically by style name
+> - clicking on the column 'brewery', the beers are sorted alphabetically by brewery name
+
+## Asset pipeline
+
+The Javascript and style files (and pictures) of Rails applications are managed with the so-called Asset pipeline, see http://guides.rubyonrails.org/asset_pipeline.html
 
 The idea is that the application developer places the Javascript files in the folder <em>app/assets/javascripts</em> and the style files in <em>app/assets/stylesheets</em>. Both can be placed in various different files and subfolders, if needed.
 
-When the application is in the so-called development mood, Rails links all the Javascript and style files (which defined in the Manifest file) together in the application. If you check the application with the view source property of your browser, you will notice that a large amount of Javascript and style files are linked together there.
+When the application is in the development mode, Rails links all the Javascript and style files (which are defined in the so called Manifest file) together in to the application. If you check the application with the view source property of your browser, you will notice that a large amount of Javascript and style files are linked together there.
 
-The Javascript files to link in the application are defined in the file <em>app/assets/javascripts/application.js</em>, whose contents look like this now
+The Javascript files to link in to the application are defined in the file <em>app/assets/javascripts/application.js</em>, whose contents look like this now
 
-<div class="highlight highlight-javascript"><pre><span class="pl-c">//= require jquery</span>
-<span class="pl-c">//= require jquery_ujs</span>
-<span class="pl-c">//= require turbolinks</span>
-<span class="pl-c">//= require bootstrap</span>
-<span class="pl-c">//= require_tree .</span></pre></div>
+```javascript
+//= require jquery3
+//= require popper
+//= require bootstrap-sprockets
+import "@hotwired/turbo-rails";
+import "controllers";
+import { beertable } from "custom/utils";
 
-Even though the whole file contents look as if they were comments, they are actually the "real" commands of the <a href="https://github.com/sstephenson/sprockets">sprockets translator</a> that takes care of asset pipeline. They help define the Javascript files that have to be linke in the application. The first four lines tell to take jquery, jquery_ujs, turbolinks, and bootstrap. These are all set up in the application through gems.
+beertable();
+```
 
-The last line defines that all the Javascript files contained in <em>assets/javascripts/</em> as well as in its subfolders have to be included in the program.
+Even though the require statements look as if they were comments, they are actually "real" commands of the  [sprockets compiler](https://github.com/sstephenson/sprockets) that takes care of asset pipeline. They help define the Javascript files that have to be linked in the application. The file tells to take jquery3, popper, and bootstrap-sprockets. These are all set up in the application through gems.
 
-Asset pipeline also allows you to make use of <a href="http://coffeescript.org/">coffeescript</a>, in which case the files ending will be <code>.js.coffee</code>. When the application is run, Scprockets will translate Coffeescript into Javascript automatically.
-
-For execution performance reasons, it is usually better to avoid using too many Javascript and style files in development mood applications. When the application is started in production mood, Sprockets links all the application Javascript and style files into singular, optimised files. You'll notice this if you look at application HTML source code in Heroku: for instance <a href="http://wad-ratebeer.herokuapp.com/">http://wad-ratebeer.herokuapp.com/</a> contains now only one js and one css files, and expecially the js file readability is weak for an individual person.
+For execution performance reasons, it is usually better to avoid using too many Javascript and style files in production-use applications. When the application is started in production mode, Sprockets links all the application Javascript and style files into singular, optimised files. You'll notice this if you look at application HTML source code in Fly.io: for instance https://ratebeer22.fly.dev/, it contains now only one js and one css files, and expecially the js file readability is weak for an human.
 
 More about asset pipiline and for instance Javascript linking in Rails applications, at:
 
-<ul class="task-list">
-<li><a href="http://railscasts.com/episodes/279-understanding-the-asset-pipeline">http://railscasts.com/episodes/279-understanding-the-asset-pipeline</a></li>
-<li><a href="http://railsapps.github.io/rails-javascript-include-external.html">http://railsapps.github.io/rails-javascript-include-external.html</a></li>
-</ul>
+- http://railscasts.com/episodes/279-understanding-the-asset-pipeline
+- http://railsapps.github.io/rails-javascript-include-external.html
 
 <blockquote>
 
-<a id="user-content-tehtävä-6-8-kolmen-tehtävän-arvoinen" class="anchor" href="#teht%C3%A4v%C3%A4-6-8-kolmen-teht%C3%A4v%C3%A4n-arvoinen" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercises 6-8 (it gives three points)
+## Exercises 6-8 (gives three points)
 
-<h3>
-<a id="user-content-tehtävä-on-hieman-työläs-joten-tee-ensin-helpommat-pois-alta-muut-viikon-tehtävät-eivät-riipu-tästä-tehtävästä" class="anchor" href="#teht%C3%A4v%C3%A4-on-hieman-ty%C3%B6l%C3%A4s-joten-tee-ensin-helpommat-pois-alta-muut-viikon-teht%C3%A4v%C3%A4t-eiv%C3%A4t-riipu-t%C3%A4st%C3%A4-teht%C3%A4v%C3%A4st%C3%A4" aria-hidden="true"><span class="octicon octicon-link"></span></a>The exercise is hard, so first make the easier ones. The other exercises don't depend on this.</h3>
+### The exercise is hard, so first make the easier ones. The other exercises don't depend on this.</h3>
 
 Anyone can join as beer club member in your application, so far. Change your application now, so that the membership has to be confirmed by old members before new ones can join.
 
 Some notes
 
 <ul class="task-list">
-<li>the best way to implement membership is that the Membership model is added the boolean field <em>confirmed</em>
+<li>the best way to implement an unconfirmed membership is that the Membership model is added the boolean field <em>confirmed</em>
 </li>
-<li>When a club is created, the user who created it should automatically become that club member</li>
+<li>When a club is created, the user who created it should automatically become that club's member</li>
 <li>Show a list of the membership applications which haven't been confirmed on the club page</li>
-<li>Membership status change can be managed for instance with its own <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko6.md#reitti-panimon-statuksen-muuttamiselle">custom route</a>.</li>
+<li>Membership status change can be managed for instance with its own [custom route](https://github.com/mluukkai/webdevelopment-rails/blob/main/week6.md#route-for-changing-the-brewery-status).</li>
 </ul>
 
-The exercise may be a bit challenging. The section <a href="http://guides.rubyonrails.org/association_basics.html#controlling-association-scope">4.3.3 Scopes for has_many</a> of the Active Record Associations guide provides a good tool to make the exercise. Of course, the exercise can also be solved in different ways.
+The exercise may be a bit challenging. [Active Record Associations guide](http://guides.rubyonrails.org/association_basics.html) section **4.3.3 Scopes for has_many**  provides a good tool to make the exercise. Of course, the exercise can also be solved in different ways.
+
+Section **4.3.2.3 :class_name** might be useful as well.
 </blockquote>
 
-At the end of the exercise, you application will look something like this. The beer club page shows a list of the membership applications, if the signed-in user is already that beer club user:
+At the end of the exercise, you application can look something like this. The beer club page shows a list of the membership applications, if the signed-in user is already that beer club's member:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-6.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-6.png" alt="kuva" style="max-width:100%;"></a>
-
-Users personal pages show the applications which haven't been confirmed yet:
-
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-5.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-5.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-6.png)
 
 
-<a id="user-content-indeksi-tietokantaan" class="anchor" href="#indeksi-tietokantaan" aria-hidden="true"><span class="octicon octicon-link"></span></a>Index to the database
+Users' personal pages show the applications which haven't been confirmed yet:
+
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-5.png)
+
+
+## Index to the database
 
 When the user signs in the system, the session controller executes an operation to retrive the user object from the database against the user name:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">SessionsController<span class="pl-e"> &lt; ApplicationController</span></span>
-  <span class="pl-k">def</span> <span class="pl-en">create</span>
-    user <span class="pl-k">=</span> <span class="pl-s3">User</span>.find_by <span class="pl-c1">username:</span> params[<span class="pl-c1">:username</span>]
 
-     <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span>
+```ruby
+class SessionsController < ApplicationController
+  def create
+    user = User.find_by username: params[:username]
 
-<span class="pl-k">end</span></pre></div>
+     # ...
+  end
 
-In order to execute the operation, the database has to go through the whole <code>users</code> table. Searches for the object ID are faster, because each table has been indexed against their ID. The index works as with hash tables, providing access to the required database line in "O(1)" time.
+end
+```
 
-Database tables can be added other indexes if needed. Add an index to the <code>users</code> table, making the search against user ID faster.
+In order to execute the operation, the database has to go through the whole <code>users</code> table. Searches by the object ID are faster, because each table has been indexed against their ID. The index works as with hash tables, providing access to the required database row in "O(1)" time.
+
+Database tables can be added other indexes if needed. Add an index to the <code>users</code> table, making the search against user name faster.
 
 Create a migration for the index
 
-<pre><code>rails g migration AddUserIndexBasedOnUsername
-</code></pre>
+    rails g migration AddUserIndexBasedOnUsername
 
 The migration is the following:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">AddUserIndexBasedOnUsername<span class="pl-e"> &lt; ActiveRecord::Migration</span></span>
-  <span class="pl-k">def</span> <span class="pl-en">change</span>
-    add_index <span class="pl-c1">:users</span>, <span class="pl-c1">:username</span>
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
+```ruby
+class AddUserIndexBasedOnUsername < ActiveRecord::Migration[5.2]
+  def change
+    add_index :users, :username
+  end
+end
+```
 
-Execute the migration with the command <code>rake db:migrate</code> and the index is ready!
+Execute the migration with the command <code>rails db:migrate</code> and the index is ready!
 
-The bad thing about this is that when the system is added a new user or an existing user is deleted, the index has to be edited and this requires time obviuosly. Adding an index is a tradeoff of what operation you want to optimize, then.
+The bad thing about this is that when the system is added a new user or an existing user is deleted, the index has to be edited and this requires time obviously. Adding an index is a tradeoff on what operation you want to optimize, then. In most cases database reading operations happen so much more often than writing operations that the benefits of indexes far outweight the extra work caused by upkeeping them.
 
 
-<a id="user-content-laiska-lataaminen-n1-ongelma-ja-tietokantakyselyjen-optimointi" class="anchor" href="#laiska-lataaminen-n1-ongelma-ja-tietokantakyselyjen-optimointi" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lazy loading, the n+1 issue, and database request optimisation
+## Lazy loading, the n+1 issue, and database request optimisation
 
 The controller to show all beers is simple. The beers are fetched from the database, sorted according to what the parameter of the HTTP call defines, and are assigned to a variable for the template:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.all
+```ruby
+def index
+  @beers = Beer.all
 
-    order <span class="pl-k">=</span> params[<span class="pl-c1">:order</span>] <span class="pl-k">||</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>
+  order = params[:order] || 'name'
 
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-k">case</span> order
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by{ |<span class="pl-vo">b</span>| b.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>brewery<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by{ |<span class="pl-vo">b</span>| b.brewery.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>style<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by{ |<span class="pl-vo">b</span>| b.style.name }
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span></pre></div>
+  @beers = case order
+            when 'name' then @beers.sort_by(&:name)
+            when 'brewery' then @beers.sort_by{ |b| b.brewery.name }
+            when 'style' then @beers.sort_by{ |b| b.style.name }
+            end
+end
+```
 
 The template shows a table where the beers are listed:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-vo">@beers</span>.each <span class="pl-k">do </span>|<span class="pl-vo">beer</span>| </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-  &lt;<span class="pl-ent">tr</span>&gt;
-    &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.name, beer </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-    &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.style, beer.style </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-    &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.brewery.name, beer.brewery </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-  &lt;/<span class="pl-ent">tr</span>&gt;
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-&lt;/<span class="pl-ent">table</span>&gt;</pre></div>
+```erb
+<% @beers.each do |beer| %>
+  <tr>
+    <td><%= link_to beer.name, beer %></td>
+    <td><%= link_to beer.style, beer.style %></td>
+    <td><%= link_to beer.brewery.name, beer.brewery %></td>
+  </tr>
+<% end %>
+</table>
+```
 
 Simple and stylish... but not too efficient.
 
-You could take a look at your log file log/development.log to see what happens when users go to the beers page. You will have access to the same piece of information in a fairly better form  through the <em>miniprofiler</em> gem (see <a href="https://github.com/MiniProfiler/rack-mini-profiler">https://github.com/MiniProfiler/rack-mini-profiler</a> and <a href="http://samsaffron.com/archive/2012/07/12/miniprofiler-ruby-edition">http://samsaffron.com/archive/2012/07/12/miniprofiler-ruby-edition</a>)
+You could take a look at your log file log/development.log to see what happens when users go to the beers page. You will have access to the same piece of information in a fairly better form  through the <em>miniprofiler</em> gem (see https://github.com/MiniProfiler/rack-mini-profiler and http://samsaffron.com/archive/2012/07/12/miniprofiler-ruby-edition)
 
 Getting started with Miniprofiler is easy, you only need to add the following line to your Gemfile
 
-<pre><code>gem 'rack-mini-profiler'
-</code></pre>
+    gem 'rack-mini-profiler'
 
 Execute <code>bundle install</code> and restart your Rails server. When you go to the address http:localhost:300/beers next time, you'll see a timer will have appeared on the upper side of the page. This measures the time used to execute the HTTP request. If you click the number, you'll find a better definition of the time frame:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-7.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-7.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/profile1.png)
 
-The report shows that <code>Executing action: index</code> – which is the controller method execution – causes one SQL request <code>SELECT "beers".* FROM "beers"</code>. Instead, <code>Rendering: beers/index</code> – which is the view template execution – causes a succession of nine SQL requests!
+The report shows that <code>Executing action: index</code> – which is the controller method execution – causes one SQL request. Instead, <code>Rendering: beers/index</code> – which is the view template execution – causes notably more SQL requests!
 
 Clicking on the requests you will be able to check their reason:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-8.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-8.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/profiler2.png)
 
-So, rendering the view template causes the following requests execution various times:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-vo">SELECT</span>  <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>  <span class="pl-vo">WHERE</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-k">=</span> <span class="pl-k">?</span>  <span class="pl-vo">ORDER</span> <span class="pl-vo">BY</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-vo">ASC</span> <span class="pl-vo">LIMIT</span> <span class="pl-c1">1</span>
+In contradiction to the earlier report, the controller makes only one request
 
-<span class="pl-vo">SELECT</span>  <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>  <span class="pl-vo">WHERE</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-k">=</span> <span class="pl-k">?</span>  <span class="pl-vo">ORDER</span> <span class="pl-vo">BY</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-vo">ASC</span> <span class="pl-vo">LIMIT</span> <span class="pl-c1">1</span></pre></div>
+```ruby
+SELECT "beers".* FROM "beers";
+```
+
+You see that the rendering of the view template performs the following requests several times:
+
+```ruby
+SELECT  "styles".* FROM "styles" WHERE "styles"."id" = ? LIMIT ?;
+
+SELECT  "breweries".* FROM "breweries" WHERE "breweries"."id" = ? LIMIT ?;
+
+SELECT AVG("ratings"."score") FROM "ratings" WHERE "ratings"."beer_id" = ?; 
+```
 
 In fact, a request to the tables of both <code>styles</code> and <code>breweries</code> is made for each singular beer.
 
-The reason is that Activerecord is set up on <em>lazy loading</em> by default, and an object fields are fetched from the database only if they are referred to. This is reasonable sometimes, if an object is related to a huge amount of objects and not all of them are needed straight from the beginning. When you access the page of all beers, lazy loading is not the best idea, because you know for sure that you have to show the brewery and style names for each beer, and these pieces of information can be found only from the brewery and style database tables.
+The reason is that Activerecord is set up on <em>lazy loading</em> by default, and an object's fields are fetched from the database only when they are referred to. This is reasonable sometimes, if an object is related to a huge amount of objects and not all of them are needed straight from the beginning. When you access the page of all beers, lazy loading is not the best idea, because you know for sure that you have to show the brewery and style names for each beer, and these pieces of information can be found only from the brewery and style database tables.
 
-You can guide the SQL generated from the requests by acting on the method parameters. For instance, the following tells that breweries and not only the beers have to be fetched from the database:
+You can guide the SQL generated from the requests with ActiveRecord method parameters. For instance, the following tells that breweries associated with the beers have to be fetched from the database as well:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.includes(<span class="pl-c1">:brewery</span>).all
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def index
+  @beers = Beer.includes(:brewery).all
+  # ...
+end
+```
 
-With the help of Miniprofiler, you'll see that the controller execution causes two requests:
+With the help of Miniprofiler, you'll see that the controller execution now causes two requests:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-vo">SELECT</span> <span class="pl-s1"><span class="pl-pds">"</span>beers<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>beers<span class="pl-pds">"</span></span>
-<span class="pl-vo">SELECT</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>  <span class="pl-vo">WHERE</span> <span class="pl-s1"><span class="pl-pds">"</span>breweries<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-vo">IN</span> (<span class="pl-c1">1</span>, <span class="pl-c1">2</span>, <span class="pl-c1">3</span>, <span class="pl-c1">6</span>)</pre></div>
+```ruby
+SELECT "beers".* FROM "beers";
+SELECT "breweries".* FROM "breweries" WHERE "breweries"."id" IN (?, ?, ?, ?);
+```
 
-The view template execution causes only five requests now, and they are all like:
+The view template execution causes request that are for example like this:
 
-<div class="highlight highlight-ruby"><pre>
-<span class="pl-vo">SELECT</span>  <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>  <span class="pl-vo">WHERE</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-k">=</span> <span class="pl-k">?</span>  <span class="pl-vo">ORDER</span> <span class="pl-vo">BY</span> <span class="pl-s1"><span class="pl-pds">"</span>styles<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-vo">ASC</span> <span class="pl-vo">LIMIT</span> <span class="pl-c1">1</span></pre></div>
+```ruby
+SELECT  "styles".* FROM "styles" WHERE "styles"."id" = ? LIMIT ?;
+SELECT AVG("ratings"."score") FROM "ratings" WHERE "ratings"."beer_id" = ?; 
+```
 
-When the view is rendered, the styles have to be fetched from the database now, each with their own SQL request.
+When the view is rendered, the styles have to still be fetched from the database now, each with their own SQL request.
 
-Optimize the controller in a way that all the styles needed are also read from the database at once:
+Optimize the controller in a way that all the styles and ratings needed are also read from the database at once:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.includes(<span class="pl-c1">:brewery</span>, <span class="pl-c1">:style</span>).all
+```ruby
+def index
+  @beers = Beer.includes(:brewery, :style, :ratings).all
 
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span></pre></div>
+  # ...
+end
+```
 
-The controller execution causes now three requests, and rendering the view requires only one request. Miniprofiler shows that the request is
+You notice that while the number of requests has dropped, the request for finding the beer rating average is still repeated for every beer.
 
-<div class="highlight highlight-ruby"><pre><span class="pl-vo">SELECT</span>  <span class="pl-s1"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span>.<span class="pl-k">*</span> <span class="pl-vo">FROM</span> <span class="pl-s1"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span>  <span class="pl-vo">WHERE</span> <span class="pl-s1"><span class="pl-pds">"</span>users<span class="pl-pds">"</span></span>.<span class="pl-s1"><span class="pl-pds">"</span>id<span class="pl-pds">"</span></span> <span class="pl-k">=</span> <span class="pl-k">?</span> <span class="pl-vo">LIMIT</span> <span class="pl-c1">1</span></pre></div>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/profiler3.png)
+
+This is because you have defined that calculating the average is done with SQL:
+
+
+```ruby
+module RatingAverage
+  extend ActiveSupport::Concern
+
+  def average_rating
+    # this generates SQL
+    ratings.average(:score).to_f
+  end
+end
+```
+
+That means that having already fetched the ratings oesn't help here. We could make use of the beer ratings fetched with the _includes_ command in the avarage calculation by making it happen in the central memory instead of in SQL:
+
+```ruby
+module RatingAverage
+  extend ActiveSupport::Concern
+
+  def average_rating
+    # Count and save based on the fetched ratings objects (associated to a beer)
+    rating_count = ratings.size
+    
+    return 0 if rating_count == 0
+    ratings.map{ |r| r.score }.sum / rating_count
+  end
+end
+```
+
+The controller execution now triggers less requests and rendering the view only a single one.
+
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/profiler4.png)
+
+Miniprofiler shows that the request is
+
+```ruby
+SELECT  "users".* FROM "users"  WHERE "users"."id" = ? LIMIT 1
+```
 
 and the reason is
 
-<div class="highlight highlight-ruby"><pre>app<span class="pl-k">/</span>controllers<span class="pl-k">/</span>application_controller.<span class="pl-c1">rb:</span><span class="pl-c1">10</span><span class="pl-c1">:in</span> <span class="pl-s1"><span class="pl-pds">'</span>current_user<span class="pl-pds">'</span></span></pre></div>
+```ruby
+app/controllers/application_controller.rb:7:in `current_user'
+```
 
-eli näytön muuttujan <code>current_user</code> avulla tekemä viittaus kirjautuneena olevaan käyttäjään. Tämä ei kuitenkaan ole hirveän vakavaa.
+that is, the reference to the signed-in user made with the `current_user` variable by the view. This isn't really a problem though. 
 
-From 1+2n (where n stands for the number of beers in the database), you managed to optimise the number of SQL requests to three (plus one)!
+You managed to optimise the number of SQL requests and thus the loading time of the page! Decreasing the number on SQL requests is nice in the sense that it is constant and doesn't depend on the number of beers in the system.
 
-This is called the n+1 problem (see <a href="http://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations">http://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations</a>): when fetching a list of beers with one database request, each object of the list causes a new database search, and instead of only one search, around n+1 searches actually happen.
+What you just experienced is called the n+1 problem (see http://guides.rubyonrails.org/active_record_querying.html#eager-loading-associations): when fetching a list of beers with one database request, each object of the list causes a new database search, and instead of only one search, around n+1 searches actually happen.
 
-Before the next exercise, change the template to list all the users to look like
+Before the next exercise, make the user view_ views/users.html.erb_ a bit simpler:
 
-<div class="highlight highlight-ruby"><pre><span class="pl-k">&lt;</span>h1<span class="pl-k">&gt;</span><span class="pl-vo">Users</span><span class="pl-k">&lt;</span><span class="pl-k">/</span>h1<span class="pl-k">&gt;</span>
+```ruby
+<h1>Users</h1>
 
-<span class="pl-k">&lt;</span>table <span class="pl-k">class</span><span class="pl-k">=</span><span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span><span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span>thead<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span>tr<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span><span class="pl-vo">Username</span><span class="pl-k">&lt;</span><span class="pl-k">/</span>th<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> rated beers <span class="pl-k">&lt;</span><span class="pl-k">/</span>th<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>th<span class="pl-k">&gt;</span> total ratings <span class="pl-k">&lt;</span><span class="pl-k">/</span>th<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span>th&gt;<span class="pl-k">&lt;</span><span class="pl-k">/</span>th<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span><span class="pl-k">/</span>tr<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span><span class="pl-k">/</span>thead<span class="pl-k">&gt;</span>
-  <span class="pl-k">&lt;</span>tbody<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-vo">@users</span>.each <span class="pl-k">do </span>|<span class="pl-vo">user</span>| <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">      &lt;tr<span class="pl-pds">&gt;</span></span>
-        <span class="pl-k">&lt;</span>td&gt;<span class="pl-k">&lt;</span><span class="pl-k">%=</span> link_to user.username, user <span class="pl-s1"><span class="pl-pds">%&gt;</span>&lt;/td<span class="pl-pds">&gt;</span></span>
-        <span class="pl-k">&lt;</span>td&gt;<span class="pl-k">&lt;</span><span class="pl-k">%=</span> user.beers.size <span class="pl-s1"><span class="pl-pds">%&gt;</span>&lt;/td<span class="pl-pds">&gt;</span></span>
-        <span class="pl-k">&lt;</span>td&gt;<span class="pl-k">&lt;</span><span class="pl-k">%=</span> user.ratings.size <span class="pl-s1"><span class="pl-pds">%&gt;</span>&lt;/td<span class="pl-pds">&gt;</span></span>
-        <span class="pl-k">&lt;</span>td<span class="pl-k">&gt;</span>
-          <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">if</span> is_admin? <span class="pl-k">and</span> user.is_frozen? <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">            &lt;span class="label label-info"<span class="pl-pds">&gt;</span></span>account frozen<span class="pl-k">&lt;</span><span class="pl-k">/</span>span<span class="pl-k">&gt;</span>
-          <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">end</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">        &lt;/td<span class="pl-pds">&gt;</span></span>
-      <span class="pl-k">&lt;</span><span class="pl-k">/</span>tr<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">end</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">  &lt;/tbody<span class="pl-pds">&gt;</span></span>
-<span class="pl-k">&lt;</span><span class="pl-k">/</span>table<span class="pl-k">&gt;</span></pre></div>
+<div id="users">
+  <% @users.each do |user| %>
+    <p>
+      <%= link_to(user.username, user) %>
+      <p>Has made <%= "#{user.ratings.size}"%> ratings, average rating <%= "#{user.average_rating}" %></p>
+      <% if user.closed? %>
+        <span class="badge text-bg-danger">account closed</span>
+      <% end %>
+    </p>
+  <% end %>
+</div>
 
-<blockquote>
+```
 
-<a id="user-content-tehtävä-9" class="anchor" href="#teht%C3%A4v%C3%A4-9" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 9
+Note, that the _if_ condition of <code>if user.closed</code> works depending on how you have named things in the code during an exercise on week 5. If necessary, you ran remove the whole condition.
 
-The change causes the n+1 problem to the users page. Fix the problem eager loading the required objects when the users are fetched, like in the exercise above. Make sure that the optimisation works with miniprofiler.
-</blockquote>
+
+>## Exercise 9
+>
+>There is a n+1 problem in the users page. Fix the problem eager loading the required objects when the users are fetched, like in the exercise above. Make sure that the optimisation works with miniprofiler.
+
 
 <strong>Attention:</strong> if the table was added also the favourite beer column
 
-<pre><code> &lt;td&gt;&lt;%= user.favorite_beer %&gt;&lt;/td&gt;
-</code></pre>
+```ruby
+<% if user.favorite_beer %>
+  <p>Favourite beer: <%= "#{user.favorite_beer.name}"%></p>
+<% end %>
+```
 
-the situation would be a bit harder in terms of SQL optimisation. The last version of your method was this:
+the situation would be a bit harder in terms of SQL optimisation. The latest version of your method was this:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite_beer</span>
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-    ratings.order(<span class="pl-c1">score:</span> <span class="pl-c1">:desc</span>).limit(<span class="pl-c1">1</span>).first.beer
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def favorite_beer
+  return nil if ratings.empty?
+  ratings.order(score: :desc).limit(1).first.beer
+end
+```
 
 Now, not even eager loading will help, because the method call causes an SQL request in any case. Instead, if you implemented the beer ratings in the method central memory (as you did at the beginning of week 4):
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">favorite_beer</span>
-    <span class="pl-k">return</span> <span class="pl-c1">nil</span> <span class="pl-k">if</span> ratings.empty?
-    ratings.sort_by{ |<span class="pl-vo">r</span>| r.score }.last.beer
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def favorite_beer
+  return nil if ratings.empty?
+  ratings.sort_by{ |r| r.score }.last.beer
+end
+```
 
 the method call <em>would not</em> cause any database operations <em>if</em> the ratings are eager loaded when the method is called.
 
 It may also make sense to keep two versions of the method in some situations to optimise its performance, one that executes the operation at database level and the other which does it in central memory.
 
 
-<a id="user-content-cachays-eli-palvelinpuolen-välimuistitoiminnallisuudet" class="anchor" href="#cachays-eli-palvelinpuolen-v%C3%A4limuistitoiminnallisuudet" aria-hidden="true"><span class="octicon octicon-link"></span></a>Server chaching functionality
+## Server caching functionality
 
 Create some more data in your database. Copy the following code to the file db/seeds.db
 
