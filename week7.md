@@ -1093,74 +1093,80 @@ It may also make sense to keep two versions of the method in some situations to 
 
 ## Server caching functionality
 
-Create some more data in your database. Copy the following code to the file db/seeds.db
+Create some more data in your database.
 
-<div class="highlight highlight-ruby"><pre>users <span class="pl-k">=</span> <span class="pl-c1">200</span>           <span class="pl-c"># if your computer is slow, 100 will be enough 100</span>
-breweries <span class="pl-k">=</span> <span class="pl-c1">100</span>       <span class="pl-c"># if your computer is slow, 50 will be enough</span>
-beers_in_brewery <span class="pl-k">=</span> <span class="pl-c1">40</span>
-ratings_per_user <span class="pl-k">=</span> <span class="pl-c1">30</span>
+Replace the contents of file db/seeds.db with:
 
-(<span class="pl-c1">1</span>..users).each <span class="pl-k">do </span>|<span class="pl-vo">i</span>|
-  <span class="pl-s3">User</span>.create! <span class="pl-c1">username:</span><span class="pl-s1"><span class="pl-pds">"</span>user_<span class="pl-pse">#{</span><span class="pl-s2">i</span><span class="pl-pse"><span class="pl-s2">}</span></span><span class="pl-pds">"</span></span>, <span class="pl-c1">password:</span><span class="pl-s1"><span class="pl-pds">"</span>Passwd1<span class="pl-pds">"</span></span>, <span class="pl-c1">password_confirmation:</span><span class="pl-s1"><span class="pl-pds">"</span>Passwd1<span class="pl-pds">"</span></span>
-<span class="pl-k">end</span>
+```ruby
+# if your computer is fast, you can increase the below numbers
+users = 50             
+breweries = 50
+beers_in_brewery = 50
+ratings_per_user = 30
 
-(<span class="pl-c1">1</span>..breweries).each <span class="pl-k">do </span>|<span class="pl-vo">i</span>|
-  <span class="pl-s3">Brewery</span>.create! <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>Brewery_<span class="pl-pse">#{</span><span class="pl-s2">i</span><span class="pl-pse"><span class="pl-s2">}</span></span><span class="pl-pds">"</span></span>, <span class="pl-c1">year:</span><span class="pl-c1">1900</span>, <span class="pl-c1">active:</span><span class="pl-c1">true</span>
-<span class="pl-k">end</span>
+(1..users).each do |i|
+  User.create! username: "user_#{i}", password: "Passwd1", password_confirmation: "Passwd1"
+end
 
-bulk <span class="pl-k">=</span> <span class="pl-s3">Style</span>.create! <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>bulk<span class="pl-pds">"</span></span>, <span class="pl-c1">description:</span><span class="pl-s1"><span class="pl-pds">"</span>cheap, not much taste<span class="pl-pds">"</span></span>
+(1..breweries).each do |i|
+  Brewery.create! name: "Brewery_#{i}", year: 1900, active: true
+end
 
-<span class="pl-s3">Brewery</span>.all.each <span class="pl-k">do </span>|<span class="pl-vo">b</span>|
-  n <span class="pl-k">=</span> rand(beers_in_brewery)
-  (<span class="pl-c1">1</span>..n).each <span class="pl-k">do </span>|<span class="pl-vo">i</span>|
-    beer <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.create! <span class="pl-c1">name:</span><span class="pl-s1"><span class="pl-pds">"</span>beer <span class="pl-pse">#{</span><span class="pl-s2">b.id</span><span class="pl-pse"><span class="pl-s2">}</span></span> -- <span class="pl-pse">#{</span><span class="pl-s2">i</span><span class="pl-pse"><span class="pl-s2">}</span></span><span class="pl-pds">"</span></span>, <span class="pl-c1">style:</span>bulk
-    b.beers <span class="pl-k">&lt;&lt;</span> beer
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span>
+bulk = Style.create! name: "Bulk", description: "cheap, not much taste"
 
-<span class="pl-s3">User</span>.all.each <span class="pl-k">do </span>|<span class="pl-vo">u</span>|
-  n <span class="pl-k">=</span> rand(ratings_per_user)
-  beers <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.all.shuffle
-  (<span class="pl-c1">1</span>..n).each <span class="pl-k">do </span>|<span class="pl-vo">i</span>|
-    r <span class="pl-k">=</span> <span class="pl-s3">Rating</span>.<span class="pl-k">new</span> <span class="pl-c1">score:</span>(<span class="pl-c1">1</span><span class="pl-k">+</span>rand(<span class="pl-c1">50</span>))
-    beers[i].ratings <span class="pl-k">&lt;&lt;</span> r
-    u.ratings <span class="pl-k">&lt;&lt;</span> r
-  <span class="pl-k">end</span>
-<span class="pl-k">end</span></pre></div>
+Brewery.all.each do |b|
+  n = rand(beers_in_brewery)
+  (1..n).each do |i|
+    beer = Beer.create! name: "Beer #{b.id} -- #{i}", style: bulk, brewery: b
+    b.beers << beer
+  end
+end
 
-The file uses the version with the exclamation mark (<code>create!</code>) to create objects instead of the normal <code>create</code> methods. The difference between the two is can be seen when an object cannot be created successfully. The method without exclamation mark returns <code>nil</code> in such cases, whereas the other sends an exeption. Sending exeptions is a better options in seeding, otherwise the unsuccessful creation will be left unnoticed.
+User.all.each do |u|
+  n = rand(ratings_per_user)
+  beers = Beer.all.shuffle
+  (1..n).each do |i|
+    r = Rating.new score:(1+rand(50))
+    beers[i].ratings << r
+    u.ratings << r
+  end
+end
+```
 
-<strong>Make a copy of the old database <em>db/development.db</em></strong>, so that you may return to the old situation in case you compromise the performance. You can take the old database up again by changing its name again and calling it development.db
+The file uses the version with the exclamation mark (<code>create!</code>) to create objects instead of the normal <code>create</code> methods. The difference between the two is can be seen when an object cannot be created successfully. The method without exclamation mark returns <code>nil</code> in such cases, whereas the other throws an exception. Throwing exeptions is a better option in seeding, otherwise the unsuccessful creation will be left unnoticed.
 
-<strong>Attention:</strong> this might not be the best way to test the performance of real Rails applications, more about the topic at <a href="http://guides.rubyonrails.org/v3.2.13/performance_testing.html">http://guides.rubyonrails.org/v3.2.13/performance_testing.html</a> (the guides do not include a version updated for Rails 4.)
+<strong>Make a copy of the old database <em>_db/development.sqlite_ </em></strong>, so that you may return to the old situation after tuning the performance. You can take the old database into use again by changing its name again and calling it development.sqlite.
 
-Executing the seeding with the command
+<strong>Attention:</strong> this might not be the best way to test the performance of real Rails applications, more about the topic at http://guides.rubyonrails.org/v3.2.13/performance_testing.html (the guides do not include a version updated for Rails 7.)
 
-<pre><code>rake db:seed
-</code></pre>
+Execute the seeding with the command
 
-Executing the script will take a while.
+    rails db:seed
 
-<strong>Attention:</strong> if executing the script ends in an error, you'd better return to the pre-script database status. A possible issue about executing the script is that duplicate names braking the validation. If you change the command <code>create!</code> to <code>create</code>, the script execution will not interrupt.
+Executing the script might take a while.
 
-Your application will have enough data now, and loading the pages will start being slower.
+<strong>Attention:</strong> if executing the script ends in an error, you'd better return to the pre-script database status after fixing the errror. A possible issue about executing the script is duplicate names breaking the validation. If you change the command <code>create!</code> to <code>create</code>, the script execution will not interrupt.
 
-Try now to see how the performance will be different if you remove the SQL request optimisation comments from beers page, so if you change back the beer controller to look like this:
+Your application will have plenty data now, and loading the pages will start being slower.
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-c"># @beers = Beer.includes(:brewery, :style).all</span>
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.all
+Try now to see how the performance will be different if you comment out the SQL request optimisation from beers page, so if you change back the beer controller to look like this:
 
-    order <span class="pl-k">=</span> params[<span class="pl-c1">:order</span>] <span class="pl-k">||</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>
+```ruby
+def index
+  # @beers = Beer.includes(:brewery, :style).all
+  @beers = Beer.all
 
-    <span class="pl-k">case</span> order
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>brewery<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.brewery.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>style<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.style.name }
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span></pre></div>
+  order = params[:order] || 'name'
 
-Also have a look at the amount of SQL requests executing with and without optimisation. Once again, you'll see the result easily with miniprofiler.
+  @beers = case order
+    when 'name' then @beers.sort_by{ |b| b.name }
+    when 'brewery' then @beers.sort_by{ |b| b.brewery.name }
+    when 'style' then @beers.sort_by{ |b| b.style.name }
+  end
+end
+```
+
+Also have a look at the amount of SQL requests executed with and without optimisation. Once again, you'll see the result easily with miniprofiler.
 
 After trying this out, you can return the code to its optimised form.
 
@@ -1168,445 +1174,511 @@ When the amount of data is huge, optimising the requests alone will not be enoug
 
 Caching will be an option.
 
-Web application caching can be implemented both for the browser and for the serve (as well as for the proxy between the two). Take a look at server caching. A couple of weeks ago, you cached already the information fetched from the beermapping api 'manually' through Rails.cache. You'll have a look now to some more automatic caching mechanism.
+Web application caching can be implemented both for the browser and for the server (as well as for the proxy between the two). Take a look at server caching. [A couple of weeks ago](https://github.com/mluukkai/webdevelopment-rails/blob/main/week5.md#performance-optimization), you already implemented "by hand" the caching of the information fetched from the beermapping api through Rails.cache. You'll have a look now to some more automatic Rails caching mechanism.
 
-Rails provides server caching solutions at three levels:
+Caching is not on by default, when you execute your application in development mode. You might have switched it on on week 5. 
 
-<ul class="task-list">
-<li>page cache (caching whole pages)</li>
-<li>action cache (caching the controller methods results)</li>
-<li>fragment cache (caching a page fragment) </li>
-</ul>
+If the cache is on, the file _tmp/caching-dev.txt_ can be found in your application. If there is no such file, you can switch cache on by executing the command <code>rails dev:cache</code> on the command line. The command  should print out
 
-See <a href="http://guides.rubyonrails.org/caching_with_rails.html">http://guides.rubyonrails.org/caching_with_rails.html</a>
 
-Rails 4 has removed the first two solutions from Rails core, but you can make use of the with the help of different gems. However, you'll only look into the last solution now, that is fragment cache, which is the most diverse caching strategy, in fact.
+```
+Development mode is now being cached.
+```
 
-Caching is not on by default, when yuo execute your application in development mood. In the file <em>config/environment/development.rb</em>, you can turn caching on by giving <code>true</code> to the value of the following line:
+If it prints out
 
-<pre><code>config.action_controller.perform_caching = false
-</code></pre>
+```
+Development mode is no longer being cached.
+```
 
-Restart your application now.
+execute the command again.
+
+**Restart your application now.**
 
 Cache how the beers list is viewed.
 
 Fragment cache is possible if you put the part to cache of the view template into the following chunk:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%</span><span class="pl-s2"> cache <span class="pl-s1"><span class="pl-pds">'</span>key<span class="pl-pds">'</span></span>, <span class="pl-c1">skip_digest:</span> <span class="pl-c1">true</span> <span class="pl-k">do </span></span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-  the view template part to cache
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span></pre></div>
+```erb
+<% cache 'avain', skip_digest: true do %>
+  cachättävä näkymätemplaten osa
+<% end %>
+```
 
-As you may have guessed, <code>key</code> os the key where you save the view fragment to cache. The key can be either a string or an object. <code>skip_digest: true</code> refers to the <a href="http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013">view templates versioning</a> which won't be covered now. This means anyway, that the cache should be cleared (with the command <code>Rails.cache.clear</code>) <em>if</em> the view template code is changed.
+As you may have guessed, <code>key</code> is the key with which you save the view fragment to cache. The key can be either a string or an object. <code>skip_digest: true</code> refers to [view templates versioning]([näyttötemplatejen versiointiin](http://blog.remarkablelabs.com/2012/12/russian-doll-caching-cache-digests-rails-4-countdown-to-2013)) which won't be covered now. This means however, that the cache should be cleared (with the command <code>Rails.cache.clear</code>) if the view template code is changed.
 
-Adding fragment cache to the beers list views/beers/index.html is easy, you'll cache the dynamic part of the page, the beers table:
+Adding fragment caching to the beers list views/beers/index.html is easy, you'll cache the dynamic part of the page, the beers table:
 
-<div class="highlight highlight-erb"><pre>&lt;<span class="pl-ent">h1</span>&gt;Beers&lt;/<span class="pl-ent">h1</span>&gt;
+```erb
+<h1>Beers</h1>
 
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> cache <span class="pl-s1"><span class="pl-pds">'</span>beerlist<span class="pl-pds">'</span></span>, <span class="pl-c1">skip_digest:</span> <span class="pl-c1">true</span> <span class="pl-k">do </span></span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
+<% cache 'beerlist', skip_digest: true do %>
+  <div id="beers">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th><%= link_to "Name", beers_path(order: "name")%></th>
+          <th><%= link_to "Style", beers_path(order: "style")%></th>
+          <th><%= link_to "Brewery", beers_path(order: "brewery")%></th>
+          <th><%= link_to "Rating", beers_path(order: "rating")%></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @beers.each do |beer| %>
+          <tr>
+            <td><%= link_to beer.name, beer %></td>
+            <td><%= link_to beer.style.name, beer.style %></td>
+            <td><%= link_to beer.brewery.name, beer.brewery %></td>
+            <td><%= round(beer.average_rating) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
 
-&lt;<span class="pl-ent">table</span> <span class="pl-e">class</span>=<span class="pl-s1"><span class="pl-pds">"</span>table table-hover<span class="pl-pds">"</span></span>&gt;
-  &lt;<span class="pl-ent">thead</span>&gt;
-    &lt;<span class="pl-ent">tr</span>&gt;
-      &lt;<span class="pl-ent">th</span>&gt; <span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to <span class="pl-s1"><span class="pl-pds">'</span>Name<span class="pl-pds">'</span></span>, beers_path(<span class="pl-c1">order:</span><span class="pl-s1"><span class="pl-pds">"</span>name<span class="pl-pds">"</span></span>) </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span> &lt;/<span class="pl-ent">th</span>&gt;
-      &lt;<span class="pl-ent">th</span>&gt; <span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to <span class="pl-s1"><span class="pl-pds">'</span>Style<span class="pl-pds">'</span></span>, beers_path(<span class="pl-c1">order:</span><span class="pl-s1"><span class="pl-pds">"</span>style<span class="pl-pds">"</span></span>) </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span> &lt;/<span class="pl-ent">th</span>&gt;
-      &lt;<span class="pl-ent">th</span>&gt; <span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to <span class="pl-s1"><span class="pl-pds">'</span>Brewery<span class="pl-pds">'</span></span>, beers_path(<span class="pl-c1">order:</span><span class="pl-s1"><span class="pl-pds">"</span>brewery<span class="pl-pds">"</span></span>) </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span> &lt;/<span class="pl-ent">th</span>&gt;
-    &lt;/<span class="pl-ent">tr</span>&gt;
-  &lt;/<span class="pl-ent">thead</span>&gt;
+<% end %>
 
-  &lt;<span class="pl-ent">tbody</span>&gt;
-    <span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-vo">@beers</span>.each <span class="pl-k">do </span>|<span class="pl-vo">beer</span>| </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-      &lt;<span class="pl-ent">tr</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.name, beer </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.style, beer.style </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-        &lt;<span class="pl-ent">td</span>&gt;<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to beer.brewery.name, beer.brewery </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>&lt;/<span class="pl-ent">td</span>&gt;
-      &lt;/<span class="pl-ent">tr</span>&gt;
-    <span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-  &lt;/<span class="pl-ent">tbody</span>&gt;
-&lt;/<span class="pl-ent">table</span>&gt;
-
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-
-&lt;<span class="pl-ent">br</span>&gt;
-
-<span class="pl-pse">&lt;%=</span><span class="pl-s2"> link_to(<span class="pl-s1"><span class="pl-pds">'</span>New Beer<span class="pl-pds">'</span></span>, new_beer_path, <span class="pl-c1">class:</span><span class="pl-s1"><span class="pl-pds">'</span>btn btn-primary<span class="pl-pds">'</span></span>) <span class="pl-k">if</span> current_user </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span></pre></div>
+<%= link_to("New beer", new_beer_path, class: "btn btn-primary") if current_user %>
+```
 
 If you go to the page now, the page fragment hasn't been saved to memory yet, and loading the page will take as long as it used to before adding the caching:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-9.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-9.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-9.png)
 
-The rendering time (<code>Rendering: beers/index</code>) was 814 milliseconds, in fact.
+The loading time of the whole page was 234564 ms of which rendering the page (<code>Rendering: beers/index</code>) was 5041.2 milliseconds, in fact.
 
-The fragment used on the page saves in cache, and opening the following page will be much faster:
+The fragment used on the page saves in cache, and opening the page  the next time will be much faster:
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-10.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-10.png" alt="kuva" style="max-width:100%;"></a>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-10.png)
 
-So, the view templates renders in three milliseconds!
+The whole page loading took 299 milliseconds of which only 6.3. ms was used for rendering the view template.
 
-Attention: the new beer creation link should not be left inside the cached fragment, because the link has to be shown only to users who signed in. The cached part of the page will be shown to everyone in the same way.
+Attention: the new beer creation link should be left outside the cached fragment, because the link has to be shown only to users who signed in. The cached part of the page will be shown to everyone in the same way.
 
-If you create a new beer now, you'll see that the page won't contain the new beer information. The reason is however that the page fragment is to be found in cache again. The point is that the expired view fragment should not be shown anymore. In this case, the easiest strategy is making it expired manually from the controller.
+If you create a new beer now, you'll see that the page won't contain the new beer information. The reason is of course that the page fragment is still found from the cache. The outdated cache should be expired. In this case, the easiest strategy is making it expired manually from the controller.
 
-Expiration is possible with the command <code>expire_fragment(avain)</code>. The command has to be called from the controller in the points where the beers list contents may change. These points are the controller methods <code>create</code>, <code>update</code> and <code>destroy</code>. The change is easy:
+Expiration is possible with the command <code>expire_fragment(key)</code>. The command has to be called from the controller in the points where the beers list contents may change. These points are the controller methods <code>create</code>, <code>update</code> and <code>destroy</code>. The change is easy:
 
-<div class="highlight highlight-erb"><pre>  def create
-    expire_fragment('beerlist')
-  end
+```erb
+def create
+  expire_fragment('beerlist')
+end
 
-  def update
-    expire_fragment('beerlist')
-    # ...
-  end
+def update
+  expire_fragment('beerlist')
+  # ...
+end
 
-  def destroy
-    expire_fragment('beerlist')
-    # ...
-  end</pre></div>
+def destroy
+  expire_fragment('beerlist')
+  # ...
+end
+```
 
 After the changes the page will work as expected!
 
-The page of all beers could also be speeded up a bit. It is the controller which executes now the database operation
+The page of all beers could still be speeded up a bit. The controller now executes now the database operation
 
-<div class="highlight highlight-erb"><pre>    @beers = Beer.includes(:brewery, :style).all</pre></div>
+```erb
+@beers = Beer.includes(:brewery, :style, :ratings).all
+```
 
-even when the page fragment is found from cache memory. You could test whether the fragment exists with the method <code>fragment_exist?</code>, and execute the database operation only if the fragment does not exist (reminder: unless means the same as if not):
 
-<div class="highlight highlight-erb"><pre>  def index
-    unless fragment_exist?( 'beerlist' )
-      @beers = Beer.includes(:brewery, :style).all
+even when the page fragment is found from cache memory. You could test whether the fragment exists with the method <code>fragment_exist?</code>, and execute the database operation only if the fragment does not exist:
 
-      order = params[:order] || 'name'
+```ruby
+def index
+  # jos fragmentti olemassa, lopetetaan metodi tähän (eli renderöidään heti näkymä)
+  return if request.format.html? && fragment_exist?('beerlist')
 
-      case order
-        when 'name' then @beers.sort_by!{ |b| b.name }
-        when 'brewery' then @beers.sort_by!{ |b| b.brewery.name }
-        when 'style' then @beers.sort_by!{ |b| b.style.name }
-      end
-    end
-  end</pre></div>
+  @beers = Beer.includes(:brewery, :style, :ratings).all
 
-The controller looks more painful but the page is faster:
+  order = params[:order] || 'name'
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-11.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w6-11.png" alt="kuva" style="max-width:100%;"></a>
+  @beers = case order
+            when 'name' then @beers.sort_by(&:name)
+            when 'brewery' then @beers.sort_by{ |b| b.brewery.name }
+            when 'style' then @beers.sort_by{ |b| b.style.name }
+            end
+end
+```
 
-You could clean up the solution a bit by returning the <code>index</code> method to its original state, and checking whether the fragments exists in a before filter:
+<code>request.format.html?</code> in the condition makes sure that all code is executed in the case that you are forming a json-format response.
 
-<div class="highlight highlight-ruby"><pre>  before_action <span class="pl-c1">:skip_if_cached</span>, <span class="pl-c1">only:</span>[<span class="pl-c1">:index</span>]
+The page is now even faster:
 
-  <span class="pl-k">def</span> <span class="pl-en">skip_if_cached</span>
-    <span class="pl-k">return</span> render <span class="pl-c1">:index</span> <span class="pl-k">if</span> fragment_exist?( <span class="pl-s1"><span class="pl-pds">'</span>beerlist<span class="pl-pds">'</span></span> )
-  <span class="pl-k">end</span></pre></div>
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/ratebeer-w6-11.png)
 
-If the before filter <code>skip_if_cached</code> notices that the fragment exists, it renders the view template straight away. In such case, the real controller method won't be executed at all.
-
-Notice however that the page has a little problem. The beers were sorted in different orders by clicking on the columns. Caching has broken this operation anyway!
+Notice however that the page has a little problem. The beers were sorted in different orders by clicking on the columns. Caching has broken this operation!
 
 One way to fix the functionality is adding an order to the fragment key:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%</span><span class="pl-s2"> cache <span class="pl-s1"><span class="pl-pds">"</span>beerlist-<span class="pl-pse">#{</span><span class="pl-s2"><span class="pl-vo">@order</span></span><span class="pl-pse"><span class="pl-s2">}</span></span><span class="pl-pds">"</span></span>, <span class="pl-c1">skip_digest:</span> <span class="pl-c1">true</span> <span class="pl-k">do </span></span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
-   table html
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span></pre></div>
+```erb
+<% cache "beerlist-#{@order}", skip_digest: true do %>
+  taulukon html
+<% end %>
+```
+
 
 The order is stored in the variable <code>@order</code>, in the controller. The changes required by the controller follow below:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">skip_if_cached</span>
-    <span class="pl-vo">@order</span> <span class="pl-k">=</span> params[<span class="pl-c1">:order</span>] <span class="pl-k">||</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span>
-    <span class="pl-k">return</span> render <span class="pl-c1">:index</span> <span class="pl-k">if</span> fragment_exist?( <span class="pl-s1"><span class="pl-pds">"</span>beerlist-<span class="pl-pse">#{</span><span class="pl-s2"><span class="pl-vo">@order</span></span><span class="pl-pse"><span class="pl-s2">}</span></span><span class="pl-pds">"</span></span>  )
-  <span class="pl-k">end</span>
+```ruby
+def index
+  @order = params[:order] || 'name'
+  return if request.format.html? && fragment_exist?("beerlist-#{@order}")
 
-  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.includes(<span class="pl-c1">:brewery</span>, <span class="pl-c1">:style</span>).all
-
-    <span class="pl-k">case</span> <span class="pl-vo">@order</span>
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>name<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>brewery<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.brewery.name }
-      <span class="pl-k">when</span> <span class="pl-s1"><span class="pl-pds">'</span>style<span class="pl-pds">'</span></span> <span class="pl-k">then</span> <span class="pl-vo">@beers</span>.sort_by!{ |<span class="pl-vo">b</span>| b.style.name }
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span></pre></div>
-
-so, because the controller method does not have to be executed necessarily, the order is saved by the before filter.
+  @beers = Beer.includes(:brewery, :style, :raings).all
+  @beers = case @order
+            when 'name' then @beers.sort_by(&:name)
+            when 'brewery' then @beers.sort_by{ |b| b.brewery.name }
+            when 'style' then @beers.sort_by{ |b| b.style.name }
+            end
+end
+```
 
 When the fragment expires, all three orders have to expire:
 
-<div class="highlight highlight-ruby"><pre>   [<span class="pl-s1"><span class="pl-pds">"</span>beerlist-name<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>beerlist-brewery<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>beerlist-style<span class="pl-pds">"</span></span>].each{ |<span class="pl-vo">f</span>| expire_fragment(f) }</pre></div>
+```ruby
+["beerlist-name", "beerlist-brewery", "beerlist-style"].each{ |f| expire_fragment(f) }
+```
 
 <strong>Attention:</strong> you can call the fragment cache operation from the console:
 
-<div class="highlight highlight-ruby"><pre>irb(main):<span class="pl-c1">043</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> <span class="pl-s3">ActionController</span>::<span class="pl-s3">Base</span>.<span class="pl-k">new</span>.fragment_exist?( <span class="pl-s1"><span class="pl-pds">'</span>beerlist-name<span class="pl-pds">'</span></span> )
-<span class="pl-vo">Exist</span> fragment? views<span class="pl-k">/</span>beerlist<span class="pl-k">-</span>name (<span class="pl-c1">0</span>.4ms)
-=&gt; <span class="pl-c1">true</span>
-irb(main):<span class="pl-c1">044</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> <span class="pl-s3">ActionController</span>::<span class="pl-s3">Base</span>.<span class="pl-k">new</span>.expire_fragment( <span class="pl-s1"><span class="pl-pds">'</span>beerlist-name<span class="pl-pds">'</span></span> )
-<span class="pl-vo">Expire</span> fragment views<span class="pl-k">/</span>beerlist<span class="pl-k">-</span>name (<span class="pl-c1">0</span>.6ms)
-=&gt; <span class="pl-c1">true</span>
-irb(main):<span class="pl-c1">045</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> <span class="pl-s3">ActionController</span>::<span class="pl-s3">Base</span>.<span class="pl-k">new</span>.fragment_exist?( <span class="pl-s1"><span class="pl-pds">'</span>beerlist-name<span class="pl-pds">'</span></span> )
-<span class="pl-vo">Exist</span> fragment? views<span class="pl-k">/</span>beerlist<span class="pl-k">-</span>name (<span class="pl-c1">0</span>.1ms)
-=&gt; <span class="pl-c1">nil</span></pre></div>
+```ruby
+> ActionController::Base.new.fragment_exist?('beerlist-name')
+Exist fragment? views/beerlist-name (0.4ms)
+=> true
+> ActionController::Base.new.expire_fragment('beerlist-name')
+Expire fragment views/beerlist-name (0.6ms)
+=> true
+> ActionController::Base.new.fragment_exist?('beerlist-name')
+Exist fragment? views/beerlist-name (0.1ms)
+=> nil
+```
 
-<strong>Attention2:</strong> there is a better debugging tool than the console. In developement mood, the part of the page that hasn't been cached should be given the information of what fragments can be found from cache and what the current page fragment is. Add the following code to the beers page upper part:
+For the next exercise, make the brewery page http://localhost:3000/breweries display the brewery information in a table.
 
-<div class="highlight highlight-html"><pre>&lt;<span class="pl-ent">div</span> <span class="pl-e">style</span>=<span class="pl-s1"><span class="pl-pds">"</span>border-style: solid;<span class="pl-pds">"</span></span>&gt;
-  beerlist-name: &lt;%= ActionController::Base.new.fragment_exist?( 'beerlist-name' ) %&gt;
-  &lt;<span class="pl-ent">br</span>&gt;
-  beerlist-style: &lt;%= ActionController::Base.new.fragment_exist?( 'beerlist-style' ) %&gt;
-  &lt;<span class="pl-ent">br</span>&gt;
-  beerlist-brewery: &lt;%= ActionController::Base.new.fragment_exist?( 'beerlist-brewery' ) %&gt;
-  &lt;<span class="pl-ent">br</span>&gt;
-  current: &lt;%= "beerlist-#{@order}" %&gt;
-&lt;/<span class="pl-ent">div</span>&gt;</pre></div>
+```ruby
+<h1>Listing breweries</h1>
 
-The page upper border will contain a box now, telling the cache fragments state, that is, whether a fragment exists or not:
+<p> Number of active breweries: <%= @active_breweries.count %> </p>
 
-<a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-6.png" target="_blank"><img src="https://github.com/mluukkai/WebPalvelinohjelmointi2015/raw/master/images/ratebeer-w7-6.png" alt="kuva" style="max-width:100%;"></a>
-
-<strong>Attention3:</strong> because the debug box is on the page upper side – before the code that the fragment possibly generates – <strong>the page has to be reloaded always</strong> if you want that the debug box shows the up-to-date fragment situation.
-
-<blockquote>
-
-<a id="user-content-tehtävä-10" class="anchor" href="#teht%C3%A4v%C3%A4-10" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 10
-
-Implement fragment cache to the breweries page. Make sure that cache expires when there's a change on the page contents. You can avoid implementing the exercise 2 modification that helped to sort the breweries in descending order by clicking on the column name again.
-</blockquote>
-
-If you wanted to cache a singular beer page, you'd better define the object to be cached as fragment key:
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">&lt;</span><span class="pl-k">%</span> cache <span class="pl-vo">@beer</span> <span class="pl-k">do </span><span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1"></span>
-<span class="pl-s1">    &lt;h2<span class="pl-pds">&gt;</span></span>
-      <span class="pl-k">&lt;</span><span class="pl-k">%=</span> <span class="pl-vo">@beer</span>.name <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">    &lt;/h2<span class="pl-pds">&gt;</span></span>
-
-    <span class="pl-k">&lt;</span>p<span class="pl-k">&gt;</span>
-      <span class="pl-k">&lt;</span><span class="pl-k">%=</span> link_to <span class="pl-vo">@beer</span>.style, <span class="pl-vo">@beer</span>.style <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">      brewed by</span>
-<span class="pl-s1">      &lt;%= link_to @beer.brewery.name, @beer.brewery %<span class="pl-pds">&gt;</span></span>
-    <span class="pl-k">&lt;</span><span class="pl-k">/</span>p<span class="pl-k">&gt;</span>
-
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">if</span> <span class="pl-vo">@beer</span>.ratings.empty? <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">        &lt;p<span class="pl-pds">&gt;</span></span>beer has <span class="pl-k">not</span> yet been rated! <span class="pl-k">&lt;</span><span class="pl-k">/</span>p<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">else</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">        &lt;p<span class="pl-pds">&gt;</span></span><span class="pl-vo">Has</span> <span class="pl-k">&lt;</span><span class="pl-k">%=</span> pluralize(<span class="pl-vo">@beer</span>.ratings.count,<span class="pl-s1"><span class="pl-pds">'</span>rating<span class="pl-pds">'</span></span>) <span class="pl-s1"><span class="pl-pds">%&gt;</span>, average &lt;%= round(@beer.average_rating) %<span class="pl-pds">&gt;</span></span> <span class="pl-k">&lt;</span><span class="pl-k">/</span>p<span class="pl-k">&gt;</span>
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">end</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1"></span>
-<span class="pl-s1">&lt;% end %<span class="pl-pds">&gt;</span></span>
-
-<span class="pl-k">&lt;</span>!<span class="pl-k">-</span> cachaamaton osa <span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">if</span> current_user <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1"></span>
-<span class="pl-s1">    &lt;h4<span class="pl-pds">&gt;</span></span>give a <span class="pl-c1">rating:</span><span class="pl-k">&lt;</span><span class="pl-k">/</span>h4<span class="pl-k">&gt;</span>
-
-    <span class="pl-k">&lt;</span><span class="pl-k">%=</span> form_for(<span class="pl-vo">@rating</span>) <span class="pl-k">do </span>|<span class="pl-vo">f</span>| <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">        &lt;%= f.hidden_field :beer_id %<span class="pl-pds">&gt;</span></span>
-        <span class="pl-c1">score:</span> <span class="pl-k">&lt;</span><span class="pl-k">%=</span> f.number_field <span class="pl-c1">:score</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1">        &lt;%= f.submit class:"btn btn-primary"  %<span class="pl-pds">&gt;</span></span>
-    <span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">end</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1"></span>
-<span class="pl-s1">    &lt;p<span class="pl-pds">&gt;</span></span><span class="pl-k">&lt;</span><span class="pl-k">/</span>p<span class="pl-k">&gt;</span>
-
-<span class="pl-k">&lt;</span><span class="pl-k">%</span> <span class="pl-k">end</span> <span class="pl-s1"><span class="pl-pds">%&gt;</span></span>
-<span class="pl-s1"></span>
-<span class="pl-s1">&lt;%= edit_and_destroy_buttons(@beer) %<span class="pl-pds">&gt;</span></span></pre></div>
-
-The fragment key will be a string now, which Rails generates by calling the object name <code>cache_key</code>. The method generates a key which unifies the object <em>and</em> creates a date stamp referring to when the object was last modified. If the object fields are modified, the fragment key value is also modified, meaning that the old fragment expires automatically. Below an example about a cache key that is generated automatically:
-
-<div class="highlight highlight-ruby"><pre>irb(main):<span class="pl-c1">006</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> b <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.first
-irb(main):<span class="pl-c1">006</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> b.cache_key
-=&gt; <span class="pl-s1"><span class="pl-pds">"</span>beers/1-20150106210715764510000<span class="pl-pds">"</span></span>
-irb(main):<span class="pl-c1">014</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> b.update_attribute(<span class="pl-c1">:name</span>, <span class="pl-s1"><span class="pl-pds">'</span>ISO 4<span class="pl-pds">'</span></span>)
-irb(main):<span class="pl-c1">015</span>:<span class="pl-c1">0</span><span class="pl-k">&gt;</span> b.cache_key
-=&gt; <span class="pl-s1"><span class="pl-pds">"</span>beers/1-20150211200158000903000<span class="pl-pds">"</span></span></pre></div>
-
-The solution is not perfect yet. If the beer is made a new rating, the object itself does not change and the fragment does not expire. The issue is easy to fix, though. Rating should be added the information that when it is created, modified, or distroyed, also its beer has to be 'influenced':
-
-<div class="highlight highlight-ruby"><pre><span class="pl-k">class</span> <span class="pl-en">Rating<span class="pl-e"> &lt; ActiveRecord::Base</span></span>
-  belongs_to <span class="pl-c1">:beer</span>, <span class="pl-c1">touch:</span> <span class="pl-c1">true</span>
-
-  <span class="pl-c"># ...</span>
-<span class="pl-k">end</span></pre></div>
-
-In fact the <code>touch: true</code> connected to <code>belongs_to</code> causes that the object field <code>updated_at</code> at the other end of the connection will also be updated.
+<div id="active_breweries">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Founded</th>
+        <th>Beers</th>
+        <th>Rating</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @active_breweries.each do |brewery| %>
+        <tr>
+          <td><%= link_to brewery.name, brewery %></td>
+          <td><%= brewery.year %></td>
+          <td><%= brewery.beers.count %></td>
+          <td><%= round(brewery.average_rating) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+```
 
 <blockquote>
 
-<a id="user-content-tehtävä-11" class="anchor" href="#teht%C3%A4v%C3%A4-11" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 11
+## Exercise 10
 
-Implement fragment cache for the page of singular beers. Notice that the brewery page fragment expires automatically if the brewery beers are modified, like as it is in the example above.
+Implement fragment cache to the breweries page. Make sure that cache expires when there's a change on the page contents (brewery information, number of beers or rating average).
+
+Implement cache expiration with a function set as _before_action_. This way you don't need to copy the code in to different methods.
 </blockquote>
 
-When you have to implement cache explicit expiring as it is for the page with all beers, it is always a bit sensible because there is the small risk that you forget to expire the fragment in all the required parts of the code.
+## Caching a single beer
 
-When you use straight the object as fragment key (as you did in the page of singular beers), the cache expires automatically when the object is updated. It would also be possible to make the cache of the page with all beers expire automatically. To do this, you should generate the fragment key with a suitable method; see the guide <a href="http://guides.rubyonrails.org/caching_with_rails.html#fragment-caching">Caching with Rails: An overview</a> at the point "If you want to avoid expiring the fragment manually..."
+If you wanted to cache a singular beer page, you'd better define the object itself to be cached as fragment key:
+
+```
+<% cache @beer do %>
+
+  <h3>
+    <%= @beer.name %>
+  </h3>
+  <p>
+    <%= @beer.style.name %>
+  </p>
+
+  <p>
+    <%= link_to "#{@beer.brewery.name}", @beer.brewery %>
+  </p>
+
+  <p>
+    <% if @beer.ratings.empty? %>
+      beer has not yet been rated
+    <% else %>
+      Beer has <%= pluralize(@beer.ratings.count, "rating") %>
+      with an average of <%= @beer.average_rating %>
+  <% end %>
+  </p>
+<% end %>
+
+<!- uncached parts ->
+
+<% if current_user %>
+  <h4>give a rating:<h4>
+
+  <%= form_with(model: @rating) do |form| %>
+    <%= form.hidden_field :beer_id %>
+    score: <%= form.number_field :score %>
+    <%= form.submit "Create rating", class: "btn btn-primary" %>
+  <% end %>
+
+  <% if current_user && current_user.admin %>
+    <div>
+      <%= link_to("Edit this beer", edit_beer_path(@beer), class: "btn btn-primary") %>
+      <%= button_to "Destroy this beer", @beer, class: "btn btn-danger", form: { data: { turbo_confirm: "Are you sure ? "} }, method: :delete if current_user %>
+    </div>
+  <% end %>
+<% end %>
+
+<%= link_to "Back to beers", beers_path %>
+```
 
 
-<a id="user-content-selainpuolen-cachays" class="anchor" href="#selainpuolen-cachays" aria-hidden="true"><span class="octicon octicon-link"></span></a>Browser  caching
+The fragment key will be a string now, which Rails generates by calling the object method <code>cache_key_with_version</code>. The method generates a key which specifies the object and includees a date stamp referring to when the object was last modified. If the object fields are modified, the fragment key value is also modified, meaning that the old fragment expires automatically. Below an example about a cache key that is generated automatically:
 
-Caching is possible at different levels, also at browser level. If you were interested about the topic, I suggest you should take a look at Codeschool video to know more about how to use _etag_ on Rails application, see <a href="http://rails4.codeschool.com/videos">http://rails4.codeschool.com/videos</a>
+```ruby
+> b = Beer.first
+> b.cache_key_with_version
+=> "beers/1-20180924183300410080"
+> b.update_attribute(:name, 'ISO 4')
+> b.cache_key_with_version
+=> "beers/1-20180924183314873407"
+```
 
-Other Rails 4 Codeschool videos are warmly recommended!
+
+The solution is not perfect yet. If the beer is made a new rating, the object itself does not change and the fragment does not expire. The issue is easy to fix, though. Rating should be added the information that when it is created, modified, or destroyed, also its beer has to be 'touched up':
+
+```ruby
+class Rating < ApplicationRecord
+  belongs_to :beer, touch: true
+
+  # ...
+end
+```
+
+What happens is, the <code>touch: true</code> connected to <code>belongs_to</code> causes that the object field <code>updated_at</code> at the other end of the connection will also be updated.
+
+For the next exercise, change the single brewery view so that it lists the brewery's beers' information, for example like
 
 
-<a id="user-content-eventual-consistency" class="anchor" href="#eventual-consistency" aria-hidden="true"><span class="octicon octicon-link"></span></a>Eventual consistency
+![pic](https://raw.githubusercontent.com/mluukkai/WebPalvelinohjelmointi2022/main/images/w7-brewery.png)
 
-It is not essential that users should see the application situation which is really up to date. For instance, it is not critical that the ratings statistics page shows a situation which is few minute old. The important thing is that all the data coming to the system is not shown too late to users. The name <a href="http://en.wikipedia.org/wiki/Eventual_consistency"><strong>eventual consistency</strong> describes this not-too-strict demand for up-to-date information, which can improve the application performance sensibly.</a>.
+<blockquote>
+
+## Exercise 11
+
+Implement fragment cache for the page of singular breweries. Notice that the brewery page fragment should expire automatically if the brewery beers are modified, like as it is in the example above.
+</blockquote>
+
+With implementing explicit cache expiring, as it is for the page with all beers, comes the slight risk that you forget to expire the fragment in some required part of the code.
+
+When you use straight the object as fragment key (as you did in the page of singular beers), the cache expires automatically when the object is updated. It would also be possible to make the cache of the page with all beers expire automatically. To do this, you should generate the fragment key with a suitable method; see the guide [Caching with Rails: An overview](http://guides.rubyonrails.org/caching_with_rails.html#fragment-caching).
+
+## Browser  caching
+
+Caching is possible at different levels, also at browser level. More information about Rails support for browser-side caching [here](https://guides.rubyonrails.org/caching_with_rails.html#conditional-get-support).
+
+
+## Eventual consistency
+
+It is not always essential that users see the application situation which is really up to date. For instance, it is not critical if the ratings statistics page shows a situation which is a few minute old. The important thing is that all the data coming to the system is eventually shown to users. [Eventual consistency](http://en.wikipedia.org/wiki/Eventual_consistency) describes this not-too-strict demand for up-to-date information, which can improve the application performance notably.
 
 Eventual consistency is easy to define in Rails by setting an expiring time to fragment cache:
 
-<div class="highlight highlight-erb"><pre><span class="pl-pse">&lt;%</span><span class="pl-s2"> cache <span class="pl-s1"><span class="pl-pds">'</span>fragment_name<span class="pl-pds">'</span></span>, <span class="pl-c1">expires_in:</span><span class="pl-c1">10</span>.minutes <span class="pl-k">do </span></span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span>
+```erb
+<% cache 'fragment_name', expires_in:10.minutes do %>
   ...
-<span class="pl-pse">&lt;%</span><span class="pl-s2"> <span class="pl-k">end</span> </span><span class="pl-pse"><span class="pl-s2">%</span>&gt;</span></pre></div>
+<% end %>
+```
+
 
 This simplifies the application also because expiring the cache becomes easy, now that you don't have to take into consideration all the small parts of the code that may cause time inconsistency.
 
-Suppose that your system really had many users and ratings happened frequently every minute. If you wanted to show complitely consistent information on the ratings page, the performance would become weak, because every beer rating would change the page status, and the page should expire too often. This would make caching almost useless.
+Suppose that your system really had many users and ratings happened frequently multiple times a minute. If you wanted to show completely consistent information on the ratings page, the performance would become weak, because every beer rating would change the page status, and the page would need to be expired too often. This would make caching almost useless.
 
-SQL optimisation and caching are not yet able to make the ratings page too fast, because controller operations like <code>User.top(3)</code> requre that all the database data should be parsed, in fact. If you wanted to optimise your page better than this, you should use even more sofisticated tools. For instance, the performance of <code>User.top</code> would improve dramatically if the ratings amount was saved straight in the user objects, so that finding out this information wouldn't require calculating the amount of Raiting objects of the user. This would also require that when a user makes a new rating, the user object should also be updated. So executing the rating operation would be slightly slower.
+SQL optimisation and caching are not yet able to make the ratings page too fast, because controller operations like <code>User.top(3)</code> require that nearly all the database data should be searched true, in fact. If you wanted to optimise your page better than this, you should use even more robust tools. For instance, the performance of <code>User.top</code> would improve dramatically if the ratings amount was saved straight in the user object, so that finding out this information wouldn't require calculating the amount of Raiting objects of the user. This would also require that when a user makes a new rating, the user object should also be updated. So executing the rating operation would be slightly slower.
 
 Another and maybe better way to accelerate the rating page would be caching the information needed by the Rails.cache controller. So the controller is this
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@top_beers</span> <span class="pl-k">=</span> <span class="pl-s3">Beer</span>.top(<span class="pl-c1">3</span>)
-    <span class="pl-vo">@top_breweries</span> <span class="pl-k">=</span> <span class="pl-s3">Brewery</span>.top(<span class="pl-c1">3</span>)
-    <span class="pl-vo">@top_styles</span> <span class="pl-k">=</span> <span class="pl-s3">Style</span>.top(<span class="pl-c1">3</span>)
-    <span class="pl-vo">@most_active_users</span> <span class="pl-k">=</span> <span class="pl-s3">User</span>.most_active(<span class="pl-c1">3</span>)
-    <span class="pl-vo">@recent_ratings</span> <span class="pl-k">=</span> <span class="pl-s3">Rating</span>.recent
-    <span class="pl-vo">@ratings</span> <span class="pl-k">=</span> <span class="pl-s3">Rating</span>.all
-  <span class="pl-k">end</span></pre></div>
+```ruby
+def index
+  @ratings = Rating.recent
+  @beers = Beer.top(3)
+  @styles = Style.top(3)
+  @breweries = Brewery.top(3)
+  @users = User.top(3)
+end
+```
 
 You could do the same as you did in week 5 when you stored the brewery information into Rails cache, so the controller would look more or less like this:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-s3">Rails</span>.cache.write(<span class="pl-s1"><span class="pl-pds">"</span>beer top 3<span class="pl-pds">"</span></span>, <span class="pl-s3">Beer</span>.top(<span class="pl-c1">3</span>)) <span class="pl-k">if</span> cache_does_not_contain_data_or_it_is_too_old
-    <span class="pl-vo">@top_beers</span> <span class="pl-k">=</span> <span class="pl-s3">Rails</span>.cache.read <span class="pl-s1"><span class="pl-pds">"</span>beer top 3<span class="pl-pds">"</span></span>
+```ruby
+def index
+  Rails.cache.write("beer top 3", Beer.top(3)) if cache_does_not_contain_data_or_it_is_too_old
+  @top_beers = Rails.cache.read "beer top 3"
 
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span></pre></div>
-
-The course page to mark the exercises <a href="http://wadrorstats2015.herokuapp.com/">http://wadrorstats2015.herokuapp.com/</a> works quite fast now even though the page shows the statistics of all the exercises submitted to the system. The submissions are more than 600, so far. In fact, the main page performance would not change even though there were a thousand times more submissions.
-
-The page stores each submission in a <code>Submission</code> object. When the main page is generated, if the submission statistics were computed going through all the <code>Submission</code> objects, this would slow down according to how many submissions there are in the system.
-
-The application works anyway that the submission statistics of each week are computed beforehand in <code>WeekStatistic</code> objects. The application updates the week statistics after each new or updated submission. This slows down the actual submission marginally (the operation bottleneck is the email delivery, which takes 95% of the time consumption), but improves significantly how fast the main page is loaded. So the main page information of week 7 can be generated thanks to seven objects, the objects are fetched from the database with one SQL request, and the actual page generation performance is completely independent on the number of submissions.
-
-The application code can be found at <a href="https://github.com/mluukkai/wadrorstats">https://github.com/mluukkai/wadrorstats</a>
+  # ...
+end
+```
 
 Optimising applications performance is not necessarily the easiest thing to do, because it requires solutions at different levels and you will often have to tailor them according to the situation. Optimisation will most probably make your code less pleasant to read.
 
+## Asynchrony, message queues and background work
 
-<a id="user-content-asynkronisuus-viestijonot-ja-taustatyöt" class="anchor" href="#asynkronisuus-viestijonot-ja-taustaty%C3%B6t" aria-hidden="true"><span class="octicon octicon-link"></span></a>Asyncrony, message queues and background work
-
-A negative part of the fact cache expires from time to time is that if you used that strategy for the ratings page, this would take time from some users when the operation is executed and the data has to be generated again for the cache memory.
+A negative part of the fact cache expires from time to time is that if you used that strategy for the ratings page, for some users it would trigger a very time-consuming operation when the data has to be generated again for the cache memory.
 
 A better solution would be if users were always provided with data which is as updated as possible, so the controller would be like:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">index</span>
-    <span class="pl-vo">@top_beers</span> <span class="pl-k">=</span> <span class="pl-s3">Rails</span>.cache.read <span class="pl-s1"><span class="pl-pds">"</span>beer top 3<span class="pl-pds">"</span></span>
+```ruby
+def index
+  @top_beers = Rails.cache.read("beer top 3")
 
-    <span class="pl-c"># ...</span>
-  <span class="pl-k">end</span></pre></div>
+  # ...
+end
+```
 
 The cache update could be executed as a process/thread on the background, which wakes up from time to time:
 
-<div class="highlight highlight-ruby"><pre>  <span class="pl-k">def</span> <span class="pl-en">background_worker</span>
-    <span class="pl-k">while</span> <span class="pl-c1">true</span> <span class="pl-k">do</span>
-       sleep <span class="pl-c1">10</span>.minutes
-       <span class="pl-s3">Rails</span>.cache.write(<span class="pl-s1"><span class="pl-pds">"</span>beer top 3<span class="pl-pds">"</span></span>, <span class="pl-s3">Beer</span>.top(<span class="pl-c1">3</span>))
-       <span class="pl-s3">Rails</span>.cache.write(<span class="pl-s1"><span class="pl-pds">"</span>brewery top 3<span class="pl-pds">"</span></span>, <span class="pl-s3">Brewery</span>.top(<span class="pl-c1">3</span>))
-       <span class="pl-c"># ...</span>
-    <span class="pl-k">end</span>
-  <span class="pl-k">end</span></pre></div>
+```ruby
+# pseudo code, does not really work...
+def background_worker
+  while true do
+      sleep 10.minutes
+      Rails.cache.write("beer top 3", Beer.top(3))
+      Rails.cache.write("brewery top 3", Brewery.top(3))
+      # ...
+  end
+end
+```
+
 
 The background processing strategy shown above is simple because the application and the thread/process executing the background processing don't need to syncronise their activity. Then again, sometimes the background processing is required by a request coming to the application. In such case, the syncronisation between the application and the background processing can be handled through message queues.
 
-There are various options in Rails to implement background processing whether it is managed with message queues or with singular processes or threads. The best option for the moment is <a href="http://railscasts.com/episodes/366-sidekiq">Sidekiq</a>.
+There are various options in Rails to implement background processing whether it is managed with message queues or with singular processes or threads. One option for the moment is [Sidekiq](http://railscasts.com/episodes/366-sidekiq).
 
-Before Rails 4, Rails application worked with only one thread by default. This caused anyway that the application handled HTTP requests one after the other (unless the server system hadn't defined that various instances of the application were running simultaneously, see for instance <a href="https://devcenter.heroku.com/articles/rails-unicorn">https://devcenter.heroku.com/articles/rails-unicorn</a>). Starting from Rails 4, handling each request in their own thread is permetted by default. It is good to consider though, that Rails default sever system WEBrick <em>does not</em> support the functionality to handle threaded requests. If you need threads, you should use <a href="http://puma.io/">Puma</a> as sever system. It is <a href="https://discussion.heroku.com/t/using-puma-on-heroku/150">easy</a> to use Puma.
 
-More about what is needed to make threaded Rails applications from<a href="https://www.cs.helsinki.fi/i/mluukkai/365-thread-safety.mp4">Rails cast</a>. Notice that after allowing threads you will have to take care of the thread safety!
+If your application needs only a simple background operation which is executed on a set time interval,  [Heroku scheduler](https://devcenter.heroku.com/articles/scheduler) might be the simplest option. With it the background operations is defines as a [Rake task](http://railscasts.com/episodes/66-custom-rake-tasks) which Heroku performs either once a day, once very hour or once every ten minutes. Based on some quick googling, Fly.io doesn't yet offer a fully equivalent batch run command.
+
+
+## Sucker Punch
+
+As noted before, one way to perform async operations in Rails is [Sidekiq](http://railscasts.com/episodes/366-sidekiq). Sidekiq however requires its own proces, meaning that eg in Fly.io and Heroku, it is not easy to run sidekiq without reserving a separate process, [dyno](https://devcenter.heroku.com/articles/dynos), for it. And using that costs some dollars a month.
+
+With Heroku services it is possible to use the [Sucker Punch](https://github.com/brandonhilkert/sucker_punch) library.
+
+> Sucker Punch is a single-process Ruby asynchronous processing library. This reduces costs of hosting on a service like Heroku along with the memory footprint of having to maintain additional jobs if hosting on a dedicated server. All queues can run within a single application (eg. Rails, Sinatra, etc.) process.
+
+Meaning Sucker Punch executes asynchronous jobs in the same process that the Rails application itself is run in.
+
+Using Suker Punch is pretty easy.
+
+Add <code>gem 'sucker_punch', '~> 3.0'</code> to gemfile and run bundle install.
+
+that is, set Rails to load the code created in the automatically generated folder.
+
+Now create a Sucker Punch operation: in folder _jobs_, add a file _test_job.rb_ containing:
+
+```ruby
+class TestJob
+  include SuckerPunch::Job
+
+  def perform
+    puts "running job..."
+  end
+end
+```
+
+You can now execute the operation by giving a command from the Rails console (or anywhere in the application code)
+```ruby
+TestJob.perform_async
+```
+
+The operation prints into console _running job..._. Not very impressing.
+
+It's worth noting that the operation is run asynchronously on the background, meaning the control return back to the console even before the operation has finished.
+
+Change the operation:
+
+```ruby
+class TestJob
+  include SuckerPunch::Job
+
+  def perform
+    sleep 1
+    puts "starting job..."
+    sleep 10
+    puts "job ready!"
+  end
+end
+```
+
+so now the operation takes 11 seconds. If you can the operation with the command <code>TestJob.perform_async</code>, you'll notice that you can access the console again immediately after executing the command (you most likely need to press enter to bring forth the command prompt). The operation is running on the background while you can execute some other code from the console if you wish.
+
+Ypu can also execute the operations _synchronously_ by giving the command <code>TestJob.new.perform</code>. Then you have to wait until the operation is finished before the console is reactivated.
+
+The operations can also be set a timer. For example if you give the command <code>TestJob.perform_in(10.seconds)</code>, the operation will be executed asynchronously after 10 seconds.
+
+An async operation can start itself, so if you change the code to this:
+
+```ruby
+class TestJob
+  include SuckerPunch::Job
+
+  def perform
+    sleep 1
+    puts "starting job..."
+    sleep 10
+    puts "job ready!"
+    TestJob.perform_in(30.seconds)
+  end
+end
+```
+
+and give the command <code>TestJob.perform_async</code>, the operation will be repeatedly performed every 30 seconds until the console is shut down.
+
+A side note: An operation on a forever loop should not be started in the test environment as eg. GitHub Actions will stay waiting for the process to be finished.
 
 <blockquote>
 
-<a id="user-content-tehtävä-12" class="anchor" href="#teht%C3%A4v%C3%A4-12" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 12
+## Exercise 12
 
-Accelerate ratings page performance. You can assume that users are satisfied with eventual consistency. If you want you can use background processing libraries – but you don't have to, or at least you don't have to deploy it to Heroku. In any case, <a href="http://blog.mattheworiordan.com/post/44862390383/running-sidekiq-concurrently-on-a-single-worker">this would not be difficult either</a>. Write a small description of your strategy to speed up the page in the <code>index</code> method of the ratings controller, in case it is not so clear based on the code.
+Accelerate ratings page performance with a technique of your choice. You can assume that users are satisfied with eventual consistency. 
+
+Write a small description of your strategy to speed up the page in the <code>index</code> method of the ratings controller, in case it is not so clear based on the code.
 </blockquote>
 
 
-<a id="user-content-sovelluksen-koostaminen-palveluista" class="anchor" href="#sovelluksen-koostaminen-palveluista" aria-hidden="true"><span class="octicon octicon-link"></span></a>An application made of various services
+## An application made of various services
 
-You can manage to scale your application performance only till a certain point if your application is a monolitic entity which has to be executed with one sever and that relies completely on one database. The application can be optimised so that it is scaled <strong>horizontally</strong> – that is, increasing the physical resources of its server.
+You can scale your application performance only till a certain point if your application is a monolitic entity using a single database and running on a single server. The application can be optimised so that it is scaled <strong>horizontally</strong> – that is, increasing the physical resources of its server.
 
-You will have better scaling results if you act <strong>vertically</strong>, meaning that instead of improving the physical resources of one server, you start to use various servers, all executing your application actions at the same time. Vertical scaling is not necessarily trivial, you'll have to change the application architecture. If your application works with only one database, you may run into trubles despite vertical scaling, expecially if that is a relation database, that is not easy to hash and to scale vertically.
+You will have better scaling results if you scale <strong>vertically</strong>, meaning that instead of improving the physical resources of one server, you start to use various servers, all executing your application actions at the same time. Vertical scaling is not necessarily trivial, you'll have to change the application architecture. If your application works with only one database, you may run into troubles despite vertical scaling, as that one database becomes a bottleneck. Especially so if that is a relational database, that is not easy to distribute and scale vertically.
 
 Scaling an application (and sometimes also updating and extending it) is easier if the application is made of various different <strong>services</strong> that work indipendently and communicate with each other for instance with an HTTP protocol. In fact, your application is already making use of another service, that is BeermappingAPI. In the same way, your application functionality could be expanded if new services were integrated.
 
-For instance, suppose you wanted that your application created food receipt suggestions for users based on their favourite beer style and location (that you can find looking at the IP location of the user's HTTP request). You should implement the recommendation as an independent service. Your application would communicate with the service using the HTTP protocol.
+For instance, suppose you wanted that your application created food receipt suggestions for users based on their favourite beer style and location (that you can find looking at the IP location of the user's HTTP request, see http://www.iplocation.net/). You should implement the recommendation as an independent service. Your application would communicate with the service using the HTTP protocol.
 
-Suppose instead that you wanted your application recommend beers to users based on their own favourite style. Separating this functionality into its own service that works on an independent server would be a bit more challenging. In fact, recommendations would depend most probably on other people's ratings. It would mean that accessing this information would require that the recommender accessed your application database. So if you wanted to implement the beers recommender as a separate service, you may need to rethink the whole structure of your application. You would need to make sure that the information about the ratings can be shared between the ratabeer application and the beer recommendation service.
+Suppose instead that you wanted your application to recommend beers to users based on their own favourite style. Separating this functionality into its own service that works on an independent server would be a bit more challenging. In fact, recommendations would depend most probably on other people's ratings. It would mean that accessing this information would require that the recommender accessed your application database. So if you wanted to implement the beers recommender as a separate service, you may need to rethink the whole structure of your application. You would need to make sure that the information about the ratings could be shared between the ratabeer application and the beer recommendation service.
 
-
-<a id="user-content-single-sign-on" class="anchor" href="#single-sign-on" aria-hidden="true"><span class="octicon octicon-link"></span></a>Single sign on
-
-Many current Web sites make it possible to sign on with your Google, Facebook or GitHub IDs, just to name a few. The Web sites have outsourced the user management and authentication to separate services.
-
-Authentication is managed using the OAuth2 standard (see <a href="https://tools.ietf.org/html/draft-ietf-oauth-v2-31">https://tools.ietf.org/html/draft-ietf-oauth-v2-31</a>). More about OAuth authentication for instance at <a href="http://aaronparecki.com/articles/2012/07/29/1/oauth2-simplified">http://aaronparecki.com/articles/2012/07/29/1/oauth2-simplified</a>
-
-Authentication that is based on OAuth can be managed easily on Rails with the Omniauth gem, see <a href="http://www.omniauth.org/">http://www.omniauth.org/</a> Nowadays, every service provider has got its own gem, for instance <a href="https://github.com/intridea/omniauth-github">omniauth github</a>
-
-<blockquote>
-
-<a id="user-content-tehtävä-13" class="anchor" href="#teht%C3%A4v%C3%A4-13" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 13
-
-Make it possible to sign on your application with GitHub IDs. Proceed in the following way:
-
-<ul class="task-list">
-<li>Sign in GitHub and go to the <a href="https://github.com/settings/profile">settings page</a>. Choose <em>Applications</em> on the left, and then click on <em>Register new Application</em>. Define http://localhost:3000 as <em>homepage url</em>, and http://localhost:3000/auth/github/callback as <em>ahthorization callback url</em></li>
-<li>Set up <a href="https://github.com/intridea/omniauth-github">omniauth github</a></li>
-<li>Create the file <em>omniauth.rb</em> in the folder <em>config/initializers</em>, containing the following code:</li>
-</ul>
-
-<div class="highlight highlight-ruby"><pre><span class="pl-s3">Rails</span>.application.config.middleware.use <span class="pl-s3">OmniAuth</span>::<span class="pl-vo">Builder</span> <span class="pl-k">do</span>
- provider <span class="pl-c1">:github</span>, <span class="pl-vo">ENV</span>[<span class="pl-s1"><span class="pl-pds">'</span>GITHUB_KEY<span class="pl-pds">'</span></span>], <span class="pl-vo">ENV</span>[<span class="pl-s1"><span class="pl-pds">'</span>GITHUB_SECRET<span class="pl-pds">'</span></span>]
-<span class="pl-k">end</span></pre></div>
-
-<ul class="task-list">
-<li>Set up in GitHub the <em>client id</em> and the <em>client secret</em> on the page of your application as <a href="https://github.com/mluukkai/WebPalvelinohjelmointi2015/blob/master/web/viikko5.md#sovelluskohtaisen-datan-tallentaminen">environment variable ympäristömuuttujien</a> values</li>
-<li>Add the route below to the file <em>routes.rb</em></li>
-</ul>
-
-<div class="highlight highlight-ruby"><pre>  get <span class="pl-s1"><span class="pl-pds">'</span>auth/:provider/callback<span class="pl-pds">'</span></span>, <span class="pl-c1">to:</span> <span class="pl-s1"><span class="pl-pds">'</span>sessions#create_oauth<span class="pl-pds">'</span></span></pre></div>
-
-<ul class="task-list">
-<li>Create the controller method defined by the route in the <em>session controller</em>
-</li>
-<li>Make a button for your application so that users can click on it to sign on your application with their GitHub IDs. The button path is <em>auth/github</em>
-</li>
-<li>When you write on your application with GitHub IDs, the browser is redirected to the address <em>auth/github/callback</em>. This means that thanks to the definition in routes.rb, the execution is moved to the <em>create_oauth</em> method of the session controller; there you'll have access to the information you need thanks to the method <code>env["omniauth.auth"]</code>:</li>
-</ul>
-
-<div class="highlight highlight-ruby"><pre>(byebug) env[<span class="pl-s1"><span class="pl-pds">"</span>omniauth.auth<span class="pl-pds">"</span></span>].info
-<span class="pl-c">#&lt;OmniAuth::AuthHash::InfoHash email="mluukkai@iki.fi" image="https://avatars.githubusercontent.com/u/523235?v=3" name="Matti Luukkainen" nickname="mluukkai" urls=#&lt;OmniAuth::AuthHash Blog=nil GitHub="https://github.com/mluukkai"&gt;&gt;</span>
-(byebug)</pre></div>
-
-<ul class="task-list">
-<li>Make the require changes to your application</li>
-<li>When your application works locally, change the GitHub application <em>homepage url</em> and the <em>authorization callback url</em> so that they correspond to the Heroku URLs of your application</li>
-</ul>
-
-The changes are not so straighfoward:
-
-<ul class="task-list">
-<li>The new method of the session controller should be written a code that checks the user identity and occasionally creates a <code>User</code> object corresponding to the GitHub user</li>
-<li>You will have to modify the <code>User</code> model so that it can manage the users who sign-up in the system both with their own password and through GitHub</li>
-<li>So far, the <code>User</code> objects validation requires that they have an at least four-character long password. You will have to make the validation optional so that it is not required for users who sign-on with GitHub IDs (google this for help); another option is generating a random password for users who sign on through GitHub</li>
-<li>
-The <code>User</code> objects validation requires that the username length is less than 15 characters. This may be a problem if you want to keep the GitHub usernames in your application, too. Change the username maximum length if required.</li>
-</ul>
-</blockquote>
+[Micro services](https://martinfowler.com/articles/microservices.html), the style of compiling the application out of several small services that independently and separately perform their single task, has gained great popularity in recent years.
 
 
-<a id="user-content-nosql-tietokannat" class="anchor" href="#nosql-tietokannat" aria-hidden="true"><span class="octicon octicon-link"></span></a>NoSQL databases
+## NoSQL databases
 
-Ralation databases have been dominating information storage for decades. Recently, we have started to see a new database fronteer, and the "non-relation databases" that are known under the term NoSQL have started to gain favour.
+Ralation databases have been dominating information storage for decades. Recently, we have started to see a new database fronteer, and the "non-relation databases" that are known under the term [NoSQL](https://en.wikipedia.org/wiki/NoSQL) have started to gain favour.
 
 A motivation behind NoSQL databases has been that relation database are difficult to scale to the perfomance required by massive Internet applications. Also, the fact some NoSQL databases are schema-less makes applications more elastic than the carefully defined database schemes of SQL databases.
 
@@ -1621,125 +1693,66 @@ There are various NoSQL databases, and their operating mechanisms are completely
 
 You already became familiar with <code>Rails.cache</code> which in fact is a simple key-value database, which enables storing an infinite amount of objects based on their key. The database search works only against objects key and the database does not support connections between objects at all.
 
-Despite the growth of different database types, relation databases will survive still, and it is lukily that bigger application make use of various databases together, and they try to select the most suitable database type according to the storing reason, see
-<a href="http://www.martinfowler.com/bliki/PolyglotPersistence.html">http://www.martinfowler.com/bliki/PolyglotPersistence.html</a>
+Despite the growth of different database types, relation databases will survive still, and it is likely that bigger applications make use of various databases in parallel, and they try to select the most suitable database type according each storing need, see http://www.martinfowler.com/bliki/PolyglotPersistence.html.
+
+## Refactoring: class methods
+
+In [exercises 6-7](https://github.com/mluukkai/webdevelopment-rails/blob/main/week6.md#exercises-6--7-this-equals-two-exercises) of week 6, you were told to create class methods for classes _Beer_, _Brewery_ ja _Style_. These methods were to help controllers easily find the best breweries, beers, and beer styles based on the ratings.
+
+The methods are exctly the same in all classes:
+
+```
+class Beer < ApplicationRecord
+  # ...
+
+  def self.top(how_many)
+    sorted_by_rating_in_desc_order = all.sort_by{ |b| -(b.average_rating || 0) }
+    sorted_by_rating_in_desc_order[0, how_many]
+  end
+end
+```
+
+In week 2 you moved identical class defined _object methods_ into [a common module](https://github.com/mluukkai/webdevelopment-rails/blob/main/week2.md#moving-common-code-to-a-module).
+
+Class methods can also be moved into a shared module. The technique is however not exactly the same as with object methods.
 
 <blockquote>
 
-<a id="user-content-tehtävä-14" class="anchor" href="#teht%C3%A4v%C3%A4-14" aria-hidden="true"><span class="octicon octicon-link"></span></a>Exercise 14
+## Exercise 13
 
-The course is coming to an end, and it is time to give feedback at <a href="https://ilmo.cs.helsinki.fi/kurssit/servlet/Valinta">https://ilmo.cs.helsinki.fi/kurssit/servlet/Valinta</a>
+Refactor your code so that the method _def self.top(how_many)_ of classes  _Beer_, _Brewery_ and _Style_ is moved into a module. You can find hints eg by googling   _ruby module static method_.
 </blockquote>
 
+> ## Exercise 14
+>
+> From the point of this course, the functionalities of your application are now complete. The application can however be fine tuned for example by updating applications styles and improving validations or authentication. 
+>
+> Improve the application in your preferred method. You can mark this exercise as done after you have spent at least 15 minutes doing it.
 
-<a id="user-content-tehtävien-palautus" class="anchor" href="#teht%C3%A4vien-palautus" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tehtävien palautus
+>## Exercise 15
+>
+> The course exercises are done and it is time to give course feedback at coursefeedback.helsinki.fi.
+>
+> You can give feedback after you have [enrolled](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/ilmoittautuminen.md) to the open university course (it will take about 2 hours before the enrollment status has been updated to the feedback application)
 
-Commit all the changes that you have done and push the code in Github. Deploy also the newest version into Heroku.
+## Submitting the exercises
 
-You should mark that you have returned the exercises at <a href="http://wadrorstats2015.herokuapp.com/">http://wadrorstats2015.herokuapp.com/</a>
+Commit all your changes and push the code to Github. Deploy to the newest version of Heroku or Fly.io, too. Remember to check with Rubocop that your code still adheres to style rules. 
 
-<a id="user-content-mitä-seuraavaksi" class="anchor" href="#mit%C3%A4-seuraavaksi" aria-hidden="true"><span class="octicon octicon-link"></span></a>What next?
+Mark the exercises you have done at https://studies.cs.helsinki.fi/stats/courses/rails2022.
 
-If Rails sounds interesting you could dig more into it in the following ways
+## Course completion/course credit
 
-<ul class="task-list">
-<li>
-<a href="https://leanpub.com/tr4w">https://leanpub.com/tr4w</a> The Book. You should <strong>definitely</strong> fetch it and read its every single line</li>
-<li>
-<a href="http://guides.rubyonrails.org/">http://guides.rubyonrails.org/</a> A lot of good stuff...</li>
-<li>
-<a href="http://railscasts.com/">http://railscasts.com/</a> excellent videos about singular topics. There haven't been new videos for more than one year, unfortunately, and we hope the Web site will become active again. Apparently, the newer not-for-free pro-episodes can be found from Youtube...</li>
-<li>
-<a href="https://www.ruby-toolbox.com/">https://www.ruby-toolbox.com/</a> some help to look for gems</li>
-<li>
-<a href="http://www.amazon.com/Eloquent-Ruby-Addison-Wesley-Professional-Series/dp/0321584104">Eloquent Ruby</a> a great book about Ruby.</li>
-</ul>
-</article>
-  </div>
+[Enroll](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/ilmoittautuminen.md) to the open university course realisation and [ask for completion](https://github.com/mluukkai/WebPalvelinohjelmointi2022/blob/main/web/ilmoittautuminen.md#suoritusmerkinn%C3%A4n-pyyt%C3%A4minen) in the exercise submission system.
 
-</div>
+## What next?
 
-<a href="#jump-to-line" rel="facebox[.linejump]" data-hotkey="l" style="display:none">Jump to Line</a>
-<div id="jump-to-line" style="display:none">
-  <form accept-charset="UTF-8" class="js-jump-to-line-form">
-    <input class="linejump-input js-jump-to-line-field" type="text" placeholder="Jump to line&hellip;" autofocus>
-    <button type="submit" class="button">Go</button>
-  </form>
-</div>
+If Rails seems interesting you could dig more into it in the following ways
 
-        </div>
+- http://guides.rubyonrails.org/ A lot of good info...
+- http://railscasts.com/ excellent videos focusing on one theme at a time. Unfortunately new videos haven't been published in over a year- Hopefully the page will be re-activated at some point. It seems most pay-to-see pro-episodes can be found on Youtube... 
+- https://www.ruby-toolbox.com/ help for finding gems
+- [Eloquent Ruby](http://www.amazon.com/Eloquent-Ruby-Addison-Wesley-Professional-Series/dp/0321584104) an excellen book on Ruby
+- [Turbo](https://turbo.hotwired.dev/): a modern way to develop rails by makin rails applications single page applications
 
-      </div><!-- /.repo-container -->
-      <div class="modal-backdrop"></div>
-    </div><!-- /.container -->
-  </div><!-- /.site -->
-
-
-    </div><!-- /.wrapper -->
-
-      <div class="container">
-  <div class="site-footer" role="contentinfo">
-    <ul class="site-footer-links right">
-        <li><a href="https://status.github.com/" data-ga-click="Footer, go to status, text:status">Status</a></li>
-      <li><a href="https://developer.github.com" data-ga-click="Footer, go to api, text:api">API</a></li>
-      <li><a href="http://training.github.com" data-ga-click="Footer, go to training, text:training">Training</a></li>
-      <li><a href="http://shop.github.com" data-ga-click="Footer, go to shop, text:shop">Shop</a></li>
-        <li><a href="/blog" data-ga-click="Footer, go to blog, text:blog">Blog</a></li>
-        <li><a href="/about" data-ga-click="Footer, go to about, text:about">About</a></li>
-
-    </ul>
-
-    <a href="/" aria-label="Homepage">
-      <span class="mega-octicon octicon-mark-github" title="GitHub"></span>
-    </a>
-
-    <ul class="site-footer-links">
-      <li>&copy; 2015 <span title="0.05074s from github-fe121-cp1-prd.iad.github.net">GitHub</span>, Inc.</li>
-        <li><a href="/site/terms" data-ga-click="Footer, go to terms, text:terms">Terms</a></li>
-        <li><a href="/site/privacy" data-ga-click="Footer, go to privacy, text:privacy">Privacy</a></li>
-        <li><a href="/security" data-ga-click="Footer, go to security, text:security">Security</a></li>
-        <li><a href="/contact" data-ga-click="Footer, go to contact, text:contact">Contact</a></li>
-    </ul>
-  </div>
-</div>
-
-
-    <div class="fullscreen-overlay js-fullscreen-overlay" id="fullscreen_overlay">
-  <div class="fullscreen-container js-suggester-container">
-    <div class="textarea-wrap">
-      <textarea name="fullscreen-contents" id="fullscreen-contents" class="fullscreen-contents js-fullscreen-contents" placeholder=""></textarea>
-      <div class="suggester-container">
-        <div class="suggester fullscreen-suggester js-suggester js-navigation-container"></div>
-      </div>
-    </div>
-  </div>
-  <div class="fullscreen-sidebar">
-    <a href="#" class="exit-fullscreen js-exit-fullscreen tooltipped tooltipped-w" aria-label="Exit Zen Mode">
-      <span class="mega-octicon octicon-screen-normal"></span>
-    </a>
-    <a href="#" class="theme-switcher js-theme-switcher tooltipped tooltipped-w"
-      aria-label="Switch themes">
-      <span class="octicon octicon-color-mode"></span>
-    </a>
-  </div>
-</div>
-
-
-
-    
-
-    <div id="ajax-error-message" class="flash flash-error">
-      <span class="octicon octicon-alert"></span>
-      <a href="#" class="octicon octicon-x flash-close js-ajax-error-dismiss" aria-label="Dismiss error"></a>
-      Something went wrong with that request. Please try again.
-    </div>
-
-
-      <script crossorigin="anonymous" src="https://assets-cdn.github.com/assets/frameworks-9643b0378c6bcb216adcdaaaa703eed77aa239aaf1c2ae44cadb2fb5099ec172.js"></script>
-      <script async="async" crossorigin="anonymous" src="https://assets-cdn.github.com/assets/github-d967f968a967d73050b6f00df5ceb05917ff8f3c7f3803e832bee5eda8037365.js"></script>
-      
-      
-
-  </body>
-</html>
 
